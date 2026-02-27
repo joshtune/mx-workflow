@@ -1,1 +1,0 @@
-../commands/check-ignores.md

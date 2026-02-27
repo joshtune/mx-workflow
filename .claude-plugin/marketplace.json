@@ -13,7 +13,7 @@
         "url": "https://github.com/joshtune"
       },
       "version": "1.0.0",
-      "source": "./.claude-plugin/plugin.json"
+      "source": "."
     }
   ]
 }

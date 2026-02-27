@@ -1,1 +1,0 @@
-../commands/build-with-agent-team.md

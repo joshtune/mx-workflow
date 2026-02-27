@@ -5,8 +5,6 @@
   "author": {
     "name": "Josh Tune"
   },
-  "commandsDir": "./commands",
-  "agentsDir": "./agents",
   "commands": {
     "prime": "Warm up codebase context",
     "status": "Show project status and available tools",
