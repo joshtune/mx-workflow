@@ -1,0 +1,1 @@
+../commands/prime.md
