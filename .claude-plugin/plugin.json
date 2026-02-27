@@ -1,7 +1,32 @@
 {
   "name": "fv",
+  "version": "1.0.0",
   "description": "Development workflow commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
   "author": {
     "name": "Josh Tune"
+  },
+  "commands": {
+    "prime": "Warm up codebase context",
+    "rca": "Deep root cause analysis",
+    "plan": "Create implementation plan",
+    "implement": "Execute plan with validation",
+    "validate": "Run quality checks",
+    "e2e": "Browser-based E2E testing",
+    "check-ignores": "Audit suppression comments",
+    "commit": "Create conventional commit",
+    "ship": "Fix + check + commit + push",
+    "prd": "Problem-first PRD generator",
+    "build-with-agent-team": "Spawn agent team in tmux",
+    "create-command": "Create new slash commands",
+    "create-rules": "Generate CLAUDE.md from analysis",
+    "workflow": "Quick reference card"
+  },
+  "agents": {
+    "fv-code-reviewer": "Review code against guidelines",
+    "fv-code-simplifier": "Simplify code for clarity",
+    "fv-silent-failure-hunter": "Find silent failures",
+    "fv-mr-test-analyzer": "Review test coverage",
+    "fv-comment-analyzer": "Analyze comment accuracy",
+    "fv-type-design-analyzer": "Analyze type design"
   }
 }
