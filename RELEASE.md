@@ -45,7 +45,7 @@
    ```bash
    # In a test project
    /plugin marketplace add https://github.com/username/mx-workflow.git
-   /plugin install mx@joshuatune-mx-workflow
+   /plugin install mx@joshtune-mx-workflow
    ```
 
 ### For Direct Cloning

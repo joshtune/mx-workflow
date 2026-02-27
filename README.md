@@ -10,10 +10,10 @@ Register this repo as a plugin marketplace, then install:
 
 ```bash
 # 1. Add the marketplace (one-time)
-/plugin marketplace add https://github.com/joshuatune/mx-workflow.git
+/plugin marketplace add https://github.com/joshtune/mx-workflow.git
 
 # 2. Install the plugin
-/plugin install mx@joshuatune-mx-workflow
+/plugin install mx@joshtune-mx-workflow
 
 # Choose scope when prompted:
 #   user    → available in all projects (~/.claude/settings.json)
@@ -25,7 +25,7 @@ Register this repo as a plugin marketplace, then install:
 
 ```bash
 # Clone the repo
-git clone https://github.com/joshuatune/mx-workflow.git ~/mx-workflow
+git clone https://github.com/joshtune/mx-workflow.git ~/mx-workflow
 
 # Load for current session
 claude --plugin-dir ~/mx-workflow
@@ -37,7 +37,7 @@ This is temporary — the plugin is only available for that session.
 
 ```bash
 # Clone the repo
-git clone https://github.com/joshuatune/mx-workflow.git ~/mx-workflow
+git clone https://github.com/joshtune/mx-workflow.git ~/mx-workflow
 ```
 
 Then add the path to your Claude Code settings. Edit `~/.claude/settings.json`:
@@ -183,7 +183,7 @@ Run `/mx:create-command <name> <purpose>` to create new commands following the e
 
 ```bash
 # If installed via marketplace
-/plugin update mx@joshuatune-mx-workflow
+/plugin update mx@joshtune-mx-workflow
 
 # If cloned manually
 cd ~/mx-workflow && git pull
