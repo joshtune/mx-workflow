@@ -1,8 +1,8 @@
 {
   "plugins": [
     {
-      "name": "fv",
-      "id": "fv@joshuatune-fv-workflow",
+      "name": "mx",
+      "id": "mx@joshuatune-mx-workflow",
       "description": "Development workflow commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
       "author": "Josh Tune",
       "version": "1.0.0",

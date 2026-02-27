@@ -15,9 +15,9 @@
    claude --plugin-dir ~/workspace/claude/mx-workflow
 
    # Test key commands
-   /fv:workflow
-   /fv:plan
-   /fv:implement
+   /mx:workflow
+   /mx:plan
+   /mx:implement
    ```
 
 3. **Update CHANGELOG** (if maintaining one):
@@ -44,16 +44,16 @@
 3. **Test installation:**
    ```bash
    # In a test project
-   /plugin marketplace add https://github.com/username/fv-workflow.git
-   /plugin install fv@joshuatune-fv-workflow
+   /plugin marketplace add https://github.com/username/mx-workflow.git
+   /plugin install mx@joshuatune-mx-workflow
    ```
 
 ### For Direct Cloning
 
 Users can directly clone and load:
 ```bash
-git clone https://github.com/username/fv-workflow.git ~/fv-workflow
-claude --plugin-dir ~/fv-workflow
+git clone https://github.com/username/mx-workflow.git ~/mx-workflow
+claude --plugin-dir ~/mx-workflow
 ```
 
 ## Post-Release

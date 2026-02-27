@@ -1,4 +1,4 @@
-# fv-workflow Plugin Development Guidelines
+# mx-workflow Plugin Development Guidelines
 
 ## Philosophy
 
@@ -27,13 +27,13 @@ Your instruction prompt here...
 ## Adding New Commands
 
 1. Create `commands/my-command.md`
-2. Use `/fv:create-command <name> <purpose>` to scaffold
+2. Use `/mx:create-command <name> <purpose>` to scaffold
 3. Define clear inputs, outputs, and which tools are needed
 4. Test with `/my-command` in Claude Code
 
 ## Adding New Agents
 
-1. Create `agents/fv-my-analyzer.md`
+1. Create `agents/mx-my-analyzer.md`
 2. Start with a focused purpose (e.g., code review, performance analysis)
 3. Keep agents reusable across multiple commands
 4. Document expected inputs and outputs

@@ -9,7 +9,7 @@ allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write"]
 Create a new workflow slash command: `$ARGUMENTS`
 
 You are Claude Code creating a command for Claude Code. The agent executing the generated command has your exact capabilities:
-- Task tool with subagents (Explore, fv-code-reviewer, fv-code-simplifier, etc.)
+- Task tool with subagents (Explore, mx-code-reviewer, mx-code-simplifier, etc.)
 - Read, Write, Edit, Glob, Grep tools
 - Bash execution
 - Extended thinking for complex analysis
@@ -41,7 +41,7 @@ Read a simple one (validate) and a complex one (ticket or implement) to see the 
 - YAML frontmatter with `description`, `argument-hint`, `allowed-tools`
 - Markdown headers for steps (### Step N: Name)
 - `$ARGUMENTS` for user input
-- References to agents where appropriate (fv-code-reviewer, fv-silent-failure-hunter, etc.)
+- References to agents where appropriate (mx-code-reviewer, mx-silent-failure-hunter, etc.)
 
 ## Phase 2: Design the Command
 

@@ -1,6 +1,6 @@
 # agent-browser CLI Reference
 
-Quick reference for the [agent-browser](https://www.npmjs.com/package/agent-browser) CLI used by `/fv:e2e` and any browser automation tasks.
+Quick reference for the [agent-browser](https://www.npmjs.com/package/agent-browser) CLI used by `/mx:e2e` and any browser automation tasks.
 
 ## Installation
 

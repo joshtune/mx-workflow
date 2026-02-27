@@ -1,5 +1,5 @@
 ---
-name: fv-mr-test-analyzer
+name: mx-mr-test-analyzer
 description: Use this agent when you need to review a merge request for test coverage quality and completeness. This agent should be invoked after an MR is created or updated to ensure tests adequately cover new functionality and edge cases.
 model: inherit
 color: cyan

@@ -1,5 +1,5 @@
 ---
-name: fv-silent-failure-hunter
+name: mx-silent-failure-hunter
 description: Use this agent when reviewing code changes to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors.
 model: inherit
 color: yellow

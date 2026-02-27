@@ -71,12 +71,12 @@ Run the full suite — all quality checks plus tests.
 After all checks pass, run review agents using the Task tool to catch issues before commit.
 
 **Always run (in parallel):**
-- **fv-code-reviewer** — Check changes against CLAUDE.md guidelines and catch bugs
-- **fv-silent-failure-hunter** — Audit error handling in changed code
+- **mx-code-reviewer** — Check changes against CLAUDE.md guidelines and catch bugs
+- **mx-silent-failure-hunter** — Audit error handling in changed code
 
 **Run if applicable:**
-- **fv-type-design-analyzer** — If new types/interfaces were added
-- **fv-mr-test-analyzer** — If test files were added or modified
+- **mx-type-design-analyzer** — If new types/interfaces were added
+- **mx-mr-test-analyzer** — If test files were added or modified
 
 **After agents report:**
 - Fix any CRITICAL issues they find (confidence >= 90 or severity CRITICAL)
@@ -84,7 +84,7 @@ After all checks pass, run review agents using the Task tool to catch issues bef
 - Re-run quality checks if fixes were made
 
 **Then run:**
-- **fv-code-simplifier** — Polish pass on changed code (preserves functionality, improves clarity)
+- **mx-code-simplifier** — Polish pass on changed code (preserves functionality, improves clarity)
 - Re-run quality checks after simplification
 
 ### Step 6: Implementation Report
@@ -106,9 +106,9 @@ Output a summary:
 - <check 2>: PASS
 
 ### Agent Review
-- fv-code-reviewer: PASS (X issues found, X fixed)
-- fv-silent-failure-hunter: PASS (X issues found, X fixed)
-- fv-code-simplifier: X refinements applied
+- mx-code-reviewer: PASS (X issues found, X fixed)
+- mx-silent-failure-hunter: PASS (X issues found, X fixed)
+- mx-code-simplifier: X refinements applied
 
 ### Ready for
 - `/commit` - Create conventional commit

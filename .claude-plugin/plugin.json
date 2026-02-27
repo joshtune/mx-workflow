@@ -1,5 +1,5 @@
 {
-  "name": "fv",
+  "name": "mx",
   "version": "1.0.0",
   "description": "Development workflow commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
   "author": {
@@ -22,11 +22,11 @@
     "workflow": "Quick reference card"
   },
   "agents": {
-    "fv-code-reviewer": "Review code against guidelines",
-    "fv-code-simplifier": "Simplify code for clarity",
-    "fv-silent-failure-hunter": "Find silent failures",
-    "fv-mr-test-analyzer": "Review test coverage",
-    "fv-comment-analyzer": "Analyze comment accuracy",
-    "fv-type-design-analyzer": "Analyze type design"
+    "mx-code-reviewer": "Review code against guidelines",
+    "mx-code-simplifier": "Simplify code for clarity",
+    "mx-silent-failure-hunter": "Find silent failures",
+    "mx-mr-test-analyzer": "Review test coverage",
+    "mx-comment-analyzer": "Analyze comment accuracy",
+    "mx-type-design-analyzer": "Analyze type design"
   }
 }
