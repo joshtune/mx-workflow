@@ -1,12 +1,19 @@
 {
+  "name": "mx-workflow",
+  "owner": {
+    "name": "Josh Tune",
+    "url": "https://github.com/joshtune"
+  },
   "plugins": [
     {
       "name": "mx",
-      "id": "mx@joshuatune-mx-workflow",
       "description": "Development workflow commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
-      "author": "Josh Tune",
+      "author": {
+        "name": "Josh Tune",
+        "url": "https://github.com/joshtune"
+      },
       "version": "1.0.0",
-      "path": "."
+      "source": "."
     }
   ]
 }
