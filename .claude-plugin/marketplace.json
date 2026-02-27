@@ -13,9 +13,7 @@
         "url": "https://github.com/joshtune"
       },
       "version": "1.0.0",
-      "source": {
-        "url": "https://github.com/joshtune/mx-workflow.git"
-      }
+      "source": "./.claude-plugin/plugin.json"
     }
   ]
 }
