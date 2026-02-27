@@ -30,7 +30,12 @@ Use whatever is available. A combined command is preferred if it exists; otherwi
 
 ### Step 1: Load the Plan
 
-If a plan was created with `/plan`, use it. Otherwise, infer the plan from context or arguments.
+If a plan was provided in the conversation context or as an argument, use it. The plan can be:
+- From a previous `/mx:plan` command in this session
+- Pasted directly in the arguments
+- Referenced by section (e.g., "follow Step 2 of the plan")
+
+If no explicit plan exists, ask for clarification: "What changes should I implement?"
 
 ### Step 2: Execute Each Step
 

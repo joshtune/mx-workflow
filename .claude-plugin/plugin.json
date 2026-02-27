@@ -7,6 +7,7 @@
   },
   "commands": {
     "prime": "Warm up codebase context",
+    "status": "Show project status and available tools",
     "rca": "Deep root cause analysis",
     "plan": "Create implementation plan",
     "implement": "Execute plan with validation",
@@ -19,7 +20,7 @@
     "build-with-agent-team": "Spawn agent team in tmux",
     "create-command": "Create new slash commands",
     "create-rules": "Generate CLAUDE.md from analysis",
-    "workflow": "Quick reference card"
+    "help": "Quick reference card for all workflow commands"
   },
   "agents": {
     "mx-code-reviewer": "Review code against guidelines",

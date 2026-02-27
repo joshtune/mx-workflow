@@ -32,6 +32,10 @@ Run the type-check command if available. If it fails, stop and report the errors
 
 Run any framework-specific checks (e.g., `svelte-check`, `next lint`, `astro check`). If any fail, stop and report the errors.
 
+### Step 3b: Tests
+
+Run the test command if available. If tests fail, stop and report the errors.
+
 ### Step 4: Stage & Commit
 
 Follow the same commit logic as `/commit`:
@@ -44,9 +48,9 @@ git diff --stat
 git branch --show-current
 ```
 
-2. Infer ticket number from branch (if `FV_BRANCH_PATTERN` is set):
+2. Infer ticket number from branch (if `MX_BRANCH_PATTERN` is set):
 ```bash
-git branch --show-current | grep -oP '${FV_BRANCH_PATTERN}\K\d+' | head -1
+git branch --show-current | grep -oP '${MX_BRANCH_PATTERN}\K\d+' | head -1
 ```
 
 3. Infer scope from changed files and type from context — read `references/scope-mappings.md` from this plugin for the mapping tables.
@@ -55,14 +59,14 @@ git branch --show-current | grep -oP '${FV_BRANCH_PATTERN}\K\d+' | head -1
 
 5. Build commit message:
 ```
-<type>(<scope>)[${FV_TICKET_PREFIX} <ticket>] <description>
+<type>(<scope>)[${MX_TICKET_PREFIX} <ticket>] <description>
 
 <optional body - what changed and why>
 
-Co-Authored-By: ${FV_CO_AUTHOR:-Claude <noreply@anthropic.com>}
+Co-Authored-By: ${MX_CO_AUTHOR:-Claude <noreply@anthropic.com>}
 ```
 
-If `FV_TICKET_PREFIX` or ticket number is not available, omit the `[PREFIX TICKET]` portion.
+If `MX_TICKET_PREFIX` or ticket number is not available, omit the `[PREFIX TICKET]` portion.
 
 If `$ARGUMENTS` provides a description, use it. Otherwise, summarize from the diff.
 

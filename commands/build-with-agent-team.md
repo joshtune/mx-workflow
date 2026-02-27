@@ -1,7 +1,7 @@
 ---
 description: "Build using Claude Code Agent Teams with tmux split panes"
 argument-hint: "<plan-path> [num-agents]"
-allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Edit", "Task"]
+allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Edit"]
 ---
 
 # Build with Agent Team
@@ -99,8 +99,8 @@ You are the [ROLE] agent for this build.
 
 ## Project Conventions
 - Run quality checks after changes (see CLAUDE.md)
-- Commit format: `<type>(<scope>)[${FV_TICKET_PREFIX} <ticket>] <description>`
-- Co-Authored-By: ${FV_CO_AUTHOR:-Claude <noreply@anthropic.com>}
+- Commit format: `<type>(<scope>)[${MX_TICKET_PREFIX} <ticket>] <description>`
+- Co-Authored-By: ${MX_CO_AUTHOR:-Claude <noreply@anthropic.com>}
 
 ## Before Reporting Done
 Run these validations and fix any failures:

@@ -6,11 +6,12 @@ allowed-tools: []
 Display the ENTIRE code block below exactly as written. Do NOT summarize, paraphrase, or shorten it.
 
 ```
-FV-WORKFLOW COMMANDS
+MX-WORKFLOW COMMANDS
 ==========================
 
 SESSION START
   /prime                            Warm up codebase context (reads key files, runs checks)
+  /status                           Show project status and available tools
 
 IMPLEMENTATION (most common path)
   /rca <error or symptom>           Deep root cause analysis (5 Whys + git history)
@@ -44,7 +45,7 @@ ANYTIME
   /ship [desc]                      Fix + check + commit + push in one step
 
 WHICH PATH SHOULD I USE?
-  New session               → /prime (warm up context)
+  New session               → /status (check project readiness) → /prime (warm up context)
   New feature (needs spec)  → /prd → /plan → /implement
   Bug fix or small feature  → /rca (if needed) → /plan → /implement
   After implementing        → /e2e (verify it works in the browser)

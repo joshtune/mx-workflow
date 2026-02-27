@@ -15,7 +15,7 @@
    claude --plugin-dir ~/workspace/claude/mx-workflow
 
    # Test key commands
-   /mx:workflow
+   /mx:help
    /mx:plan
    /mx:implement
    ```

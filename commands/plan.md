@@ -14,12 +14,10 @@ Create a detailed implementation plan based on the current ticket understanding 
 
 ### Step 1: Gather Context
 
-If not already done via `/ticket`:
-- Read the ticket or description
+From the arguments or context:
+- Read the ticket or description provided
 - Explore relevant codebase areas
 - Identify existing patterns to follow
-
-If `/ticket` was already run, build on that understanding.
 
 ### Step 2: Analyze Existing Patterns
 
@@ -100,6 +98,7 @@ After each change, run quality checks (detected by `/prime` or from CLAUDE.md).
 - <anything to watch out for>
 
 ### Confidence: X/10
+(Rate 1-10: 1=very uncertain, 5=moderate, 10=very confident)
 <Brief justification — what could cause implementation to need a second pass?>
 ```
 

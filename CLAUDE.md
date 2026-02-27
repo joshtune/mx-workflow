@@ -2,7 +2,7 @@
 
 ## Philosophy
 
-The fv-workflow plugin empowers developers to move faster through automation, guidance, and multi-agent collaboration. Every command should save time, reduce cognitive load, or improve code quality.
+The mx-workflow plugin empowers developers to move faster through automation, guidance, and multi-agent collaboration. Every command should save time, reduce cognitive load, or improve code quality.
 
 ## Architecture
 
@@ -10,6 +10,10 @@ The fv-workflow plugin empowers developers to move faster through automation, gu
 - **Commands** (`/commands`): User-facing slash commands (Markdown frontmatter + instructions)
 - **Agents** (`/agents`): Specialized analyzers for code review, testing, debugging
 - **References** (`/references`): Configuration and mappings (scope mappings, agent browser)
+
+## Commands at a Glance
+
+Type `/mx:help` to see a quick reference card for all available commands.
 
 ### Command Format
 

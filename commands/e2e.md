@@ -30,18 +30,23 @@ Verify the application has a browser-accessible frontend. Look for:
 
 If no frontend is detected, stop with: "No browser-accessible frontend detected. E2E browser testing requires a UI. For API-only testing, use a different approach."
 
-### 3. agent-browser Installation
+### 3. agent-browser Availability
 
 ```bash
-agent-browser --version
+which agent-browser || command -v agent-browser
 ```
 
-If not found, install:
-```bash
-npm install -g agent-browser && agent-browser install --with-deps
-```
+If not found, attempt installation using the detected package manager:
 
-Verify after install. If it still fails, stop and tell the user to install manually.
+- If `pnpm-lock.yaml` exists: `pnpm add -g agent-browser`
+- If `yarn.lock` exists: `yarn global add agent-browser`
+- If `bun.lockb` exists: `bun install -g agent-browser`
+- Otherwise (npm): `npm install -g agent-browser`
+
+Then verify: `agent-browser --version`
+
+If installation fails or agent-browser is not available in the user's environment, stop with:
+> "agent-browser is required for E2E testing but is not available in this environment. Install it globally or use a different testing approach. For details, see references/agent-browser.md in this plugin."
 
 See `references/agent-browser.md` in this plugin for the full command reference.
 
@@ -111,8 +116,10 @@ For each step in the journey:
 3. **Wait** for the page to settle: `agent-browser wait --load networkidle`
 4. **Screenshot** with descriptive path:
    ```bash
-   agent-browser screenshot e2e-screenshots/<journey-name>/<NN>-<step-description>.png
+   agent-browser screenshot e2e-screenshots/<journey-name>/01-<step-description>.png
+   agent-browser screenshot e2e-screenshots/<journey-name>/02-<step-description>.png
    ```
+   Use zero-padded sequential numbers (01, 02, 03, etc.)
 5. **Analyze the screenshot** — use the Read tool to view it. Check for visual correctness, layout issues, missing content, error states
 6. **Check for JS errors** periodically: `agent-browser console` and `agent-browser errors`
 
@@ -196,7 +203,9 @@ If yes, write the detailed report.
 ## Important
 
 - This command requires a running frontend — it cannot test APIs or CLIs
+- This command requires `agent-browser` to be installed and available globally
 - Screenshots go in `e2e-screenshots/` at the project root (created automatically)
 - Database queries use env vars from `.env.example` patterns (never read `.env` directly)
 - Fix bugs as you find them — don't just report and move on
 - If the dev server fails to start, report the error and stop
+- If `agent-browser` is not available, this command will fail early with installation guidance

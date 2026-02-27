@@ -1,7 +1,7 @@
 ---
 description: "Interactive PRD generator - problem-first, hypothesis-driven product spec"
 argument-hint: "[feature/product idea] (blank = start with questions)"
-allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Task"]
+allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write"]
 ---
 
 # Product Requirements Document Generator

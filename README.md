@@ -54,7 +54,7 @@ Once installed, type `/mx:` and you should see all commands in autocomplete.
 
 Test with:
 ```
-/mx:workflow
+/mx:help
 ```
 
 This should display the full command reference card.
@@ -74,7 +74,7 @@ Commands are invoked as `/mx:<command-name>`:
 /mx:e2e                 # Browser-based E2E testing
 /mx:commit              # Create a conventional commit
 /mx:ship                # Fix + check + commit + push
-/mx:workflow            # Show the full command reference
+/mx:help                # Show the full command reference
 ```
 
 ## Configuration
@@ -86,8 +86,8 @@ Set them in your shell profile (`~/.bashrc`, `~/.zshrc`) or in `~/.claude/settin
 ```json
 {
   "env": {
-    "FV_TICKET_PREFIX": "PROJ",
-    "FV_BRANCH_PATTERN": "feature/[^/]+/"
+    "MX_TICKET_PREFIX": "PROJ",
+    "MX_BRANCH_PATTERN": "feature/[^/]+/"
   }
 }
 ```
@@ -139,7 +139,7 @@ See `.env.example` for detailed documentation on each variable.
 
 | Command | Description |
 |---|---|
-| `/mx:workflow` | Quick reference card for all commands |
+| `/mx:help` | Quick reference card for all commands |
 
 ## Agents
 

@@ -9,7 +9,7 @@ allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write"]
 Create a new workflow slash command: `$ARGUMENTS`
 
 You are Claude Code creating a command for Claude Code. The agent executing the generated command has your exact capabilities:
-- Task tool with subagents (Explore, mx-code-reviewer, mx-code-simplifier, etc.)
+- Task tool with subagents (Explore agent, mx-code-reviewer, mx-code-simplifier, etc.)
 - Read, Write, Edit, Glob, Grep tools
 - Bash execution
 - Extended thinking for complex analysis
@@ -109,7 +109,7 @@ Before saving, check:
 
 ## Phase 5: Update Workflow Card
 
-After creating the command, ask: "Should I add this to `/workflow`?"
+After creating the command, ask: "Should I add this to `/mx:help`?"
 
 ## Report
 

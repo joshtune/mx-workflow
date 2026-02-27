@@ -26,7 +26,7 @@ git branch --show-current
 
 **Ticket number** - Extract from branch name:
 ```bash
-git branch --show-current | grep -oP '${FV_BRANCH_PATTERN}\K\d+' | head -1
+git branch --show-current | grep -oP '${MX_BRANCH_PATTERN}\K\d+' | head -1
 ```
 
 **Scope** - Infer from changed files using `references/scope-mappings.md` from this plugin.
@@ -46,11 +46,11 @@ If some files are already staged, ask the user if they want to add more.
 
 Format:
 ```
-<type>(<scope>)[${FV_TICKET_PREFIX} <ticket>] <description>
+<type>(<scope>)[${MX_TICKET_PREFIX} <ticket>] <description>
 
 <optional body - what changed and why>
 
-Co-Authored-By: ${FV_CO_AUTHOR:-Claude <noreply@anthropic.com>}
+Co-Authored-By: ${MX_CO_AUTHOR:-Claude <noreply@anthropic.com>}
 ```
 
 If `$ARGUMENTS` provides a description, use it. Otherwise, summarize from the diff.

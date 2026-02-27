@@ -49,7 +49,7 @@ ultrathink about each suppression before making recommendations.
 
 ### Step 4: Generate Report
 
-Create directory: `mkdir -p .agents/reports`
+Create directory: `mkdir -p .agents/reports` (or skip if directory exists)
 
 Save to: `.agents/reports/suppression-audit-{YYYY-MM-DD}.md`
 
