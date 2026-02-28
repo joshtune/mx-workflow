@@ -13,10 +13,7 @@
         "url": "https://github.com/joshtune"
       },
       "version": "1.0.0",
-      "source": {
-        "source": "github",
-        "repo": "joshtune/mx-workflow"
-      }
+      "source": "./plugins/mx"
     }
   ]
 }
