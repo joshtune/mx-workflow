@@ -27,7 +27,9 @@ IMPLEMENTATION (most common path)
   /mx:commit                           Conventional commit (auto-infers scope/type/ticket)
   /mx:ship [desc]                      Fix + check + commit + push in one step
   /mx:pr [--draft | --base <branch>]   Create PR with auto-generated summary and agent findings
-  /mx:loop [ticket | all]              Process Linear tickets sequentially (plan → implement → commit)
+  /mx:loop [ticket | all] [--branch-per-ticket]
+                                       Process Linear tickets with smart pipeline routing (A/B/C/D)
+                                       --branch-per-ticket: separate branch + auto-PR per ticket
 
 MULTI-AGENT TEAM BUILD (complex features)
   /mx:prd                              Define the problem, scope, and spec first
@@ -66,7 +68,7 @@ WHICH PATH SHOULD I USE?
   Ready to open a PR        → /mx:pr (or /mx:pr --draft for work-in-progress)
   Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement
   Quick code change         → Just code, then /mx:ship (or /mx:validate → /mx:commit)
-  Batch Linear tickets      → /mx:loop (or /mx:loop EIT-25,EIT-30 for specific ones)
+  Batch Linear tickets      → /mx:loop (or /mx:loop EIT-25,EIT-30 --branch-per-ticket)
   Mysterious bug            → /mx:rca <error message or symptom>
   Tech debt cleanup         → /mx:check-ignores
   Dependency health check   → /mx:deps

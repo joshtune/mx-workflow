@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Smart pipeline routing for `/mx:loop` — auto-classifies tickets into Bug Fix [A], Feature [B], Simple/Docs [C], or Refactor [D] pipelines with tailored sub-agent workflows (EIT-58)
+- `--branch-per-ticket` mode for `/mx:loop` — creates isolated branches with auto-PR creation via `gh pr create` per ticket (EIT-59)
+- Per-ticket pipeline override syntax (e.g., `EIT-42:A`) for `/mx:loop`
+
+### Changed
+
+- `/mx:loop` pre-flight summary now shows pipeline classification per ticket
+- `/mx:loop` final report includes pipeline breakdown stats, branch names, and PR URLs
+- `/mx:help` updated with new `/mx:loop` flags and pipeline routing
+
 ## [1.1.1] - 2026-03-01
 
 ### Changed
