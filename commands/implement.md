@@ -82,6 +82,7 @@ After all checks pass, run review agents using the Task tool to catch issues bef
 **Run if applicable:**
 - **mx-type-design-analyzer** — If new types/interfaces were added
 - **mx-mr-test-analyzer** — If test files were added or modified
+- **mx-comment-analyzer** — If comments or docstrings were added or modified
 
 **After agents report:**
 - Fix any CRITICAL issues they find (confidence >= 90 or severity CRITICAL)
