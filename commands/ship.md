@@ -1,6 +1,6 @@
 ---
 description: "Fix, check, commit, and push in one step"
-argument-hint: "[commit description]"
+argument-hint: "[--dry-run] [commit description]"
 allowed-tools: ["Bash", "Read", "Glob"]
 ---
 
@@ -12,7 +12,14 @@ Run quality checks, commit, and push — all in one command.
 
 ## Instructions
 
-### Step 0: Detect Project Tools
+### Step 0a: Parse Flags
+
+Check if `$ARGUMENTS` contains `--dry-run`:
+
+- If `--dry-run` is present, set **DRY_RUN = true** and strip the flag from the arguments so the remaining text is treated as the commit description.
+- If `--dry-run` is not present, set **DRY_RUN = false**.
+
+### Step 0b: Detect Project Tools
 
 Determine quality commands and package manager using the same detection as `/validate`:
 
@@ -70,9 +77,28 @@ If `MX_TICKET_PREFIX` or ticket number is not available, omit the `[PREFIX TICKE
 
 If `$ARGUMENTS` provides a description, use it. Otherwise, summarize from the diff.
 
-6. Show the proposed commit message and ask: "Ship it?"
+6. Show the proposed commit message.
 
-7. Create the commit:
+7. **If DRY_RUN is true**, display a dry-run summary instead of committing:
+
+```
+DRY RUN — no changes were made
+===============================
+Staged changes:
+  <files changed>, <insertions>, <deletions> (from git diff --cached --stat)
+
+Commit message:
+  <the formatted commit message>
+
+Push target:
+  <remote>/<branch> (e.g., origin/feat/my-feature)
+
+No commit was created. No push was performed.
+```
+
+Then skip to Step 6 (Report) with the DRY RUN indicator.
+
+8. **If DRY_RUN is false**, ask "Ship it?" and create the commit:
 ```bash
 git commit -m "$(cat <<'EOF'
 <formatted message>
@@ -81,6 +107,10 @@ EOF
 ```
 
 ### Step 5: Push
+
+**If DRY_RUN is true**, skip this step entirely.
+
+**If DRY_RUN is false:**
 
 ```bash
 git push
@@ -94,14 +124,14 @@ git push -u origin $(git branch --show-current)
 ### Step 6: Report
 
 ```
-SHIP RESULTS
+SHIP RESULTS <if DRY_RUN: [DRY RUN]>
 ============
 <check 1>:       PASS / FAIL
 <check 2>:       PASS / FAIL
-Commit:           <hash> <message>
-Push:             PASS / FAIL
+Commit:           <hash> <message>  OR  (dry run — skipped)
+Push:             PASS / FAIL       OR  (dry run — skipped)
 ─────────────────────────────
-Overall:          SHIPPED / FAILED
+Overall:          SHIPPED / FAILED  OR  DRY RUN COMPLETE
 ```
 
 Only include checks that were actually run.
