@@ -78,9 +78,9 @@ This grounds the PRD in reality rather than abstract requirements.
 
 ### Phase 5: GENERATE
 
-**Output path**: `.agents/PRDs/{kebab-case-name}.prd.md`
+**Output path**: `.agents/prds/{kebab-case-name}.prd.md`
 
-Create directory if needed: `mkdir -p .agents/PRDs`
+Create directory if needed: `mkdir -p .agents/prds`
 
 Write the PRD:
 
@@ -165,7 +165,7 @@ After generating, report:
 ```markdown
 ## PRD Created
 
-**File**: `.agents/PRDs/{name}.prd.md`
+**File**: `.agents/prds/{name}.prd.md`
 
 **Problem**: {One line}
 **Solution**: {One line}

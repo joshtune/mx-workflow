@@ -67,6 +67,16 @@ Bump version in:
 - **Inline help**: Commands have built-in descriptions
 - **Frontmatter**: `description` field appears in autocomplete
 
+## Output Directory Convention
+
+Commands that generate artifacts write to `.agents/` using **all-lowercase-hyphenated** subdirectories:
+
+- `.agents/prds/` — PRD documents
+- `.agents/rca-reports/` — Root cause analysis reports
+- `.agents/reports/` — General reports (suppression audits, etc.)
+
+Never use capitalized directory names (e.g., `.agents/PRDs/` is wrong).
+
 ## Quality Standards
 
 - Commands should run in under 2 minutes for common paths
