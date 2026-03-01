@@ -20,6 +20,7 @@ IMPLEMENTATION (most common path)
   /validate                         Run quality checks (lint, type-check, tests)
   /e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
   /check-ignores                    Audit type/lint suppression comments
+  /branch <ticket> <desc>            Create branch with ticket-encoded naming convention
   /commit                           Conventional commit (auto-infers scope/type/ticket)
   /ship [desc]                      Fix + check + commit + push in one step
   /pr [--draft | --base <branch>]   Create PR with auto-generated summary and agent findings
@@ -53,6 +54,7 @@ WHICH PATH SHOULD I USE?
   After implementing        → /e2e (verify it works in the browser)
   Complex multi-component   → /prd → /build-with-agent-team
   Ready to open a PR        → /pr (or /pr --draft for work-in-progress)
+  Starting a ticket         → /branch <ticket> <desc> → /plan → /implement
   Quick code change         → Just code, then /ship (or /validate → /commit)
   Batch Linear tickets      → /loop (or /loop EIT-25,EIT-30 for specific ones)
   Mysterious bug            → /rca <error message or symptom>

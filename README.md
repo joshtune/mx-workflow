@@ -95,7 +95,7 @@ Set them in your shell profile (`~/.bashrc`, `~/.zshrc`) or in `~/.claude/settin
 | Variable | Purpose | Default |
 |---|---|---|
 | `MX_TICKET_PREFIX` | Ticket reference prefix in commits (e.g., `PROJ`) | *(none — optional)* |
-| `MX_BRANCH_PATTERN` | Regex to extract ticket # from branch (e.g., `feature/[^/]+/`) | *(none — optional)* |
+| `MX_BRANCH_PATTERN` | Branch naming template for `/mx:branch` (e.g., `{type}/{ticket}-{description}`) | `{type}/{ticket}-{description}` |
 | `MX_CO_AUTHOR` | Co-author line for AI commits | `Claude <noreply@anthropic.com>` |
 
 See `.env.example` for detailed documentation on each variable.
@@ -118,6 +118,7 @@ See `.env.example` for detailed documentation on each variable.
 | `/mx:validate` | Run quality checks (lint, type-check, tests) |
 | `/mx:e2e [url]` | Browser-based E2E testing (screenshots, DB validation, bug fixes) |
 | `/mx:check-ignores` | Audit type/lint suppression comments |
+| `/mx:branch <ticket> <desc>` | Create branch with ticket-encoded naming convention |
 | `/mx:commit` | Conventional commit (auto-infers scope/type/ticket) |
 | `/mx:ship [desc]` | Fix + check + commit + push in one step |
 | `/mx:pr [--draft]` | Create PR with auto-generated summary and agent findings |
@@ -164,6 +165,7 @@ Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
 After implementing        → /mx:e2e (verify it works in the browser)
 Complex multi-component   → /mx:prd → /mx:build-with-agent-team
 Ready to open a PR        → /mx:pr (or /mx:pr --draft)
+Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement
 Quick code change         → Just code, then /mx:ship
 Mysterious bug            → /mx:rca <error message or symptom>
 Tech debt cleanup         → /mx:check-ignores
