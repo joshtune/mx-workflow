@@ -1,8 +1,9 @@
 {
   "name": "mx",
   "description": "Development workflow commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
-  "author": {
+  "owner": {
     "name": "Josh Tune",
     "url": "https://github.com/joshtune"
-  }
+  },
+  "plugins": []
 }
