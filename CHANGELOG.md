@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-01
+
+### Added
+
+- `/mx:loop` command — sequential ticket processor that fetches Linear tickets and processes them one-by-one via sub-agents (EIT-49 prerequisite)
+- `/mx:pr` command — create PRs with auto-generated summaries and agent review findings (EIT-28)
+- `/mx:branch` command — ticket-encoded branch creation using `MX_BRANCH_PATTERN` (EIT-29)
+- `/mx:agents` command — discover available agents with purposes and command references (EIT-30)
+- `/mx:deps` command — dependency security audit, outdated version checks, and unused package detection (EIT-31)
+- `/mx:version` command — centralized version management across plugin.json, marketplace.json, and CHANGELOG.md (EIT-36)
+- `mx-performance-auditor` agent — performance analysis covering algorithmic complexity, memory, I/O, frontend, and database patterns (EIT-32)
+- `--dry-run` flag for `/mx:ship` — preview what would be committed and pushed without actually doing it (EIT-33)
+- `mx-comment-analyzer` integrated into `/mx:implement` review pass for comment quality checks (EIT-41)
+- Getting Started walkthrough in README — 7-step first-session guide (EIT-37)
+- Troubleshooting section in README — 6 common failure modes with solutions (EIT-38)
+- Example project configurations in scope-mappings for frontend SPA, backend API, monorepo, and CLI tool (EIT-39)
+- PRD vs Plan usage clarification in README (EIT-40)
+- Database rollback/cleanup guidance in `/mx:e2e` (EIT-42)
+- CHANGELOG.md following Keep a Changelog format (EIT-49)
+
+### Fixed
+
+- Audited and fixed `allowed-tools` declarations across 5 commands — added missing tools, removed unused ones (EIT-35)
+
+### Changed
+
+- Version management documented in CLAUDE.md now references `/mx:version` command
+- `/mx:help` updated with all new commands across IMPLEMENTATION, DISCOVERY, RELEASE, and ANYTIME sections
+
 ## [1.0.1] - 2026-02-28
 
 ### Fixed
@@ -28,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/joshtune/mx-workflow/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/joshtune/mx-workflow/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/joshtune/mx-workflow/releases/tag/v1.0.0
