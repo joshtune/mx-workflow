@@ -1,6 +1,258 @@
 ---
 title: Agent Catalog
-description: Overview of all available agents and their capabilities.
+description: All 7 specialized AI agents — purpose, capabilities, triggers, and which commands invoke them.
 ---
 
-Documentation coming soon.
+mx-workflow includes seven specialized agents that analyze your code from different angles. They run as sub-agents via the Task tool, either automatically during commands like `/mx:implement` or on-demand through the `/mx:agents` command.
+
+## How agents work
+
+Each agent is a focused expert with a single responsibility. When invoked, it receives the relevant code (typically your unstaged changes from `git diff`) and produces a structured report with findings, severity ratings, and actionable recommendations.
+
+Agents are **advisory only** — they analyze and report but do not modify code directly (with the exception of `mx-code-simplifier`, which applies refinements).
+
+## mx-code-reviewer
+
+**Purpose:** Review code against CLAUDE.md project guidelines and detect bugs.
+
+| Property | Value |
+|---|---|
+| Model | Opus |
+| Mode | Advisory (reports findings, does not modify code) |
+| Default scope | Unstaged changes from `git diff` |
+
+**What it checks:**
+
+- Adherence to project rules in CLAUDE.md (import patterns, naming conventions, error handling, etc.)
+- Logic errors, null/undefined handling, race conditions
+- Memory leaks and security vulnerabilities
+- Code duplication and missing critical error handling
+- Accessibility problems and inadequate test coverage
+
+**Confidence scoring:** Every issue is rated 0-100. Only issues scoring 80 or above are reported, which keeps output focused on real problems rather than noise.
+
+**Invoked by:**
+
+- `/mx:implement` — always runs during the agent review pass (Step 5)
+- Can be invoked directly via the Task tool at any time
+
+---
+
+## mx-code-simplifier
+
+**Purpose:** Simplify code for clarity and maintainability while preserving all functionality.
+
+| Property | Value |
+|---|---|
+| Model | Opus |
+| Mode | Active (applies refinements to code) |
+| Default scope | Recently modified code |
+
+**What it does:**
+
+- Reduces unnecessary complexity and nesting
+- Eliminates redundant code and abstractions
+- Improves variable and function naming
+- Consolidates related logic
+- Removes comments that describe obvious code
+- Replaces nested ternary operators with clearer control flow
+- Applies project-specific coding standards from CLAUDE.md
+
+**Important:** This agent preserves exact functionality. It changes *how* code is written, never *what* it does. It also avoids over-simplification — it will not create clever one-liners that sacrifice readability.
+
+**Invoked by:**
+
+- `/mx:implement` — runs as the final polish pass after other agents (Step 5)
+- Can be invoked directly via the Task tool at any time
+
+---
+
+## mx-comment-analyzer
+
+**Purpose:** Analyze code comments for accuracy, completeness, and long-term maintainability.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (reports findings, does not modify code) |
+| Default scope | Comments and docstrings in changed files |
+
+**What it checks:**
+
+- **Factual accuracy** — do comments match the actual code? Are parameter types, return values, and described behaviors correct?
+- **Completeness** — are critical assumptions, side effects, and error conditions documented?
+- **Long-term value** — do comments explain "why" rather than restating "what"? Will they remain accurate as the code evolves?
+- **Misleading elements** — ambiguous language, outdated references, TODOs that have already been addressed
+
+**Output categories:**
+
+1. **Critical Issues** — factually incorrect or highly misleading comments
+2. **Improvement Opportunities** — comments that could be enhanced
+3. **Recommended Removals** — comments that add no value or create confusion
+4. **Positive Findings** — well-written comments worth highlighting as examples
+
+**Invoked by:**
+
+- `/mx:implement` — runs during the agent review pass if comments or docstrings were added or modified
+- Can be invoked directly via the Task tool at any time
+
+---
+
+## mx-mr-test-analyzer
+
+**Purpose:** Review test coverage quality and completeness for merge requests.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (reports findings, does not modify code) |
+| Default scope | Test files in the current MR or changeset |
+
+**What it checks:**
+
+- **Behavioral coverage** — are critical code paths, edge cases, and error conditions tested?
+- **Test quality** — do tests verify behavior and contracts rather than implementation details?
+- **Regression resilience** — would tests catch meaningful regressions from future changes?
+- **Missing negative cases** — are validation logic and error scenarios covered?
+- **Concurrency coverage** — are async and concurrent behaviors tested where relevant?
+
+**Criticality ratings:** Each recommendation is rated 1-10:
+
+| Rating | Meaning |
+|---|---|
+| 9-10 | Critical — could cause data loss, security issues, or system failures |
+| 7-8 | Important — could cause user-facing errors |
+| 5-6 | Useful — covers edge cases that could cause confusion |
+| 3-4 | Nice-to-have — improves completeness |
+| 1-2 | Optional — minor improvements |
+
+**Invoked by:**
+
+- `/mx:implement` — runs during the agent review pass if test files were added or modified
+- Can be invoked directly via the Task tool at any time
+
+---
+
+## mx-performance-auditor
+
+**Purpose:** Analyze code for performance bottlenecks, inefficient patterns, and scalability risks.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (reports findings, does not modify code) |
+| Default scope | Unstaged changes from `git diff` |
+
+**Analysis categories:**
+
+1. **Algorithmic complexity** — O(n^2) loops, unnecessary iterations, inefficient data structures, sorting overhead
+2. **Memory patterns** — large allocations, memory leaks, unbounded caches, unnecessary object copying
+3. **I/O bottlenecks** — N+1 queries, missing pagination, synchronous blocking, sequential operations that could be parallel
+4. **Frontend performance** — unnecessary re-renders, large bundle imports, missing lazy loading, missing virtualization
+5. **Database patterns** — missing indexes, full table scans, unoptimized queries, transaction issues
+
+**Severity levels:**
+
+| Level | Meaning |
+|---|---|
+| CRITICAL | Production impact likely |
+| WARNING | Will degrade at scale |
+| INFO | Minor optimization opportunity |
+
+**Invoked by:**
+
+- Can be invoked directly via the Task tool when investigating performance concerns
+- Useful to run after implementing features that handle large data volumes or run on hot paths
+
+---
+
+## mx-silent-failure-hunter
+
+**Purpose:** Find silent failures, inadequate error handling, and inappropriate fallback behavior.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (reports findings, does not modify code) |
+| Default scope | Error handling code in changed files |
+
+**What it hunts for:**
+
+- Empty catch blocks
+- Catch blocks that log and continue without user feedback
+- Broad exception catching that hides unrelated errors
+- Returning null/default values on error without logging
+- Optional chaining (`?.`) silently skipping operations that might fail
+- Fallback chains that try multiple approaches without explanation
+- Retry logic that exhausts attempts without informing the user
+- Mock/fake implementations in production code
+
+**For each issue found, it reports:**
+
+1. Location (file and line)
+2. Severity (CRITICAL, HIGH, or MEDIUM)
+3. What is wrong and why it is problematic
+4. Which unexpected errors could be hidden
+5. How it affects the user experience
+6. Specific code changes needed, with examples
+
+**Invoked by:**
+
+- `/mx:implement` — always runs during the agent review pass (Step 5)
+- Can be invoked directly via the Task tool at any time
+
+---
+
+## mx-type-design-analyzer
+
+**Purpose:** Analyze type design for encapsulation quality and invariant expression.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (reports findings, does not modify code) |
+| Default scope | New or modified type definitions |
+
+**Analysis framework — four dimensions rated 1-10:**
+
+| Dimension | What it evaluates |
+|---|---|
+| **Encapsulation** | Are internals hidden? Can invariants be violated from outside? Is the interface minimal and complete? |
+| **Invariant Expression** | How clearly are invariants communicated through structure? Are they enforced at compile time where possible? |
+| **Invariant Usefulness** | Do invariants prevent real bugs? Are they aligned with business requirements? |
+| **Invariant Enforcement** | Are invariants checked at construction? Are mutation points guarded? Can invalid instances be created? |
+
+**Common anti-patterns it flags:**
+
+- Anemic domain models with no behavior
+- Types that expose mutable internals
+- Invariants enforced only through documentation
+- Types with too many responsibilities
+- Missing validation at construction boundaries
+
+**Invoked by:**
+
+- `/mx:implement` — runs during the agent review pass if new types or interfaces were added
+- Can be invoked directly via the Task tool when introducing or refactoring types
+
+---
+
+## Quick reference
+
+| Agent | Runs automatically in | On-demand |
+|---|---|---|
+| mx-code-reviewer | `/mx:implement` (always) | Yes |
+| mx-code-simplifier | `/mx:implement` (always, final pass) | Yes |
+| mx-comment-analyzer | `/mx:implement` (if comments changed) | Yes |
+| mx-mr-test-analyzer | `/mx:implement` (if tests changed) | Yes |
+| mx-performance-auditor | — | Yes |
+| mx-silent-failure-hunter | `/mx:implement` (always) | Yes |
+| mx-type-design-analyzer | `/mx:implement` (if types changed) | Yes |
+
+To see agents available in your current session, run:
+
+```
+/mx:agents
+```
+
+To invoke any agent directly, use the Task tool with the agent name and specify which files or scope to analyze.

@@ -1,6 +1,174 @@
 ---
 title: First Session
-description: Walk through your first mx-workflow session from start to finish.
+description: Walk through your first mx-workflow session from start to finish — 7 steps from clone to PR.
 ---
 
-Documentation coming soon.
+This guide walks through a complete first session with mx-workflow, from installing the plugin to opening your first pull request. By the end, you will have experienced the core development loop and understand how the pieces fit together.
+
+## Before you start
+
+Make sure you have:
+
+- **[Claude Code](https://claude.com/claude-code)** CLI installed and working
+- **git** configured with SSH or HTTPS access to your repository
+- **mx-workflow** installed (see [Getting Started](/mx-workflow/getting-started/) for installation options)
+
+Verify the plugin is loaded by typing `/mx:` in Claude Code. You should see all commands appear in autocomplete. If not, revisit the installation steps.
+
+## Step 1: Load codebase context
+
+```
+/mx:prime
+```
+
+This is always the first command in any session. It reads key project files — `CLAUDE.md`, `package.json`, `tsconfig.json`, `Makefile`, and similar — and runs initial quality checks so Claude understands your project's structure, conventions, and current health.
+
+**What happens behind the scenes:**
+- Project files are read to detect the tech stack, framework, and tooling
+- Quality commands are detected (linter, type checker, test runner)
+- CLAUDE.md is loaded (if it exists) to understand project-specific rules
+
+**What to look for in the output:**
+- Which quality tools were detected
+- Whether the project is in a clean state
+- Any immediate issues that need attention
+
+If your project does not have a `CLAUDE.md` yet, consider running `/mx:create-rules` to generate one. This file establishes project conventions that agents and commands use to stay consistent.
+
+## Step 2: Check project readiness
+
+```
+/mx:validate
+```
+
+Run the full validation suite to confirm the project is in a healthy state before making changes. This auto-detects and runs your linter, type checker, and test suite.
+
+**If everything passes:** You are ready to start working.
+
+**If something fails:** Fix existing issues before writing new code. This prevents your changes from being blamed for pre-existing problems and gives you a clean baseline.
+
+You can also use `/mx:status` for a lighter-weight check that shows what tools are available without running them.
+
+## Step 3: Create a branch
+
+If you are working on a ticket, create a branch with the ticket ID encoded in the name:
+
+```
+/mx:branch EIT-42 add-user-authentication
+```
+
+This creates a branch like `feature/EIT-42-add-user-authentication` following your team's naming convention. The ticket ID embedded in the branch name is later picked up automatically by `/mx:commit` for the commit message.
+
+If you are not working on a ticket, you can create a branch manually or skip this step.
+
+## Step 4: Plan the implementation
+
+```
+/mx:plan
+```
+
+Describe what you want to build — either as a direct description or by referencing a ticket. The plan command analyzes your codebase to understand existing patterns, file structure, and conventions, then produces a step-by-step implementation guide.
+
+**A good plan includes:**
+- Which files to create or modify
+- Architecture decisions and why they were made
+- How to follow existing patterns in the codebase
+- What tests to write
+- Dependencies between steps
+
+**Review the plan before proceeding.** If something looks off, discuss it and get an updated plan. The implementation step follows the plan closely, so it is worth getting right.
+
+For features that need more thought before planning, use `/mx:prd` first to define requirements, scope, and acceptance criteria. Then run `/mx:plan` to turn the PRD into concrete implementation steps.
+
+## Step 5: Implement
+
+```
+/mx:implement
+```
+
+This executes the plan step by step. After each change, it runs your quality checks (lint, type-check, tests) to catch problems early. If validation fails, it fixes the issues before moving on.
+
+**What happens during implementation:**
+
+1. Each plan step is implemented one at a time
+2. Quality checks run after every file change
+3. If checks fail, the issue is fixed and checks re-run
+4. Tests are written after implementation steps complete
+5. A final validation confirms everything passes
+6. Specialized agents review the code (see below)
+
+**Agent review pass:** After all checks pass, `/mx:implement` automatically invokes these agents:
+
+- **mx-code-reviewer** (always) — checks changes against CLAUDE.md guidelines and catches bugs
+- **mx-silent-failure-hunter** (always) — audits error handling for silent failures
+- **mx-type-design-analyzer** (if new types were added) — evaluates type design quality
+- **mx-mr-test-analyzer** (if tests were changed) — reviews test coverage quality
+- **mx-comment-analyzer** (if comments were changed) — checks comment accuracy
+- **mx-code-simplifier** (always, final pass) — polishes code for clarity
+
+Critical and important issues found by agents are fixed automatically. The implementation is not considered complete until agents are satisfied.
+
+## Step 6: Commit
+
+```
+/mx:commit
+```
+
+Creates a [conventional commit](https://www.conventionalcommits.org/) with auto-inferred type, scope, and ticket reference. You do not need to write the commit message manually.
+
+**What gets auto-inferred:**
+- **Type** (`feat`, `fix`, `chore`, etc.) — based on the nature of the changes
+- **Scope** — based on which files changed, using the scope mappings in `references/scope-mappings.md`
+- **Ticket reference** — extracted from the branch name (e.g., `EIT-42` from `feature/EIT-42-add-user-auth`)
+
+**Example output:**
+
+```
+feat(auth)[EIT-42] add user authentication with session management
+```
+
+If you prefer a one-step workflow, `/mx:ship` combines validation, committing, and pushing into a single command.
+
+## Step 7: Open a pull request
+
+```
+/mx:pr
+```
+
+Creates a GitHub pull request with:
+- An auto-generated title derived from your commits or branch name
+- A change summary based on the diff
+- Agent review findings (if any reports exist in `.agents/`)
+- Test status (pass/fail)
+- A reviewer checklist
+
+Use `--draft` if the work is not ready for review yet:
+
+```
+/mx:pr --draft
+```
+
+Use `--base <branch>` to target a specific base branch (defaults to `main`):
+
+```
+/mx:pr --base develop
+```
+
+## What you have learned
+
+After this session, you have used the core mx-workflow loop:
+
+1. **Prime** — load project context
+2. **Validate** — confirm project health
+3. **Branch** — create a properly named branch
+4. **Plan** — design the implementation
+5. **Implement** — execute with validation and agent review
+6. **Commit** — create a conventional commit
+7. **PR** — open a pull request
+
+This loop covers the majority of day-to-day development work. For more advanced workflows, explore:
+
+- [Choosing a Workflow](/mx-workflow/guides/choosing-a-workflow/) — decision tree for different types of tasks
+- [Multi-Agent Team](/mx-workflow/guides/multi-agent-team/) — parallel builds for complex features
+- [E2E Testing](/mx-workflow/guides/e2e-testing/) — browser-based end-to-end testing
+- [Agent Catalog](/mx-workflow/agents/catalog/) — all 7 specialized agents and what they do

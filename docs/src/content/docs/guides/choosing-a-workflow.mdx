@@ -1,6 +1,165 @@
 ---
 title: Choosing a Workflow
-description: How to pick the right workflow for your task.
+description: Decision tree for picking the right mx-workflow commands for your task.
 ---
 
-Documentation coming soon.
+mx-workflow has commands for everything from quick bug fixes to complex multi-agent builds. This guide helps you pick the right path based on what you are trying to do.
+
+## Decision tree
+
+Start from the top and follow the path that matches your situation.
+
+### Starting a new session?
+
+```
+/mx:prime
+```
+
+Always run this first. It loads your project's structure, conventions, and quality tool configuration so that subsequent commands have full context.
+
+### What are you working on?
+
+**New feature that needs scoping and requirements:**
+
+```
+/mx:prd → /mx:plan → /mx:implement → /mx:validate → /mx:commit → /mx:pr
+```
+
+Use `/mx:prd` when you have a rough idea but need to think through requirements, scope, and acceptance criteria before writing code. The PRD defines **what** to build. Then `/mx:plan` defines **how** to build it.
+
+**Clear task or well-defined ticket:**
+
+```
+/mx:branch <ticket> <desc> → /mx:plan → /mx:implement → /mx:validate → /mx:commit → /mx:pr
+```
+
+Skip the PRD when requirements are already clear. Start by creating a branch with the ticket ID encoded in the name, then plan and implement.
+
+**Bug fix:**
+
+```
+/mx:rca <error or symptom> → /mx:plan → /mx:implement → /mx:validate → /mx:commit → /mx:pr
+```
+
+Use `/mx:rca` to find the root cause before planning a fix. This prevents fixing symptoms instead of the actual problem. For obvious bugs where the cause is known, skip `/mx:rca` and go straight to `/mx:plan`.
+
+**Quick code change (small, confident):**
+
+```
+Just code → /mx:ship
+```
+
+For trivial changes where you already know what to do, make the edit and use `/mx:ship` to validate, commit, and push in one step.
+
+**Complex multi-component feature:**
+
+```
+/mx:prd → /mx:build-with-agent-team
+```
+
+When a feature spans multiple layers (frontend, backend, database) and benefits from parallel work, use the multi-agent team build. This spawns multiple Claude instances in tmux panes that coordinate via a contract-first protocol. See the [Multi-Agent Team guide](/mx-workflow/guides/multi-agent-team/) for details.
+
+**Verify a feature works in the browser:**
+
+```
+/mx:e2e [url]
+```
+
+After implementing, run E2E testing to catch integration issues that unit tests miss. This launches a browser, tests every user journey, validates database records, and takes screenshots. See the [E2E Testing guide](/mx-workflow/guides/e2e-testing/) for details.
+
+**Tech debt cleanup:**
+
+```
+/mx:check-ignores
+```
+
+Audit type/lint suppression comments across the codebase. Find suppressions that are no longer necessary and can be safely removed.
+
+**Dependency health check:**
+
+```
+/mx:deps
+```
+
+Check for security vulnerabilities, outdated versions, and unused packages.
+
+**Batch-process Linear tickets:**
+
+```
+/mx:loop [ticket-id | 'all']
+```
+
+Process one or more Linear tickets end-to-end: classify, plan, implement, validate, commit, and mark done. Supports `--branch-per-ticket` for separate branches and auto-PRs per ticket.
+
+**Need a new command:**
+
+```
+/mx:create-command <name> <purpose>
+```
+
+Scaffold a new slash command following established patterns.
+
+**New project setup:**
+
+```
+/mx:create-rules
+```
+
+Generate a CLAUDE.md file from codebase analysis to establish project conventions.
+
+## PRD vs Plan — when do I need both?
+
+| Command | Defines | Use when |
+|---|---|---|
+| `/mx:prd` | **What** to build — problem statement, hypotheses, scope, acceptance criteria | You have a rough idea but need to think through requirements before coding |
+| `/mx:plan` | **How** to build it — implementation steps, file changes, architecture decisions | Requirements are clear and you are ready to write code |
+
+**Typical flows:**
+
+- New feature that needs scoping: `/mx:prd` first, then `/mx:plan`
+- Clear bug fix or well-defined ticket: skip straight to `/mx:plan`
+- Complex system design: `/mx:prd` first, then `/mx:build-with-agent-team` (which generates its own internal plan)
+
+## Common command sequences
+
+Here are the most frequently used command sequences in practice:
+
+### The standard loop (most common)
+
+```
+/mx:prime → /mx:plan → /mx:implement → /mx:validate → /mx:commit → /mx:pr
+```
+
+This covers the majority of day-to-day development work.
+
+### The ticket loop
+
+```
+/mx:prime → /mx:branch EIT-42 add-auth → /mx:plan → /mx:implement → /mx:validate → /mx:commit → /mx:pr
+```
+
+Same as the standard loop but starts by creating a properly named branch with the ticket ID.
+
+### The investigation loop
+
+```
+/mx:prime → /mx:rca "TypeError: cannot read property X of undefined" → /mx:plan → /mx:implement → /mx:validate → /mx:commit
+```
+
+For bugs where the cause is unclear. The RCA digs through code and git history to find the root cause before you start fixing.
+
+### The full-stack build
+
+```
+/mx:prime → /mx:prd "real-time collaboration feature" → /mx:build-with-agent-team
+```
+
+For complex features. The PRD defines what to build, then the agent team builds it in parallel with a contract-first protocol.
+
+### The quick ship
+
+```
+/mx:ship "fix typo in error message"
+```
+
+For trivial changes. Validates, commits, and pushes in one step.

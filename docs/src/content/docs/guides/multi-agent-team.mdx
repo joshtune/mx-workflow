@@ -1,6 +1,204 @@
 ---
 title: Multi-Agent Team
-description: Set up and run multi-agent team builds.
+description: Build complex features with multiple Claude instances coordinating in parallel via tmux.
 ---
 
-Documentation coming soon.
+When a feature spans multiple layers — frontend, backend, database, infrastructure — a single Claude instance working sequentially can be slow. The multi-agent team build spawns multiple Claude instances in tmux panes that work in parallel, coordinating through a contract-first protocol to avoid integration conflicts.
+
+## When to use multi-agent builds
+
+**Use multi-agent builds when:**
+- The feature spans 2+ independent components (e.g., frontend and backend)
+- Components have well-defined interfaces between them
+- Parallel work would save significant time
+- The feature is complex enough to justify the coordination overhead
+
+**Use the standard loop instead when:**
+- The task is focused on a single component or layer
+- Changes are tightly coupled and hard to parallelize
+- The task is a bug fix, refactor, or small feature
+- You want lower cost (multi-agent builds run multiple Claude instances simultaneously)
+
+## Prerequisites
+
+Before using `/mx:build-with-agent-team`, you need two things:
+
+### 1. tmux
+
+tmux must be installed on your system. Check with:
+
+```bash
+tmux -V
+```
+
+If not installed:
+
+```bash
+# macOS
+brew install tmux
+
+# Ubuntu/Debian
+sudo apt install tmux
+
+# Fedora
+sudo dnf install tmux
+```
+
+### 2. Experimental flag
+
+Agent Teams require an experimental feature flag. Add it to your Claude Code settings:
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+Without this flag, the command will stop with an error.
+
+## How it works
+
+The multi-agent team build follows a structured protocol with four phases.
+
+### Phase 1: Contracts (sequential)
+
+This is the most important phase. Agents building in parallel will diverge on interfaces unless they agree on contracts first.
+
+1. **Upstream agents spawn first** (e.g., database agent, then backend agent)
+2. Each upstream agent's first task is to define and publish their contract — exact API endpoints, request/response shapes, status codes, error formats
+3. The **lead agent** (your main Claude instance) verifies each contract for:
+   - Exact URLs, including trailing slashes
+   - Explicit response shapes (not vague descriptions like "returns data")
+   - Error response formats
+   - SSE event formats (if applicable)
+4. The lead forwards verified contracts to downstream agents
+5. **Downstream agents spawn only after receiving their upstream contract**
+
+This staggered approach prevents the most common multi-agent failure: interface divergence.
+
+### Phase 2: Implementation (parallel)
+
+After contracts are verified and distributed, all agents build in parallel. Each agent owns specific files and directories and must not touch other agents' code. If an agent needs to deviate from the contract, it notifies the lead first.
+
+### Phase 3: Pre-completion contract diff
+
+Before declaring completion, the lead runs a contract verification:
+
+- "Backend: what exact curl commands test each endpoint?"
+- "Frontend: what exact fetch URLs are you calling?"
+
+The lead compares responses and flags any mismatches before integration. This catches contract drift that happened during implementation.
+
+### Phase 4: Cross-review
+
+Each agent reviews another agent's integration points. This catches issues at the boundaries between components — the most common source of integration bugs.
+
+## Running a multi-agent build
+
+### Step 1: Create a PRD
+
+```
+/mx:prd "real-time collaboration feature with presence indicators"
+```
+
+The PRD defines the feature's requirements, scope, and acceptance criteria. This gives the agent team a clear specification to build from.
+
+### Step 2: Create a plan
+
+Either run `/mx:plan` to generate a plan from the PRD, or write a plan document manually. The plan should include:
+
+- What components are needed
+- How they interact
+- What the dependencies are between components
+
+### Step 3: Launch the team
+
+```
+/mx:build-with-agent-team <path-to-plan> [num-agents]
+```
+
+The command reads the plan and determines the team structure:
+
+| Team size | When to use |
+|---|---|
+| 2 agents | Clear frontend/backend split |
+| 3 agents | Full-stack (frontend, backend, database/infra) |
+| 4 agents | Additional concerns (testing, DevOps) |
+| 5+ agents | Large systems with many independent modules |
+
+You can specify the team size explicitly, or let the command decide based on the plan.
+
+### Step 4: Enter Delegate Mode
+
+After spawning agents, the lead enters **Delegate Mode** (Shift+Tab in tmux). The lead should not implement code — only coordinate:
+
+- Verify and forward contracts
+- Resolve conflicts between agents
+- Answer questions from agents
+- Run end-to-end validation after all agents complete
+
+## The spawn prompt
+
+Each agent receives a prompt that defines their role, ownership, and constraints:
+
+```
+You are the [ROLE] agent for this build.
+
+## Your Ownership
+- You own: [directories/files]
+- Do NOT touch: [other agents' files]
+
+## What You're Building
+[Relevant section from plan]
+
+## Before You Build (REQUIRED)
+- Your FIRST deliverable is your [API contract / schema / interface]
+- Send it to the lead via SendMessage BEFORE writing implementation code
+- Wait for lead to confirm before proceeding
+
+## The Contract You Must Conform To
+[Upstream agent's verified contract]
+
+## Project Conventions
+- Run quality checks after changes (see CLAUDE.md)
+- Commit format: <type>(<scope>)[TICKET] <description>
+```
+
+## Lead validation
+
+After all agents report done, the lead runs end-to-end validation:
+
+1. **Can the system start?** — Start all services, check for startup errors
+2. **Does the happy path work?** — Walk through the primary user flow
+3. **Do integrations connect?** — Verify data flows from frontend through backend to database
+4. **Are edge cases handled?** — Empty states, error states, loading states
+
+If validation fails, the lead identifies which agent's domain contains the bug, re-spawns that agent with the specific issue, and re-runs validation after the fix.
+
+## Common pitfalls
+
+| Pitfall | Problem | Prevention |
+|---|---|---|
+| Fully parallel spawn | All agents start at once, interfaces diverge | Stagger spawns: upstream first, contracts verified before downstream |
+| Lead over-implementing | Lead starts writing code instead of coordinating | Stay in Delegate Mode — coordinate only |
+| Implicit contracts | "Returns sessions" — what does that mean? | Require exact JSON shapes, URLs, and status codes |
+| File conflicts | Two agents edit the same file | Assign clear, non-overlapping file ownership |
+| Orphaned cross-cutting concerns | Streaming, URL conventions, error shapes have no owner | Explicitly assign ownership of every cross-cutting concern |
+
+## Agent Teams vs Sub-Agents
+
+mx-workflow uses two forms of multi-agent execution. Here is when to use each:
+
+| | Sub-Agents (Task tool) | Agent Teams (tmux) |
+|---|---|---|
+| **Communication** | Reports to main agent only | Agents message each other |
+| **Coordination** | Main agent manages all | Shared task list, self-coordination |
+| **Visibility** | Results summarized | Each agent visible in a tmux pane |
+| **Best for** | Quick isolated tasks, parallel independent work | Full-stack features, new systems, complex integrations |
+| **Cost** | Lower (single session) | Higher (separate Claude instances) |
+
+**Use Sub-Agents** when work is isolated and agents do not need to coordinate with each other — for example, running code review and test analysis in parallel during `/mx:implement`.
+
+**Use Agent Teams** when components depend on each other and agents need to share contracts, resolve conflicts, and verify integration points.

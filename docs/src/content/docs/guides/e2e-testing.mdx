@@ -1,6 +1,229 @@
 ---
 title: E2E Testing
-description: End-to-end testing workflows with mx-workflow.
+description: Browser-based end-to-end testing with screenshots, database validation, and automated bug fixing.
 ---
 
-Documentation coming soon.
+The `/mx:e2e` command runs comprehensive browser-based tests against your application. It researches the app structure, tests every user journey, validates database records, takes screenshots at each step, and fixes bugs as it finds them.
+
+## When to use E2E testing
+
+- After implementing a feature, to verify it works end-to-end in the browser
+- When you need visual confirmation that the UI renders correctly
+- To catch integration issues that unit tests miss (e.g., frontend-backend mismatches)
+- Before opening a PR on a feature with UI changes
+
+E2E testing requires a browser-accessible frontend. It cannot test APIs, CLIs, or backend-only services.
+
+## Prerequisites
+
+### Platform
+
+`agent-browser` requires **Linux, macOS, or WSL**. Check your platform:
+
+```bash
+uname -s
+```
+
+### agent-browser
+
+The `agent-browser` CLI tool must be installed globally. Check if it is available:
+
+```bash
+which agent-browser
+```
+
+If not found, install it with your project's package manager:
+
+```bash
+# npm
+npm install -g agent-browser
+
+# pnpm
+pnpm add -g agent-browser
+
+# yarn
+yarn global add agent-browser
+
+# bun
+bun install -g agent-browser
+```
+
+Verify the installation:
+
+```bash
+agent-browser --version
+```
+
+## How E2E testing works
+
+The `/mx:e2e` command runs in five phases.
+
+### Phase 1: Parallel research
+
+Three sub-agents launch simultaneously to analyze the codebase from different angles:
+
+**Sub-agent 1 — Application structure:**
+- How to start the application (exact commands, URL, port)
+- Authentication requirements (test accounts, seed data, sign-up flow)
+- Every user-facing route and page
+- Every user journey (complete flows with steps, interactions, expected outcomes)
+- Key UI components (forms, modals, dropdowns, drag-and-drop)
+
+**Sub-agent 2 — Database schema:**
+- Database type and connection details (from `.env.example`, never `.env`)
+- Full schema — tables, columns, types, relationships
+- Data flows per user action — which records are created, updated, or deleted
+- Validation queries to verify records after each action
+
+**Sub-agent 3 — Bug hunting:**
+- Logic errors, off-by-one, missing null checks, race conditions
+- UI/UX issues — missing error handling, no loading states, broken layouts
+- Data integrity risks — missing validation, orphaned records
+- Security concerns — injection, XSS, missing auth checks
+
+All three must complete before testing begins.
+
+### Phase 2: Start the application
+
+Using the startup instructions from Phase 1:
+
+1. Install dependencies if needed
+2. Start the dev server in the background
+3. Wait for the server to be ready
+4. Open the app in agent-browser
+5. Take an initial screenshot to confirm the app loaded correctly
+
+### Phase 3: Test every user journey
+
+For each journey identified in Phase 1, the command walks through every step:
+
+**Browser interaction:**
+1. Take a snapshot to get current element references
+2. Interact with elements (click, fill, navigate)
+3. Wait for the page to settle
+4. Take a screenshot with a descriptive filename
+5. Analyze the screenshot for visual correctness
+6. Check for JavaScript errors
+
+**Database validation** — after any action that modifies data:
+1. Query the database to verify records were created, updated, or deleted as expected
+2. Check that values match what was entered in the UI
+3. Verify relationships between records are correct
+4. Confirm no orphaned or duplicate records exist
+
+**Bug fixing** — when an issue is found:
+1. Document it (expected vs actual, screenshot, DB query results)
+2. Fix the code directly
+3. Re-run the failing step to verify the fix
+4. Take a new screenshot confirming the fix
+
+**Responsive testing** — after all journeys complete, key pages are revisited at multiple viewport sizes:
+
+| Viewport | Width x Height |
+|---|---|
+| Mobile | 375 x 812 |
+| Tablet | 768 x 1024 |
+| Desktop | 1440 x 900 |
+
+Each viewport is screenshotted and analyzed for layout issues, overflow, broken alignment, and touch target sizes.
+
+### Phase 4: Cleanup
+
+**Database cleanup** to remove test data:
+
+- **Transaction wrapping (preferred):** Wrap validation queries in a transaction that rolls back, leaving zero footprint.
+- **Manual cleanup:** When test data was created through the UI and already committed, delete test records in reverse dependency order to respect foreign key constraints.
+
+If the project has a seed or reset script (like `npm run db:reset`), it will be mentioned as an alternative full-reset option.
+
+**Service cleanup:**
+- The dev server background process is stopped
+- The browser is closed
+
+### Phase 5: Report
+
+A summary is produced at the end:
+
+```
+E2E TESTING COMPLETE
+====================
+Journeys tested:      <count>
+Screenshots captured: <count>
+Issues found:         <count> (<fixed> fixed, <remaining> remaining)
+
+ISSUES FIXED
+- <description> — <file:line>
+
+REMAINING ISSUES
+- <description> — <severity: high/medium/low> — <file:line>
+
+BUG HUNT FINDINGS (from code analysis)
+- <description> — <severity> — <file:line>
+
+Screenshots: e2e-screenshots/
+```
+
+You can optionally export the full report to `e2e-test-report.md` with per-journey breakdowns, all screenshot references, database validation results, and detailed findings.
+
+## Running E2E tests
+
+### Auto-detect and launch
+
+```
+/mx:e2e
+```
+
+The command auto-detects the application, installs dependencies, starts the dev server, and begins testing.
+
+### Test a specific URL
+
+```
+/mx:e2e http://localhost:3000
+```
+
+Skip auto-detection and connect directly to a running application at the given URL.
+
+### Typical workflow
+
+```
+/mx:prime
+/mx:plan
+/mx:implement
+/mx:e2e              # verify it works in the browser
+/mx:commit
+/mx:pr
+```
+
+Run E2E testing after implementation and before committing. This catches integration issues early, while the context is still fresh and fixes are straightforward.
+
+## Screenshots
+
+All screenshots are saved to `e2e-screenshots/` at the project root, organized by journey:
+
+```
+e2e-screenshots/
+  00-initial-load.png
+  sign-up/
+    01-landing-page.png
+    02-fill-registration-form.png
+    03-submit-form.png
+    04-confirmation-page.png
+  create-profile/
+    01-profile-form.png
+    02-upload-avatar.png
+    03-saved-profile.png
+  responsive/
+    mobile-home.png
+    tablet-home.png
+    desktop-home.png
+```
+
+Screenshots use zero-padded sequential numbers (01, 02, 03) so they sort correctly in file managers.
+
+## Tips
+
+- **agent-browser refs expire after navigation.** After any page navigation, form submission, or dynamic content update, take a new snapshot to get fresh element references before interacting.
+- **Database queries use `.env.example` patterns.** The command never reads `.env` directly — it uses `.env.example` to understand connection string patterns and env var names.
+- **Bugs are fixed in place.** Unlike a test report that lists issues for later, `/mx:e2e` fixes bugs as it finds them. This means your code is improved by the time the command finishes.
+- **Frontend required.** This command cannot test APIs, CLIs, or backend-only services. For those, use a different testing approach.
+- **Cost consideration.** E2E testing launches multiple sub-agents for parallel research. This uses more tokens than a simple command. Use it for features where visual and integration verification is valuable, not for every small change.
