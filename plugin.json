@@ -1,0 +1,95 @@
+{
+  "name": "mx-workflow",
+  "description": "Development workflow plugin with commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
+  "version": "1.0.0",
+  "author": "Josh Tune",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "prime",
+      "description": "Warm up codebase context (reads key files, runs checks)"
+    },
+    {
+      "name": "status",
+      "description": "Show project status and available tools"
+    },
+    {
+      "name": "rca",
+      "description": "Deep root cause analysis (5 Whys + git history)"
+    },
+    {
+      "name": "plan",
+      "description": "Create implementation plan from understanding"
+    },
+    {
+      "name": "implement",
+      "description": "Execute plan with validation + agent review"
+    },
+    {
+      "name": "validate",
+      "description": "Run quality checks (lint, type-check, tests)"
+    },
+    {
+      "name": "commit",
+      "description": "Create conventional commits with AI-assisted messages"
+    },
+    {
+      "name": "ship",
+      "description": "Create merge/pull request and handle CI/CD"
+    },
+    {
+      "name": "e2e",
+      "description": "End-to-end testing and verification"
+    },
+    {
+      "name": "prd",
+      "description": "Create product requirement documents"
+    },
+    {
+      "name": "build-with-agent-team",
+      "description": "Batch AI implementation with multi-agent collaboration"
+    },
+    {
+      "name": "create-rules",
+      "description": "Generate CLAUDE.md rules and guidelines"
+    },
+    {
+      "name": "create-command",
+      "description": "Create new workflow commands"
+    },
+    {
+      "name": "check-ignores",
+      "description": "Verify gitignore and similar ignore patterns"
+    },
+    {
+      "name": "help",
+      "description": "Quick reference for all workflow commands"
+    }
+  ],
+  "agents": [
+    {
+      "name": "mx-code-reviewer",
+      "description": "Review code for adherence to project guidelines, style guides, and best practices"
+    },
+    {
+      "name": "mx-code-simplifier",
+      "description": "Analyze and simplify code for improved readability and efficiency"
+    },
+    {
+      "name": "mx-comment-analyzer",
+      "description": "Analyze comments and documentation for clarity and accuracy"
+    },
+    {
+      "name": "mx-mr-test-analyzer",
+      "description": "Analyze test coverage and quality in merge requests"
+    },
+    {
+      "name": "mx-silent-failure-hunter",
+      "description": "Identify potential silent failures and edge cases in code"
+    },
+    {
+      "name": "mx-type-design-analyzer",
+      "description": "Analyze type definitions and design patterns"
+    }
+  ]
+}
