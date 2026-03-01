@@ -3,4 +3,53 @@ title: Multi-Agent
 description: Commands for multi-agent collaboration and team builds.
 ---
 
-Documentation coming soon.
+These commands are designed for complex features that benefit from parallel work. They let you define what to build (PRD) and then spawn a team of Claude instances to build it together.
+
+## /mx:prd
+
+**Interactive PRD generator — problem-first, hypothesis-driven product spec**
+
+```
+/mx:prd [feature or product idea]
+```
+
+Generates a Product Requirements Document starting from the problem, not the solution. It acts as a sharp product manager who thinks in hypotheses, challenges assumptions, and produces a structured spec with problem statement, user stories, acceptance criteria, and scope boundaries.
+
+Run without arguments to start an interactive Q&A session. Pass an idea to skip straight to PRD generation.
+
+The generated PRD is saved to `.agents/prds/`.
+
+**When to use it:**
+- When you have a rough idea but need to think through requirements before coding
+- Before `/mx:plan` for any feature that needs scoping
+- When you want to document the "what" and "why" before diving into the "how"
+
+:::tip[PRD vs Plan]
+**`/mx:prd`** defines **what** to build — problem statement, hypotheses, scope, and acceptance criteria. **`/mx:plan`** defines **how** to build it — implementation steps, file changes, and architecture decisions.
+
+Typical flow: new feature that needs scoping goes through `/mx:prd` first, then `/mx:plan`. A clear bug fix or well-defined task skips straight to `/mx:plan`.
+:::
+
+## /mx:build-with-agent-team
+
+**Build using Claude Code Agent Teams with tmux split panes**
+
+```
+/mx:build-with-agent-team <plan-path> [num-agents]
+```
+
+Coordinates a build using Claude Code Agent Teams — multiple Claude instances working in parallel via tmux split panes. Each agent gets a specific contract (inputs, outputs, interfaces) and works independently on its portion of the plan. Agents communicate through a shared protocol file and follow a contract-first approach to avoid conflicts.
+
+| Argument | Description |
+|---|---|
+| `<plan-path>` | Path to the implementation plan (from `/mx:plan` or `/mx:prd`) |
+| `[num-agents]` | Number of parallel agents to spawn (optional, auto-determined if omitted) |
+
+**Prerequisites:**
+- `tmux` must be installed
+- Claude Code CLI must be available in your PATH
+
+**When to use it:**
+- For complex, multi-component features where different parts can be built in parallel
+- After `/mx:prd` has defined the scope and `/mx:plan` has broken it into independent pieces
+- When a single-agent workflow would take too long for the scope of work

@@ -1,6 +1,219 @@
 ---
 title: Implementation
-description: Commands for code implementation workflows.
+description: Commands for the full implementation workflow — from root cause analysis to shipping a PR.
 ---
 
-Documentation coming soon.
+These commands cover the core development loop: diagnosing issues, planning, writing code, validating, committing, and shipping. They are the most commonly used commands in mx-workflow.
+
+## /mx:rca
+
+**Deep root cause analysis — finds the actual cause, not just symptoms**
+
+```
+/mx:rca <error or symptom> [quick]
+```
+
+Performs a structured root cause analysis using the 5 Whys technique combined with git history analysis. It traces an error or symptom back to the specific code, config, or logic that, if changed, would prevent the issue. The analysis applies a strict test: "If I changed THIS, would the issue be prevented?" If the answer is "maybe" or "partially", it keeps digging.
+
+Add `quick` at the end for a surface-level scan (2-3 Whys) instead of a deep analysis.
+
+**When to use it:**
+- When you encounter a bug and the cause is not immediately obvious
+- Before planning a fix, to make sure you are fixing the right thing
+- When an error message or stack trace points to symptoms rather than the root cause
+
+## /mx:plan
+
+**Create implementation plan with codebase analysis**
+
+```
+/mx:plan [description or ticket reference]
+```
+
+Creates a detailed, step-by-step implementation plan based on a description or ticket. It analyzes your codebase to understand existing patterns, file structure, and conventions, then produces a plan that follows those patterns. The plan includes specific file changes, architecture decisions, and testing strategy.
+
+**When to use it:**
+- Before starting any non-trivial implementation
+- When you have a clear task or ticket and need to decide how to build it
+- After `/mx:prd` to turn a product spec into concrete code changes
+
+## /mx:implement
+
+**Execute implementation plan with validation loops**
+
+```
+/mx:implement [plan reference or 'continue']
+```
+
+Executes the current plan step by step. After each change, it runs validation (lint, type-check, tests) to catch problems early. It also invokes specialized agents (code reviewer, simplifier, test analyzer) to review the work. If validation fails, it fixes the issues before moving on.
+
+Pass `continue` to resume a previously interrupted implementation.
+
+**When to use it:**
+- After `/mx:plan` to execute the plan
+- When you want automated validation and agent review during implementation
+- To resume work after an interruption
+
+## /mx:validate
+
+**Run all quality checks (lint, type-check, tests)**
+
+```
+/mx:validate [--fix | --no-test]
+```
+
+Runs the full validation suite for your project. It auto-detects available quality tools (ESLint, TypeScript, Jest, pytest, etc.) and runs them in sequence. Reports results for each check with clear pass/fail status.
+
+| Flag | Effect |
+|---|---|
+| `--fix` | Automatically fix lint issues where possible |
+| `--no-test` | Skip the test step (run lint and type-check only) |
+
+**When to use it:**
+- After implementing changes, before committing
+- As a quick health check at any time
+- Before opening a PR to confirm everything passes
+
+## /mx:deps
+
+**Audit dependencies for security issues and outdated versions**
+
+```
+/mx:deps [--security | --outdated | --unused]
+```
+
+Audits project dependencies for security vulnerabilities, outdated versions, and unused packages. It uses `npm audit`, `npm outdated`, and static analysis to provide a comprehensive dependency health report.
+
+| Flag | Effect |
+|---|---|
+| `--security` | Only run security vulnerability audit |
+| `--outdated` | Only check for outdated dependencies |
+| `--unused` | Only check for unused dependencies |
+
+Running without flags performs all three checks.
+
+**When to use it:**
+- During routine maintenance to check for security issues
+- Before a release to ensure dependencies are healthy
+- When investigating unexpected behavior that might be caused by dependency issues
+
+## /mx:e2e
+
+**End-to-end browser testing with screenshots, DB validation, and bug fixing**
+
+```
+/mx:e2e [url or 'auto']
+```
+
+Runs comprehensive browser-based E2E tests. It researches the application, launches it (or connects to a running instance), tests every user journey, validates database records, takes screenshots, and fixes issues found along the way. Requires Puppeteer or Playwright to be installed.
+
+Pass a URL to test a specific endpoint, or `auto` to let the command discover and launch the application.
+
+**When to use it:**
+- After implementing a feature, to verify it works end-to-end in the browser
+- When you need visual confirmation that the UI is correct
+- To catch integration issues that unit tests miss
+
+## /mx:check-ignores
+
+**Audit type/lint suppression comments across the codebase**
+
+```
+/mx:check-ignores
+```
+
+Finds and evaluates all type and lint suppression comments in the codebase (e.g., `@ts-ignore`, `eslint-disable`, `# type: ignore`). For each suppression, it assesses whether the suppression is still necessary or can be safely removed. Produces a report with recommendations.
+
+**When to use it:**
+- During tech debt cleanup sprints
+- Before a major refactor, to identify unnecessary suppressions
+- When you want to improve type safety and lint coverage
+
+## /mx:branch
+
+**Create a branch following team naming conventions**
+
+```
+/mx:branch <ticket-id> <description>
+```
+
+Creates a new git branch with a name that follows your team's naming convention. It auto-infers the branch type prefix (feature, fix, chore, etc.) based on the ticket context and encodes the ticket ID into the branch name for traceability.
+
+**When to use it:**
+- At the start of any ticket-based work
+- When you want consistent branch naming across the team
+- Before `/mx:plan` to set up the branch first
+
+## /mx:commit
+
+**Create conventional commit with auto-inferred scope/type/ticket**
+
+```
+/mx:commit [description]
+```
+
+Creates a commit following the [Conventional Commits](https://www.conventionalcommits.org/) specification. It auto-infers the commit type (`feat`, `fix`, `chore`, etc.), scope (based on which files changed), and ticket reference (from the branch name). You can optionally provide a description to guide the commit message.
+
+**When to use it:**
+- After making changes and running `/mx:validate`
+- When you want a properly formatted conventional commit without writing it manually
+- Any time you are ready to commit
+
+## /mx:ship
+
+**Fix, check, commit, and push in one step**
+
+```
+/mx:ship [--dry-run] [commit description]
+```
+
+An all-in-one command that runs quality checks, creates a conventional commit, and pushes to the remote — in a single step. If quality checks fail, it attempts to fix the issues automatically before committing.
+
+| Flag | Effect |
+|---|---|
+| `--dry-run` | Show what would happen without actually committing or pushing |
+
+**When to use it:**
+- For quick, confident changes where you want to skip the manual validate-commit-push cycle
+- When you have already verified the changes informally and want to ship fast
+- At the end of a small task or bug fix
+
+## /mx:pr
+
+**Create PR with auto-generated summary and agent review findings**
+
+```
+/mx:pr [--draft | --base <branch>]
+```
+
+Creates a GitHub pull request with an auto-generated summary, agent review findings, and a reviewer checklist. It analyzes the diff, summarizes changes, and includes any findings from specialized agents.
+
+| Flag | Effect |
+|---|---|
+| `--draft` | Create a draft PR (not ready for review) |
+| `--base <branch>` | Set the base branch (defaults to `main`) |
+
+**When to use it:**
+- When you are ready to open a PR for review
+- Use `--draft` when you want early feedback but the work is not complete
+- After `/mx:validate` passes and you have committed your changes
+
+## /mx:loop
+
+**Process Linear tickets sequentially — plan, implement, commit, mark done**
+
+```
+/mx:loop [ticket-id | 'all'] [--branch-per-ticket | --single-branch]
+```
+
+Processes Linear tickets one by one with smart pipeline routing. For each ticket, it classifies the work, creates a plan, implements, validates, commits, and marks the ticket as done. Supports processing a single ticket, a comma-separated list, or all tickets in the current sprint.
+
+| Flag | Effect |
+|---|---|
+| `--branch-per-ticket` | Create a separate branch and auto-PR for each ticket |
+| `--single-branch` | Process all tickets on the current branch |
+
+**When to use it:**
+- When you have multiple Linear tickets to work through
+- For batch processing a sprint's worth of tickets
+- When you want automated end-to-end ticket processing with minimal intervention

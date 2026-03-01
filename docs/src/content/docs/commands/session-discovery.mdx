@@ -3,4 +3,50 @@ title: Session & Discovery
 description: Commands for session management and codebase discovery.
 ---
 
-Documentation coming soon.
+These commands help you start a session, check project health, and discover what agents are available. Run them at the beginning of a session or whenever you need to re-orient.
+
+## /mx:prime
+
+**Prime agent with codebase context — reads key files, runs checks**
+
+```
+/mx:prime
+```
+
+Warms up Claude by reading project configuration files (`CLAUDE.md`, `package.json`, `tsconfig.json`, and other key files) and running initial quality checks (lint, type-check, tests). After priming, Claude has a solid understanding of your project's structure, conventions, and current state.
+
+**When to use it:**
+- At the start of every new session
+- After pulling changes from a remote branch
+- After switching branches
+- When Claude seems to have lost context about your project
+
+## /mx:status
+
+**Show project status and available tools**
+
+```
+/mx:status
+```
+
+Detects and displays available tools, configured settings, and project readiness for automated workflows. It scans for configuration files (like `CLAUDE.md`, `package.json`, `Makefile`) and checks whether lint, type-check, and test commands are available.
+
+**When to use it:**
+- At the start of a session, before running `/mx:prime`, to quickly see what is available
+- To verify that your project is set up correctly for mx-workflow commands
+- When you want to know what quality checks will run during `/mx:validate`
+
+## /mx:agents
+
+**List available agents and their purposes**
+
+```
+/mx:agents
+```
+
+Scans the `agents/` directory and displays a formatted table of all available agents, their purposes, and which commands reference them. This gives you a quick overview of the specialized reviewers and analyzers that run automatically during commands like `/mx:implement`.
+
+**When to use it:**
+- When you want to know which agents are available for code review and analysis
+- To understand what automated checks run during `/mx:implement`
+- When exploring the plugin's capabilities for the first time

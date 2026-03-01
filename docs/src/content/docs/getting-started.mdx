@@ -3,4 +3,150 @@ title: Getting Started
 description: Install and configure the mx-workflow plugin for Claude Code.
 ---
 
-Getting started guide coming soon.
+mx-workflow is a development workflow plugin for [Claude Code](https://claude.com/claude-code) that covers the full dev lifecycle: planning, implementation, quality checks, conventional commits, E2E testing, and multi-agent team builds.
+
+## Prerequisites
+
+Before installing mx-workflow, make sure you have:
+
+- **[Claude Code](https://claude.com/claude-code) CLI** installed and working
+- **git** configured with SSH or HTTPS access to your repositories
+
+## Installation
+
+There are three ways to install mx-workflow. Choose the one that fits your setup.
+
+### Option A: Marketplace install (recommended)
+
+Register the mx-workflow repository as a plugin marketplace, then install:
+
+```bash
+# 1. Add the marketplace (one-time)
+/plugin marketplace add https://github.com/joshtune/mx-workflow.git
+
+# 2. Install the plugin
+/plugin install mx@joshtune-mx-workflow
+```
+
+When prompted, choose a scope:
+
+| Scope | Where it's stored | Who has access |
+|---|---|---|
+| `user` | `~/.claude/settings.json` | You, in all projects |
+| `project` | `.claude/settings.json` | Everyone on the team |
+| `local` | `.claude/settings.local.json` | You, on this machine only (gitignored) |
+
+### Option B: Clone and load per-session
+
+```bash
+# Clone the repo
+git clone https://github.com/joshtune/mx-workflow.git ~/mx-workflow
+
+# Load for current session
+claude --plugin-dir ~/mx-workflow
+```
+
+This is temporary — the plugin is only available for that session.
+
+### Option C: Clone and configure permanently
+
+```bash
+# Clone the repo
+git clone https://github.com/joshtune/mx-workflow.git ~/mx-workflow
+```
+
+Then add the path to your Claude Code settings. Edit `~/.claude/settings.json`:
+
+```json
+{
+  "plugins": ["~/mx-workflow"]
+}
+```
+
+The plugin will load automatically in every session.
+
+### Verify installation
+
+Once installed, type `/mx:` in Claude Code and you should see all commands in autocomplete.
+
+Test with:
+
+```
+/mx:help
+```
+
+This displays the full command reference card.
+
+## Your first session
+
+Here is a typical walkthrough for your first session with mx-workflow:
+
+### 1. Load codebase context
+
+```
+/mx:prime
+```
+
+This reads key project files (like `CLAUDE.md`, `package.json`, `tsconfig.json`) and runs initial quality checks so Claude understands your project's structure, conventions, and current health.
+
+### 2. Check project readiness
+
+```
+/mx:status
+```
+
+See what tools are available (linter, type checker, test runner) and whether the project is in a clean state. Fix any blockers before writing code.
+
+### 3. Pick a task and plan
+
+If you have a ticket, create a branch first:
+
+```
+/mx:branch EIT-42 add-user-auth
+```
+
+Then create an implementation plan:
+
+```
+/mx:plan
+```
+
+The plan analyzes your codebase and produces a step-by-step implementation guide.
+
+### 4. Implement
+
+```
+/mx:implement
+```
+
+This executes the plan step by step, running validation after each change and invoking specialized agents to review your code.
+
+### 5. Validate
+
+```
+/mx:validate
+```
+
+Confirm that lint, type-checks, and tests still pass after your changes.
+
+### 6. Commit
+
+```
+/mx:commit
+```
+
+Creates a conventional commit with auto-inferred scope, type, and ticket reference. No need to write the commit message yourself.
+
+### 7. Open a PR
+
+```
+/mx:pr
+```
+
+Creates a pull request with an auto-generated summary. Use `/mx:pr --draft` if it is not ready for review yet.
+
+## What's next
+
+- Browse the [command reference](/mx-workflow/commands/session-discovery/) to see everything mx-workflow can do
+- Read the [Choosing a Workflow](/mx-workflow/guides/choosing-a-workflow/) guide for recommendations on which commands to use when
+- Check the [Configuration](/mx-workflow/reference/configuration/) page to customize behavior with environment variables

@@ -1,6 +1,45 @@
 ---
 title: Planning & Design
-description: Commands for planning, PRDs, and design workflows.
+description: Commands for creating new commands and generating project rules.
 ---
 
-Documentation coming soon.
+These commands help you extend mx-workflow itself and bootstrap new projects with the right conventions.
+
+## /mx:create-command
+
+**Create new slash commands following established patterns**
+
+```
+/mx:create-command <command-name> <purpose description>
+```
+
+Scaffolds a new slash command in the `commands/` directory, following the established patterns and conventions. The generated command includes proper YAML frontmatter with a description, argument hints, and allowed tools. It also includes structured instructions and steps that match the style of existing commands.
+
+The command understands the full capability set of Claude Code (Task tool with subagents, Read/Write/Edit, Glob/Grep, Bash execution, extended thinking) and generates prompts that make effective use of these tools.
+
+**When to use it:**
+- When you want to add a new workflow command to mx-workflow
+- When you have a repetitive workflow you want to automate with a slash command
+- To extend the plugin with project-specific commands
+
+## /mx:create-rules
+
+**Generate CLAUDE.md from codebase analysis**
+
+```
+/mx:create-rules
+```
+
+Analyzes the current codebase and generates a `CLAUDE.md` file containing project rules, conventions, and patterns. It inspects configuration files, directory structure, naming conventions, test patterns, and existing code to extract meaningful guidelines that Claude should follow when working in the project.
+
+The generated `CLAUDE.md` covers areas like:
+- Project structure and architecture
+- Naming conventions and code style
+- Testing patterns and commands
+- Build and deployment configuration
+- Quality check commands (lint, type-check, test)
+
+**When to use it:**
+- When setting up a new project for use with Claude Code
+- When onboarding a project that does not yet have a `CLAUDE.md`
+- After significant architectural changes, to regenerate the rules
