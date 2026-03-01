@@ -38,6 +38,9 @@ PLANNING & DESIGN
 TESTING
   /e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
 
+DISCOVERY
+  /agents                           List available agents and their purposes
+
 ANYTIME
   /prime                            Re-ground context after git pull or branch switch
   /validate                         Quick quality check

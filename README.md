@@ -137,6 +137,12 @@ See `.env.example` for detailed documentation on each variable.
 | `/mx:create-command <name>` | Create new slash commands |
 | `/mx:create-rules` | Generate CLAUDE.md from codebase analysis |
 
+### Discovery
+
+| Command | Description |
+|---|---|
+| `/mx:agents` | List available agents and their purposes |
+
 ### Anytime
 
 | Command | Description |
