@@ -3,7 +3,7 @@ title: mx-workflow
 description: Development workflow plugin with commands and agents for the full dev lifecycle.
 template: splash
 hero:
-  tagline: Commands and agents for the full dev lifecycle — ticket intake, planning, implementation, quality checks, conventional commits, and multi-agent team builds.
+  tagline: Your entire dev lifecycle in slash commands — from ticket intake to PR. Planning, implementation, quality checks, conventional commits, and multi-agent team builds. All from your terminal.
   actions:
     - text: Get Started
       link: /mx-workflow/getting-started/
@@ -14,3 +14,24 @@ hero:
       icon: external
       variant: minimal
 ---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Plan to PR in minutes" icon="rocket">
+    Go from ticket to pull request with `/mx:plan`, `/mx:implement`, and `/mx:pr`.
+    Built-in validation loops and agent review catch issues before your teammates do.
+  </Card>
+  <Card title="7 specialized AI agents" icon="magnifier">
+    Code review, silent failure hunting, test analysis, type design, performance
+    auditing, comment quality, and code simplification — all running automatically.
+  </Card>
+  <Card title="Multi-agent team builds" icon="group">
+    Spawn a coordinated agent team with `/mx:build-with-agent-team` for complex
+    features. Each agent works on its own slice, with contract-first integration.
+  </Card>
+  <Card title="Zero config required" icon="setting">
+    Sensible defaults out of the box. Install the plugin and start using commands
+    immediately. Override only what you need with environment variables.
+  </Card>
+</CardGrid>
