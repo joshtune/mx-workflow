@@ -47,7 +47,8 @@ DISCOVERY
   /mx:agents                           List available agents and their purposes
 
 RELEASE
-  /mx:version [patch|minor|major|x.y.z] Bump version in plugin.json + marketplace.json, update CHANGELOG, tag
+  /mx:release [patch|minor|major|x.y.z] One-step release: bump, commit, tag, push, GitHub release
+  /mx:version [patch|minor|major|x.y.z] Bump version only (no push or GitHub release)
 
 ANYTIME
   /mx:prime                            Re-ground context after git pull or branch switch
@@ -73,5 +74,6 @@ WHICH PATH SHOULD I USE?
   Tech debt cleanup         → /mx:check-ignores
   Dependency health check   → /mx:deps
   Need a new command        → /mx:create-command <name> <purpose>
+  Ready to release          → /mx:release (or /mx:release minor)
   New project setup         → /mx:create-rules (generate CLAUDE.md)
 ```

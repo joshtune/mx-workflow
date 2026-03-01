@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/mx:release` command — one-step release that bumps version, updates changelog, commits, tags, pushes, and creates GitHub release. Skips if nothing to release.
+
+### Changed
+
+- `/mx:help` updated with `/mx:release` command in RELEASE section and "Ready to release" path
+
 ## [1.2.0] - 2026-03-01
 
 ### Added
