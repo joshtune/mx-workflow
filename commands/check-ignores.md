@@ -45,7 +45,7 @@ For each suppression found, determine:
    - **Medium**: Suppresses valid warnings that could hide bugs
    - **Low**: Suppresses stylistic rules or known false positives
 
-ultrathink about each suppression before making recommendations.
+Think carefully about each suppression before making recommendations.
 
 ### Step 4: Generate Report
 
