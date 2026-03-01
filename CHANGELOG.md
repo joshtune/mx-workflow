@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-03-01
+
+### Changed
+
+- Add `/mx:` prefix to all commands in `/mx:help` reference card for consistency
+
 ## [1.1.0] - 2026-03-01
 
 ### Added
@@ -57,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/joshtune/mx-workflow/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/joshtune/mx-workflow/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/joshtune/mx-workflow/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/joshtune/mx-workflow/releases/tag/v1.0.0
