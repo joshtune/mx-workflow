@@ -59,6 +59,7 @@ Your instruction prompt here...
 Bump version in:
 - `.claude-plugin/plugin.json` (`version` field)
 - `.claude-plugin/marketplace.json` (`version` field)
+- `CHANGELOG.md` — add a new section under `[Unreleased]` following [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format
 - Git tag releases as `v{version}`
 
 ## Documentation
