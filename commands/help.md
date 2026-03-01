@@ -22,6 +22,7 @@ IMPLEMENTATION (most common path)
   /check-ignores                    Audit type/lint suppression comments
   /commit                           Conventional commit (auto-infers scope/type/ticket)
   /ship [desc]                      Fix + check + commit + push in one step
+  /loop [ticket | all]              Process Linear tickets sequentially (plan → implement → commit)
 
 MULTI-AGENT TEAM BUILD (complex features)
   /prd                              Define the problem, scope, and spec first
@@ -51,6 +52,7 @@ WHICH PATH SHOULD I USE?
   After implementing        → /e2e (verify it works in the browser)
   Complex multi-component   → /prd → /build-with-agent-team
   Quick code change         → Just code, then /ship (or /validate → /commit)
+  Batch Linear tickets      → /loop (or /loop EIT-25,EIT-30 for specific ones)
   Mysterious bug            → /rca <error message or symptom>
   Tech debt cleanup         → /check-ignores
   Need a new command        → /create-command <name> <purpose>
