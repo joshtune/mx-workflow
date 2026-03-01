@@ -3,4 +3,86 @@ title: Changelog
 description: Version history and release notes.
 ---
 
-Documentation coming soon.
+All notable changes to mx-workflow are documented on this page. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Unreleased
+
+### Added
+
+- Smart pipeline routing for `/mx:loop` — auto-classifies tickets into Bug Fix, Feature, Simple/Docs, or Refactor pipelines with tailored sub-agent workflows (EIT-58)
+- `--branch-per-ticket` mode for `/mx:loop` — creates isolated branches with auto-PR creation per ticket (EIT-59)
+- Per-ticket pipeline override syntax (e.g., `EIT-42:A`) for `/mx:loop`
+
+### Changed
+
+- `/mx:loop` pre-flight summary now shows pipeline classification per ticket
+- `/mx:loop` final report includes pipeline breakdown stats, branch names, and PR URLs
+- `/mx:help` updated with new `/mx:loop` flags and pipeline routing
+
+---
+
+## 1.1.1 — 2026-03-01
+
+### Changed
+
+- Add `/mx:` prefix to all commands in `/mx:help` reference card for consistency
+
+---
+
+## 1.1.0 — 2026-03-01
+
+This release adds seven new commands, a new agent, and significant documentation improvements.
+
+### Added
+
+- `/mx:loop` command — sequential ticket processor that fetches Linear tickets and processes them one-by-one via sub-agents
+- `/mx:pr` command — create PRs with auto-generated summaries and agent review findings (EIT-28)
+- `/mx:branch` command — ticket-encoded branch creation using `MX_BRANCH_PATTERN` (EIT-29)
+- `/mx:agents` command — discover available agents with purposes and command references (EIT-30)
+- `/mx:deps` command — dependency security audit, outdated version checks, and unused package detection (EIT-31)
+- `/mx:version` command — centralized version management across plugin.json, marketplace.json, and CHANGELOG.md (EIT-36)
+- `mx-performance-auditor` agent — performance analysis covering algorithmic complexity, memory, I/O, frontend, and database patterns (EIT-32)
+- `--dry-run` flag for `/mx:ship` — preview what would be committed and pushed without actually doing it (EIT-33)
+- `mx-comment-analyzer` integrated into `/mx:implement` review pass for comment quality checks (EIT-41)
+- Getting Started walkthrough in README (EIT-37)
+- Troubleshooting section in README (EIT-38)
+- Example project configurations in scope-mappings for frontend SPA, backend API, monorepo, and CLI tool (EIT-39)
+- PRD vs Plan usage clarification in README (EIT-40)
+- Database rollback/cleanup guidance in `/mx:e2e` (EIT-42)
+- CHANGELOG.md following Keep a Changelog format (EIT-49)
+
+### Fixed
+
+- Audited and fixed `allowed-tools` declarations across 5 commands — added missing tools, removed unused ones (EIT-35)
+
+### Changed
+
+- Version management documented in CLAUDE.md now references `/mx:version` command
+- `/mx:help` updated with all new commands across implementation, discovery, release, and anytime sections
+
+---
+
+## 1.0.1 — 2026-02-28
+
+### Fixed
+
+- Replace non-standard "ultrathink" language with clear instructions in check-ignores command (EIT-26)
+- Standardize `.agents/` output directory naming to all-lowercase-hyphenated format (EIT-34)
+
+### Changed
+
+- Document output directory convention in CLAUDE.md
+
+---
+
+## 1.0.0 — 2026-02-27
+
+The initial release of mx-workflow, covering the full development lifecycle from planning to shipping.
+
+### Added
+
+- 15 slash commands for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds
+- 6 specialized agents for code review, testing, debugging, and analysis
+- Plugin manifest (`plugin.json`) and marketplace configuration
+- CLAUDE.md with project development guidelines
+- Scope mappings and agent browser references

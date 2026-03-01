@@ -3,4 +3,195 @@ title: Troubleshooting
 description: Common issues and solutions for mx-workflow.
 ---
 
-Documentation coming soon.
+This page covers the most common issues you may encounter when using mx-workflow, along with their causes and solutions.
+
+## Commands not showing in autocomplete
+
+**Symptom:** You type `/mx:` in Claude Code but no commands appear, or only some commands are listed.
+
+**Cause:** The plugin is not installed or not loaded by Claude Code. This usually happens after a fresh install that was not completed, or when the plugin path in settings is incorrect.
+
+**Solution:**
+
+1. Re-run the install step from the [Getting Started](/mx-workflow/getting-started/) guide.
+2. Verify the install worked by running `/mx:help`. If you see the full command reference, the plugin is loaded.
+3. If you installed manually (Option C), open `~/.claude/settings.json` and confirm the path under `"plugins"` is correct and the directory exists:
+
+```json
+{
+  "plugins": ["~/mx-workflow"]
+}
+```
+
+4. If you cloned the repo to a different location, update the path accordingly.
+
+## /mx:ship fails on push
+
+**Symptom:** `/mx:ship` creates the commit successfully but fails when trying to push to the remote repository.
+
+**Cause:** Either no git remote is configured, or your SSH key / HTTPS credentials are missing or expired.
+
+**Solution:**
+
+1. Check that a remote is configured:
+
+```bash
+git remote -v
+```
+
+If no remote is listed, add one:
+
+```bash
+git remote add origin git@github.com:your-org/your-repo.git
+```
+
+2. Verify your credentials work by running a manual push:
+
+```bash
+git push origin HEAD
+```
+
+3. If SSH authentication fails, check that your SSH key is loaded:
+
+```bash
+ssh-add -l
+```
+
+If no keys are listed, add your key with `ssh-add ~/.ssh/id_ed25519` (or whichever key file you use).
+
+4. For HTTPS, make sure your personal access token or credential helper is configured and not expired.
+
+## /mx:validate reports "no lint/test command found"
+
+**Symptom:** Running `/mx:validate` returns a message like "no lint command found" or "no test command found" instead of running checks.
+
+**Cause:** Your project does not have the standard scripts or targets that `/mx:validate` looks for. The command auto-detects quality tools by scanning for `package.json` scripts, `Makefile` targets, and similar configuration files.
+
+**Solution:**
+
+Add the relevant scripts to your project configuration. For Node.js projects, add these to `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  }
+}
+```
+
+For projects using a `Makefile`:
+
+```makefile
+lint:
+	ruff check .
+
+typecheck:
+	mypy src/
+
+test:
+	pytest
+```
+
+`/mx:validate` looks for the following script/target names: `lint`, `typecheck` (or `type-check`), and `test`. If your project uses different names, rename them or add aliases.
+
+## Environment variables not taking effect
+
+**Symptom:** You set an environment variable like `MX_TICKET_PREFIX` but mx-workflow does not use the value. Commits are missing ticket references, or the branch pattern is wrong.
+
+**Cause:** The variable is not exported in your shell profile, or it is not set in the Claude Code settings file. Variables set without `export` are not visible to child processes.
+
+**Solution:**
+
+1. If setting in your shell profile, make sure you use `export`:
+
+```bash
+# Wrong — not visible to Claude Code
+MX_TICKET_PREFIX="PROJ"
+
+# Correct
+export MX_TICKET_PREFIX="PROJ"
+```
+
+2. After editing your shell profile, restart your terminal or run:
+
+```bash
+source ~/.zshrc  # or ~/.bashrc
+```
+
+3. Alternatively, set the variable in `~/.claude/settings.json` under the `"env"` key:
+
+```json
+{
+  "env": {
+    "MX_TICKET_PREFIX": "PROJ"
+  }
+}
+```
+
+4. To verify the variable is set, you can ask Claude Code to check:
+
+```
+echo $MX_TICKET_PREFIX
+```
+
+See the [Configuration](/mx-workflow/reference/configuration/) page for full details on all available environment variables and precedence rules.
+
+## Agent review times out during /mx:implement
+
+**Symptom:** The agent review step during `/mx:implement` hangs or times out, especially on large codebases. You may see messages about agents taking too long to respond.
+
+**Cause:** The specialized agents (code reviewer, test analyzer, etc.) are analyzing too many files. On large codebases with broad changes, the agents may need to read and evaluate hundreds of files, which exceeds the time limit.
+
+**Solution:**
+
+1. **Narrow the scope of changes.** Break large features into smaller, focused commits. If your plan touches 20+ files across multiple directories, consider splitting it into multiple implementation passes.
+
+2. **Be specific in your plan.** When running `/mx:plan`, explicitly list which files and directories should be included. The agents only review what the plan covers.
+
+3. **Use incremental implementation.** Instead of implementing everything at once, run `/mx:implement` for one section of the plan, commit, then continue with the next section. Each review pass only looks at the most recent changes.
+
+4. **Skip review for trivial changes.** For simple config changes or documentation updates, use `/mx:ship` instead of `/mx:implement`. The ship command runs validation but skips the agent review step.
+
+## /mx:e2e fails to launch browser
+
+**Symptom:** Running `/mx:e2e` produces an error like "browser not found", "Failed to launch chromium", or "Cannot find module puppeteer".
+
+**Cause:** The E2E command requires either Puppeteer or Playwright to be installed with their browser binaries. If you have the npm package installed but not the browser binary, or if neither package is installed, the command cannot launch a browser.
+
+**Solution:**
+
+1. Install the browser binaries for your E2E framework:
+
+```bash
+# For Puppeteer
+npx puppeteer install
+
+# For Playwright
+npx playwright install
+```
+
+2. If neither framework is installed, add one as a dev dependency:
+
+```bash
+# Option A: Puppeteer
+npm install --save-dev puppeteer
+
+# Option B: Playwright
+npm install --save-dev playwright
+```
+
+3. On Linux or CI environments, you may also need system dependencies. Playwright provides a helper:
+
+```bash
+npx playwright install-deps
+```
+
+4. Verify the browser launches correctly by running a quick test outside mx-workflow:
+
+```bash
+npx playwright open https://example.com
+```
+
+If this works, `/mx:e2e` should work too.

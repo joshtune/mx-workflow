@@ -3,4 +3,168 @@ title: Configuration
 description: Environment variables and configuration options for mx-workflow.
 ---
 
-Documentation coming soon.
+mx-workflow uses environment variables for configuration. Every setting has a sensible default, so you only need to override what you want to change.
+
+## Setting environment variables
+
+There are two ways to provide configuration values:
+
+### In your shell profile
+
+Add `export` statements to `~/.zshrc`, `~/.bashrc`, or your shell's profile file:
+
+```bash
+export MX_TICKET_PREFIX="PROJ"
+export MX_BRANCH_PATTERN="feature/[^/]+/"
+```
+
+Restart your terminal or run `source ~/.zshrc` for changes to take effect.
+
+### In Claude Code settings
+
+Add variables under the `"env"` key in `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "MX_TICKET_PREFIX": "PROJ",
+    "MX_BRANCH_PATTERN": "feature/[^/]+/"
+  }
+}
+```
+
+This approach keeps your configuration scoped to Claude Code and does not affect other tools in your shell.
+
+## Environment variables
+
+### MX_TICKET_PREFIX
+
+The prefix used for ticket references in conventional commit messages.
+
+| Property | Value |
+|---|---|
+| **Default** | *(empty — ticket references are omitted)* |
+| **Type** | String |
+| **Used by** | `/mx:commit`, `/mx:ship`, `/mx:branch` |
+
+When set, mx-workflow includes the ticket reference in the commit subject line using the format `type(scope)[PREFIX-123] message`.
+
+**Examples:**
+
+```bash
+# Jira-style tickets
+MX_TICKET_PREFIX="PROJ"
+# Produces: feat(billing)[PROJ-1234] add invoice export
+
+# Linear-style tickets
+MX_TICKET_PREFIX="EIT"
+# Produces: fix(auth)[EIT-56] handle expired refresh tokens
+
+# No ticket prefix (default)
+MX_TICKET_PREFIX=""
+# Produces: feat(billing) add invoice export
+```
+
+If your team does not use ticket references in commits, leave this empty. The commit message will still follow conventional commit format, just without the bracketed ticket ID.
+
+### MX_BRANCH_PATTERN
+
+A regex pattern used to extract ticket numbers from branch names. This tells mx-workflow how to find the ticket ID embedded in your branch name so it can auto-reference it in commits.
+
+| Property | Value |
+|---|---|
+| **Default** | `{type}/{ticket}-{description}` |
+| **Type** | String (regex pattern or template) |
+| **Used by** | `/mx:commit`, `/mx:ship`, `/mx:branch` |
+
+The pattern must match the prefix portion of the branch name up to (but not including) the ticket number. mx-workflow uses this to extract the ticket number automatically.
+
+**Examples:**
+
+```bash
+# For branches like "feature/EIT-42-add-login"
+MX_BRANCH_PATTERN="feature/[^/]+/"
+
+# For branches like "alice/fix/12345-description"
+MX_BRANCH_PATTERN="[^/]+/[^/]+/"
+
+# For branches like "feat/PROJ-99-new-dashboard"
+MX_BRANCH_PATTERN="{type}/{ticket}-{description}"
+```
+
+If your branch names do not encode ticket numbers, leave this empty. You can still pass ticket references manually to `/mx:commit`.
+
+### MX_CO_AUTHOR
+
+The `Co-authored-by` trailer appended to AI-assisted commits. This gives attribution to the AI model that helped write the code.
+
+| Property | Value |
+|---|---|
+| **Default** | `Claude <noreply@anthropic.com>` |
+| **Type** | String (Git author format: `Name <email>`) |
+| **Used by** | `/mx:commit`, `/mx:ship` |
+
+**Examples:**
+
+```bash
+# Default (no override needed)
+MX_CO_AUTHOR="Claude <noreply@anthropic.com>"
+
+# Custom attribution
+MX_CO_AUTHOR="AI Assistant <ai@yourcompany.com>"
+
+# Include model info
+MX_CO_AUTHOR="Claude Opus <noreply@anthropic.com>"
+```
+
+The co-author line appears as a Git trailer at the bottom of the commit message:
+
+```
+feat(auth)[EIT-42] add OAuth2 login flow
+
+Implement Google and GitHub OAuth2 providers with token refresh.
+
+Co-authored-by: Claude <noreply@anthropic.com>
+```
+
+## Full configuration example
+
+Here is a complete configuration for a team using Jira tickets and a `type/ticket-description` branch naming scheme:
+
+**Shell profile (`~/.zshrc`):**
+
+```bash
+export MX_TICKET_PREFIX="PROJ"
+export MX_BRANCH_PATTERN="[^/]+/"
+export MX_CO_AUTHOR="Claude <noreply@anthropic.com>"
+```
+
+**Or equivalently in Claude Code settings (`~/.claude/settings.json`):**
+
+```json
+{
+  "env": {
+    "MX_TICKET_PREFIX": "PROJ",
+    "MX_BRANCH_PATTERN": "[^/]+/",
+    "MX_CO_AUTHOR": "Claude <noreply@anthropic.com>"
+  }
+}
+```
+
+## Scope-level configuration
+
+If you install mx-workflow at the project scope, you can set environment variables in `.claude/settings.json` at the project root. This lets teams share configuration:
+
+```json
+{
+  "env": {
+    "MX_TICKET_PREFIX": "TEAM"
+  }
+}
+```
+
+Project-level settings are overridden by user-level settings, which are overridden by shell environment variables. The precedence order from lowest to highest is:
+
+1. Project settings (`.claude/settings.json`)
+2. User settings (`~/.claude/settings.json`)
+3. Shell environment variables (`export MX_TICKET_PREFIX=...`)

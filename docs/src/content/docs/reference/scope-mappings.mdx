@@ -3,4 +3,147 @@ title: Scope Mappings
 description: Conventional commit scope mappings reference.
 ---
 
-Documentation coming soon.
+Scope mappings tell mx-workflow how to infer the commit scope from the files you changed. When you run `/mx:commit` or `/mx:ship`, the plugin looks at which files were modified, matches them against a set of patterns, and uses the first match as the commit scope.
+
+For example, if you edit files in `src/auth/`, the commit scope becomes `auth`, producing a message like `feat(auth) add token refresh`.
+
+## How matching works
+
+1. mx-workflow collects the list of changed files from `git diff`
+2. Each file path is tested against the patterns in order, top to bottom
+3. The first matching pattern determines the scope
+4. If no pattern matches, the scope falls back to `general`
+
+When multiple files are changed across different scopes, mx-workflow picks the scope that covers the majority of changes. If the changes are evenly split, it uses the scope of the most significant change (based on lines added/removed).
+
+## Default mappings
+
+These are the built-in mappings that ship with mx-workflow. They work as a reasonable starting point for most projects.
+
+### File pattern to scope
+
+| File pattern | Scope |
+|---|---|
+| `*billing*` | billing |
+| `*auth*` | auth |
+| `*user*` | users |
+| `*admin*` | admin |
+| `*api*` | api |
+| `*docs*` | docs |
+| `*test*` | tests |
+| `*scripts*` | scripts |
+| `*config*` | config |
+| *(no match)* | general |
+
+### Commit type inference
+
+In addition to scope, mx-workflow infers the commit type from the context of your changes:
+
+| Context | Type |
+|---|---|
+| Bug fix, "fix" in description | `fix` |
+| New feature, "add" in description | `feat` |
+| Restructuring, "refactor" in description | `refactor` |
+| Performance improvement | `perf` |
+| Text/copy changes only | `copy` |
+| Config, deps, or tooling changes | `chore` |
+| *(default)* | `feat` |
+
+## Customizing mappings
+
+To customize the mappings for your project, edit `references/scope-mappings.md` in the mx-workflow plugin directory. Replace or extend the default table with patterns that match your codebase structure.
+
+The patterns use glob-style matching. Each entry is a substring match against the full file path, so `*auth*` matches any path containing "auth" anywhere.
+
+## Example project configurations
+
+The default mappings are intentionally generic. Below are tailored configurations for four common project types. Copy the relevant table into your `references/scope-mappings.md` file and adjust the patterns to fit your specific directory structure.
+
+### Frontend SPA (React / Vue / Angular)
+
+For single-page applications with a component-driven architecture:
+
+| File pattern | Scope |
+|---|---|
+| `src/components/*` | components |
+| `src/hooks/*` or `src/composables/*` | hooks |
+| `src/pages/*` or `src/views/*` | pages |
+| `src/store/*` or `src/state/*` | state |
+| `src/api/*` or `src/services/*` | api |
+| `src/styles/*` or `*.css` or `*.scss` | styles |
+| `src/utils/*` or `src/helpers/*` | utils |
+| `src/i18n/*` or `src/locales/*` | i18n |
+| `public/*` or `static/*` | assets |
+| `e2e/*` or `cypress/*` or `playwright/*` | e2e |
+| `*.test.*` or `*.spec.*` | tests |
+| `vite.config.*` or `webpack.config.*` | build |
+| *(no match)* | general |
+
+This configuration separates UI concerns (components, pages, styles) from data management (state, api) and testing (tests, e2e). It works well with frameworks like React, Vue, and Angular where the `src/` directory is the main code root.
+
+### Backend API (Express / FastAPI / Rails)
+
+For server-side applications organized around routes, models, and services:
+
+| File pattern | Scope |
+|---|---|
+| `*controllers*` or `*routes*` or `*endpoints*` | routes |
+| `*models*` or `*entities*` or `*schemas*` | models |
+| `*middleware*` | middleware |
+| `*migrations*` | migrations |
+| `*services*` | services |
+| `*repositories*` or `*dal*` | data-access |
+| `*validators*` or `*serializers*` | validation |
+| `*jobs*` or `*workers*` or `*tasks*` | workers |
+| `*auth*` | auth |
+| `*test*` or `*spec*` | tests |
+| `docker*` or `*.yml` | infra |
+| *(no match)* | general |
+
+This configuration reflects the layered architecture common in backend frameworks. The scope names (routes, models, services) map to the architectural layer, making commit history easy to filter by concern.
+
+### Monorepo (Turborepo / Nx / Lerna)
+
+For multi-package repositories where each package or app is a distinct unit:
+
+| File pattern | Scope |
+|---|---|
+| `packages/ui/*` | ui |
+| `packages/shared/*` or `packages/common/*` | shared |
+| `packages/api/*` or `apps/api/*` | api |
+| `packages/web/*` or `apps/web/*` | web |
+| `packages/mobile/*` or `apps/mobile/*` | mobile |
+| `libs/*` | libs |
+| `tooling/*` or `.changeset/*` | tooling |
+| `turbo.json` or `nx.json` or `lerna.json` | build |
+| Root `package.json` or `tsconfig.json` | config |
+| *(no match)* | general |
+
+In a monorepo, the scope typically corresponds to the package or app name. For additional clarity, you can prefix commit scopes with the package name (e.g., `feat(web): add login page`). mx-workflow can automate this by checking which `packages/` or `apps/` directory contains the majority of changes.
+
+### CLI Tool
+
+For command-line applications built with frameworks like Commander, Click, or Cobra:
+
+| File pattern | Scope |
+|---|---|
+| `src/commands/*` or `commands/*` | commands |
+| `src/cli.*` or `bin/*` | cli |
+| `src/prompts/*` or `src/inquirer/*` | prompts |
+| `src/output/*` or `src/formatters/*` | output |
+| `src/config/*` or `src/options/*` | config |
+| `src/utils/*` or `src/helpers/*` | utils |
+| `man/*` or `docs/*` | docs |
+| `completions/*` or `autocomplete/*` | completions |
+| `*test*` or `*spec*` | tests |
+| `package.json` or `Cargo.toml` or `go.mod` | deps |
+| *(no match)* | general |
+
+This configuration separates the CLI entry points (cli, commands) from user interaction (prompts, output) and supporting infrastructure (config, utils, completions).
+
+## Tips for writing good scope mappings
+
+- **Order matters.** Put more specific patterns before general ones. A pattern like `*auth*` should come before `*api*` if your auth code lives inside the API directory.
+- **Keep scopes short.** Scope names appear in every commit message. Use one or two words: `auth`, `billing`, `data-access` — not `authentication-and-authorization`.
+- **Match your team's vocabulary.** If your team says "handlers" instead of "controllers", use `handlers` as the scope name.
+- **Revisit periodically.** As your codebase grows, new directories may not match any existing pattern. Check occasionally and add mappings for new areas.
