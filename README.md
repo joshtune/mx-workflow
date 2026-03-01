@@ -59,6 +59,26 @@ Test with:
 
 This should display the full command reference card.
 
+## Getting Started
+
+Once installed, here is a typical first session to get productive:
+
+1. **Load codebase context** — Run `/mx:prime` to warm up. This reads key files and runs initial quality checks so Claude understands your project.
+
+2. **Check project readiness** — Run `/mx:status` or `/mx:validate` to see if lint, type-checks, and tests pass. Fix any blockers before writing code.
+
+3. **Pick a task and plan** — Run `/mx:plan` to create an implementation plan. If your task has a ticket, start with `/mx:branch <ticket> <desc>` first.
+
+4. **Implement** — Run `/mx:implement` to execute the plan. This includes built-in validation loops and agent review.
+
+5. **Validate** — Run `/mx:validate` to confirm lint, type-checks, and tests still pass after your changes.
+
+6. **Commit** — Run `/mx:commit` to create a conventional commit with auto-inferred scope, type, and ticket reference.
+
+7. **Open a PR** — Run `/mx:pr` to create a pull request with an auto-generated summary. Use `/mx:pr --draft` if it is not ready for review yet.
+
+That is the core loop. For more complex workflows, see [Which Path Should I Use?](#which-path-should-i-use) below.
+
 ## Prerequisites
 
 - [Claude Code](https://claude.com/claude-code) CLI installed
