@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-03-01
+
 ### Added
 
 - `/mx:release` command — one-step release that bumps version, updates changelog, commits, tags, pushes, and creates GitHub release. Skips if nothing to release.
@@ -86,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/joshtune/mx-workflow/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/joshtune/mx-workflow/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/joshtune/mx-workflow/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/joshtune/mx-workflow/compare/v1.0.1...v1.1.0
