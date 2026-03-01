@@ -228,6 +228,17 @@ Run `/mx:create-command <name> <purpose>` to create new commands following the e
 cd ~/mx-workflow && git pull
 ```
 
+## Troubleshooting
+
+| Problem | Cause | Solution |
+|---|---|---|
+| Commands not showing up in autocomplete after typing `/mx:` | Plugin not installed or not loaded by Claude Code | Re-run the install step (see [Installation](#installation)) and verify with `/mx:help`. For manual installs, confirm the path in `~/.claude/settings.json` is correct and the directory exists. |
+| `/mx:ship` fails on push | Git remote not configured, or SSH/HTTPS credentials missing | Run `git remote -v` to verify a remote is set. Check that your SSH key or HTTPS token is valid. If no remote exists, add one with `git remote add origin <url>`. |
+| `/mx:validate` reports "no lint/test command found" | Project is missing `package.json` scripts, `Makefile` targets, or equivalent | Add `lint`, `typecheck`, and `test` scripts to your `package.json`, or the corresponding targets to your `Makefile`. `/mx:validate` discovers these automatically. |
+| Environment variables (e.g., `MX_TICKET_PREFIX`) not taking effect | Variable not exported in the shell profile, or not set in Claude Code settings | Add `export MX_TICKET_PREFIX=PROJ` to `~/.zshrc` or `~/.bashrc` and restart your terminal, or set it in `~/.claude/settings.json` under the `"env"` key (see [Configuration](#configuration)). |
+| Agent review passes timing out during `/mx:implement` | Codebase is very large and agents are analyzing too many files | Limit the scope by specifying which files or directories to review in your implementation plan. Break large changes into smaller, focused commits. |
+| `/mx:e2e` reports "browser not found" or fails to launch | Puppeteer or Playwright is not installed, or the bundled browser binary is missing | Run `npx puppeteer install` or `npx playwright install` to download browser binaries. Ensure your project lists one of these as a dependency. |
+
 ## License
 
 MIT
