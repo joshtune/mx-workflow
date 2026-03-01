@@ -56,11 +56,22 @@ Your instruction prompt here...
 
 ## Version Management
 
-Bump version in:
-- `.claude-plugin/plugin.json` (`version` field)
-- `.claude-plugin/marketplace.json` (`version` field)
-- `CHANGELOG.md` — add a new section under `[Unreleased]` following [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format
-- Git tag releases as `v{version}`
+Use `/mx:version` to bump versions. It handles everything in one step:
+
+```
+/mx:version patch    # 1.0.1 → 1.0.2
+/mx:version minor    # 1.0.1 → 1.1.0
+/mx:version major    # 1.0.1 → 2.0.0
+/mx:version 2.1.0    # explicit version
+```
+
+The command updates:
+- `plugin.json` (`version` field)
+- `.claude-plugin/marketplace.json` (`plugins[0].version` field)
+- `CHANGELOG.md` — moves `[Unreleased]` content to the new version section
+- Creates a git tag `v{version}`
+
+**Manual bumps** — if you must update versions by hand, keep both files and the changelog in sync.
 
 ## Documentation
 

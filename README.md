@@ -143,6 +143,12 @@ See `.env.example` for detailed documentation on each variable.
 |---|---|
 | `/mx:agents` | List available agents and their purposes |
 
+### Release
+
+| Command | Description |
+|---|---|
+| `/mx:version [patch\|minor\|major\|x.y.z]` | Bump version in both manifests, update CHANGELOG, commit, and tag |
+
 ### Anytime
 
 | Command | Description |

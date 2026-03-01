@@ -41,6 +41,9 @@ TESTING
 DISCOVERY
   /agents                           List available agents and their purposes
 
+RELEASE
+  /version [patch|minor|major|x.y.z] Bump version in plugin.json + marketplace.json, update CHANGELOG, tag
+
 ANYTIME
   /prime                            Re-ground context after git pull or branch switch
   /validate                         Quick quality check
