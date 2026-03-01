@@ -136,6 +136,7 @@ See `.env.example` for detailed documentation on each variable.
 | `/mx:plan` | Create implementation plan with codebase analysis |
 | `/mx:implement` | Execute plan with validation loops + agent review |
 | `/mx:validate` | Run quality checks (lint, type-check, tests) |
+| `/mx:deps [--security\|--outdated\|--unused]` | Audit dependencies for security issues and outdated versions |
 | `/mx:e2e [url]` | Browser-based E2E testing (screenshots, DB validation, bug fixes) |
 | `/mx:check-ignores` | Audit type/lint suppression comments |
 | `/mx:branch <ticket> <desc>` | Create branch with ticket-encoded naming convention |
@@ -202,6 +203,7 @@ Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:im
 Quick code change         → Just code, then /mx:ship
 Mysterious bug            → /mx:rca <error message or symptom>
 Tech debt cleanup         → /mx:check-ignores
+Dependency health check   → /mx:deps
 Need a new command        → /mx:create-command <name> <purpose>
 New project setup         → /mx:create-rules (generate CLAUDE.md)
 ```

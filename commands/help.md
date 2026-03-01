@@ -18,6 +18,7 @@ IMPLEMENTATION (most common path)
   /plan                             Create implementation plan from understanding
   /implement                        Execute plan with validation + agent review
   /validate                         Run quality checks (lint, type-check, tests)
+  /deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
   /e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
   /check-ignores                    Audit type/lint suppression comments
   /branch <ticket> <desc>            Create branch with ticket-encoded naming convention
@@ -47,6 +48,7 @@ RELEASE
 ANYTIME
   /prime                            Re-ground context after git pull or branch switch
   /validate                         Quick quality check
+  /deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
   /e2e                              Full browser E2E testing with screenshots
   /rca <symptom>                    Root cause analysis (add "quick" for fast scan)
   /check-ignores                    Find unnecessary type/lint suppressions
@@ -65,6 +67,7 @@ WHICH PATH SHOULD I USE?
   Batch Linear tickets      → /loop (or /loop EIT-25,EIT-30 for specific ones)
   Mysterious bug            → /rca <error message or symptom>
   Tech debt cleanup         → /check-ignores
+  Dependency health check   → /deps
   Need a new command        → /create-command <name> <purpose>
   New project setup         → /create-rules (generate CLAUDE.md)
 ```
