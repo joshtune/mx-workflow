@@ -89,6 +89,21 @@ Commands that generate artifacts write to `.agents/` using **all-lowercase-hyphe
 
 Never use capitalized directory names (e.g., `.agents/PRDs/` is wrong).
 
+## Changelog & Versioning Policy
+
+**Always update CHANGELOG.md** when making changes to the plugin:
+- Add entries under `[Unreleased]` as you work — don't leave it for later
+- Use the correct category: `Added`, `Changed`, `Fixed`, `Removed`
+- Reference the ticket ID (e.g., EIT-XX) when applicable
+- When shipping a batch of work, bump the version and move `[Unreleased]` to a new version section
+
+**When to bump versions:**
+- `patch` — bug fixes, typo corrections, doc-only changes
+- `minor` — new commands, new agents, new features, non-breaking improvements
+- `major` — breaking changes to existing command behavior or plugin structure
+
+**After bumping:** create a GitHub Release via `gh release create v{version}` with the changelog section as release notes.
+
 ## Quality Standards
 
 - Commands should run in under 2 minutes for common paths
