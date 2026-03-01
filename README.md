@@ -120,6 +120,7 @@ See `.env.example` for detailed documentation on each variable.
 | `/mx:check-ignores` | Audit type/lint suppression comments |
 | `/mx:commit` | Conventional commit (auto-infers scope/type/ticket) |
 | `/mx:ship [desc]` | Fix + check + commit + push in one step |
+| `/mx:pr [--draft]` | Create PR with auto-generated summary and agent findings |
 
 ### Multi-Agent Team Build (complex features)
 
@@ -162,6 +163,7 @@ New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
 Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
 After implementing        → /mx:e2e (verify it works in the browser)
 Complex multi-component   → /mx:prd → /mx:build-with-agent-team
+Ready to open a PR        → /mx:pr (or /mx:pr --draft)
 Quick code change         → Just code, then /mx:ship
 Mysterious bug            → /mx:rca <error message or symptom>
 Tech debt cleanup         → /mx:check-ignores

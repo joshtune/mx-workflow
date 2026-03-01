@@ -22,6 +22,7 @@ IMPLEMENTATION (most common path)
   /check-ignores                    Audit type/lint suppression comments
   /commit                           Conventional commit (auto-infers scope/type/ticket)
   /ship [desc]                      Fix + check + commit + push in one step
+  /pr [--draft | --base <branch>]   Create PR with auto-generated summary and agent findings
   /loop [ticket | all]              Process Linear tickets sequentially (plan → implement → commit)
 
 MULTI-AGENT TEAM BUILD (complex features)
@@ -51,6 +52,7 @@ WHICH PATH SHOULD I USE?
   Bug fix or small feature  → /rca (if needed) → /plan → /implement
   After implementing        → /e2e (verify it works in the browser)
   Complex multi-component   → /prd → /build-with-agent-team
+  Ready to open a PR        → /pr (or /pr --draft for work-in-progress)
   Quick code change         → Just code, then /ship (or /validate → /commit)
   Batch Linear tickets      → /loop (or /loop EIT-25,EIT-30 for specific ones)
   Mysterious bug            → /rca <error message or symptom>
