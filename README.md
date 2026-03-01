@@ -2,6 +2,10 @@
 
 Development workflow plugin for [Claude Code](https://claude.com/claude-code) covering the full dev lifecycle: planning, implementation, quality checks, conventional commits, E2E testing, and multi-agent team builds.
 
+## Documentation
+
+Full documentation is available at **[joshtune.github.io/mx-workflow](https://joshtune.github.io/mx-workflow)** — including command guides, agent references, configuration details, and getting started tutorials.
+
 ## Installation
 
 ### Option A: Marketplace install (recommended)

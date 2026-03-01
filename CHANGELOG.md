@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Documentation site at [joshtune.github.io/mx-workflow](https://joshtune.github.io/mx-workflow) with command guides, agent references, and getting started tutorials (EIT-57)
 - Smart pipeline routing for `/mx:loop` — auto-classifies tickets into Bug Fix [A], Feature [B], Simple/Docs [C], or Refactor [D] pipelines with tailored sub-agent workflows (EIT-58)
 - `--branch-per-ticket` mode for `/mx:loop` — creates isolated branches with auto-PR creation via `gh pr create` per ticket (EIT-59)
 - Per-ticket pipeline override syntax (e.g., `EIT-42:A`) for `/mx:loop`

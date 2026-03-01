@@ -34,6 +34,7 @@ Your instruction prompt here...
 2. Use `/mx:create-command <name> <purpose>` to scaffold
 3. Define clear inputs, outputs, and which tools are needed
 4. Test with `/my-command` in Claude Code
+5. Update the documentation site in `docs/` — add or revise pages so the [live docs](https://joshtune.github.io/mx-workflow) stay in sync
 
 ## Adding New Agents
 
