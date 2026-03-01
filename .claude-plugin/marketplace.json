@@ -7,91 +7,91 @@
   },
   "plugins": [
     {
-      "name": "help",
+      "name": "mx:help",
       "description": "Quick reference for all workflow commands",
       "source": "./commands/help.md",
       "version": "1.0.0"
     },
     {
-      "name": "prime",
+      "name": "mx:prime",
       "description": "Warm up codebase context (reads key files, runs checks)",
       "source": "./commands/prime.md",
       "version": "1.0.0"
     },
     {
-      "name": "status",
+      "name": "mx:status",
       "description": "Show project status and available tools",
       "source": "./commands/status.md",
       "version": "1.0.0"
     },
     {
-      "name": "rca",
+      "name": "mx:rca",
       "description": "Deep root cause analysis (5 Whys + git history)",
       "source": "./commands/rca.md",
       "version": "1.0.0"
     },
     {
-      "name": "plan",
+      "name": "mx:plan",
       "description": "Create implementation plan from understanding",
       "source": "./commands/plan.md",
       "version": "1.0.0"
     },
     {
-      "name": "implement",
+      "name": "mx:implement",
       "description": "Execute plan with validation + agent review",
       "source": "./commands/implement.md",
       "version": "1.0.0"
     },
     {
-      "name": "validate",
+      "name": "mx:validate",
       "description": "Run quality checks (lint, type-check, tests)",
       "source": "./commands/validate.md",
       "version": "1.0.0"
     },
     {
-      "name": "e2e",
+      "name": "mx:e2e",
       "description": "Browser-based E2E testing (screenshots, DB validation, bug fixes)",
       "source": "./commands/e2e.md",
       "version": "1.0.0"
     },
     {
-      "name": "check-ignores",
+      "name": "mx:check-ignores",
       "description": "Audit type/lint suppression comments",
       "source": "./commands/check-ignores.md",
       "version": "1.0.0"
     },
     {
-      "name": "commit",
+      "name": "mx:commit",
       "description": "Conventional commit (auto-infers scope/type/ticket)",
       "source": "./commands/commit.md",
       "version": "1.0.0"
     },
     {
-      "name": "ship",
+      "name": "mx:ship",
       "description": "Fix + check + commit + push in one step",
       "source": "./commands/ship.md",
       "version": "1.0.0"
     },
     {
-      "name": "prd",
+      "name": "mx:prd",
       "description": "Problem-first PRD generator (asks questions, outputs spec)",
       "source": "./commands/prd.md",
       "version": "1.0.0"
     },
     {
-      "name": "build-with-agent-team",
+      "name": "mx:build-with-agent-team",
       "description": "Spawn agent team in tmux (contract-first protocol)",
       "source": "./commands/build-with-agent-team.md",
       "version": "1.0.0"
     },
     {
-      "name": "create-command",
+      "name": "mx:create-command",
       "description": "Create new slash commands",
       "source": "./commands/create-command.md",
       "version": "1.0.0"
     },
     {
-      "name": "create-rules",
+      "name": "mx:create-rules",
       "description": "Generate CLAUDE.md from codebase analysis",
       "source": "./commands/create-rules.md",
       "version": "1.0.0"
