@@ -151,7 +151,7 @@ See `.env.example` for detailed documentation on each variable.
 
 ## Agents
 
-Six specialized agents are included for targeted code analysis. They run automatically via commands like `/mx:implement`, or can be invoked directly via the Task tool.
+Seven specialized agents are included for targeted code analysis. They run automatically via commands like `/mx:implement`, or can be invoked directly via the Task tool.
 
 | Agent | Purpose |
 |---|---|
@@ -161,6 +161,7 @@ Six specialized agents are included for targeted code analysis. They run automat
 | `mx-mr-test-analyzer` | Review test coverage quality and completeness |
 | `mx-comment-analyzer` | Analyze comment accuracy and long-term maintainability |
 | `mx-type-design-analyzer` | Analyze type design for encapsulation and invariants |
+| `mx-performance-auditor` | Analyze code for performance bottlenecks and scalability risks |
 
 ## Which Path Should I Use?
 
