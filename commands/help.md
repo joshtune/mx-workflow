@@ -9,65 +9,67 @@ Display the ENTIRE code block below exactly as written. Do NOT summarize, paraph
 MX-WORKFLOW COMMANDS
 ==========================
 
+All commands use the /mx: prefix (e.g., /mx:plan, /mx:commit).
+
 SESSION START
-  /prime                            Warm up codebase context (reads key files, runs checks)
-  /status                           Show project status and available tools
+  /mx:prime                            Warm up codebase context (reads key files, runs checks)
+  /mx:status                           Show project status and available tools
 
 IMPLEMENTATION (most common path)
-  /rca <error or symptom>           Deep root cause analysis (5 Whys + git history)
-  /plan                             Create implementation plan from understanding
-  /implement                        Execute plan with validation + agent review
-  /validate                         Run quality checks (lint, type-check, tests)
-  /deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
-  /e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
-  /check-ignores                    Audit type/lint suppression comments
-  /branch <ticket> <desc>            Create branch with ticket-encoded naming convention
-  /commit                           Conventional commit (auto-infers scope/type/ticket)
-  /ship [desc]                      Fix + check + commit + push in one step
-  /pr [--draft | --base <branch>]   Create PR with auto-generated summary and agent findings
-  /loop [ticket | all]              Process Linear tickets sequentially (plan → implement → commit)
+  /mx:rca <error or symptom>           Deep root cause analysis (5 Whys + git history)
+  /mx:plan                             Create implementation plan from understanding
+  /mx:implement                        Execute plan with validation + agent review
+  /mx:validate                         Run quality checks (lint, type-check, tests)
+  /mx:deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
+  /mx:e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
+  /mx:check-ignores                    Audit type/lint suppression comments
+  /mx:branch <ticket> <desc>           Create branch with ticket-encoded naming convention
+  /mx:commit                           Conventional commit (auto-infers scope/type/ticket)
+  /mx:ship [desc]                      Fix + check + commit + push in one step
+  /mx:pr [--draft | --base <branch>]   Create PR with auto-generated summary and agent findings
+  /mx:loop [ticket | all]              Process Linear tickets sequentially (plan → implement → commit)
 
 MULTI-AGENT TEAM BUILD (complex features)
-  /prd                              Define the problem, scope, and spec first
-  /build-with-agent-team            Spawn agent team in tmux (contract-first protocol)
+  /mx:prd                              Define the problem, scope, and spec first
+  /mx:build-with-agent-team            Spawn agent team in tmux (contract-first protocol)
 
 PLANNING & DESIGN
-  /prd [idea]                       Problem-first PRD generator (asks questions, outputs spec)
-  /create-command <name>            Create new slash commands
-  /create-rules                     Generate CLAUDE.md from codebase analysis
+  /mx:prd [idea]                       Problem-first PRD generator (asks questions, outputs spec)
+  /mx:create-command <name>            Create new slash commands
+  /mx:create-rules                     Generate CLAUDE.md from codebase analysis
 
 TESTING
-  /e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
+  /mx:e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
 
 DISCOVERY
-  /agents                           List available agents and their purposes
+  /mx:agents                           List available agents and their purposes
 
 RELEASE
-  /version [patch|minor|major|x.y.z] Bump version in plugin.json + marketplace.json, update CHANGELOG, tag
+  /mx:version [patch|minor|major|x.y.z] Bump version in plugin.json + marketplace.json, update CHANGELOG, tag
 
 ANYTIME
-  /prime                            Re-ground context after git pull or branch switch
-  /validate                         Quick quality check
-  /deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
-  /e2e                              Full browser E2E testing with screenshots
-  /rca <symptom>                    Root cause analysis (add "quick" for fast scan)
-  /check-ignores                    Find unnecessary type/lint suppressions
-  /commit                           Create a conventional commit
-  /ship [desc]                      Fix + check + commit + push in one step
+  /mx:prime                            Re-ground context after git pull or branch switch
+  /mx:validate                         Quick quality check
+  /mx:deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
+  /mx:e2e                              Full browser E2E testing with screenshots
+  /mx:rca <symptom>                    Root cause analysis (add "quick" for fast scan)
+  /mx:check-ignores                    Find unnecessary type/lint suppressions
+  /mx:commit                           Create a conventional commit
+  /mx:ship [desc]                      Fix + check + commit + push in one step
 
 WHICH PATH SHOULD I USE?
-  New session               → /status (check project readiness) → /prime (warm up context)
-  New feature (needs spec)  → /prd → /plan → /implement
-  Bug fix or small feature  → /rca (if needed) → /plan → /implement
-  After implementing        → /e2e (verify it works in the browser)
-  Complex multi-component   → /prd → /build-with-agent-team
-  Ready to open a PR        → /pr (or /pr --draft for work-in-progress)
-  Starting a ticket         → /branch <ticket> <desc> → /plan → /implement
-  Quick code change         → Just code, then /ship (or /validate → /commit)
-  Batch Linear tickets      → /loop (or /loop EIT-25,EIT-30 for specific ones)
-  Mysterious bug            → /rca <error message or symptom>
-  Tech debt cleanup         → /check-ignores
-  Dependency health check   → /deps
-  Need a new command        → /create-command <name> <purpose>
-  New project setup         → /create-rules (generate CLAUDE.md)
+  New session               → /mx:status (check project readiness) → /mx:prime (warm up context)
+  New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
+  Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
+  After implementing        → /mx:e2e (verify it works in the browser)
+  Complex multi-component   → /mx:prd → /mx:build-with-agent-team
+  Ready to open a PR        → /mx:pr (or /mx:pr --draft for work-in-progress)
+  Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement
+  Quick code change         → Just code, then /mx:ship (or /mx:validate → /mx:commit)
+  Batch Linear tickets      → /mx:loop (or /mx:loop EIT-25,EIT-30 for specific ones)
+  Mysterious bug            → /mx:rca <error message or symptom>
+  Tech debt cleanup         → /mx:check-ignores
+  Dependency health check   → /mx:deps
+  Need a new command        → /mx:create-command <name> <purpose>
+  New project setup         → /mx:create-rules (generate CLAUDE.md)
 ```
