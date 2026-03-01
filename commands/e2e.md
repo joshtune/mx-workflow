@@ -170,6 +170,51 @@ Analyze each screenshot for layout issues, overflow, broken alignment, and touch
 
 ## Phase 4: Cleanup
 
+### 4a. Database Cleanup / Rollback
+
+E2E tests create real records that can pollute development databases. Use one of these strategies to clean up test data:
+
+**Strategy 1: Transaction Wrapping (preferred)**
+
+If you can wrap entire test sequences in a transaction, all test data is rolled back automatically:
+
+- **Postgres:**
+  ```bash
+  psql "$DATABASE_URL" -c "BEGIN; /* run validation queries here */ ROLLBACK;"
+  ```
+- **SQLite:**
+  ```bash
+  sqlite3 <db-file> "BEGIN TRANSACTION; /* validation queries */ ROLLBACK;"
+  ```
+- **MySQL:**
+  ```bash
+  mysql -e "START TRANSACTION; /* validation queries */ ROLLBACK;" <db-name>
+  ```
+
+When using this approach during Phase 3b, wrap your read-only validation queries in a transaction so they never commit. For write operations triggered through the UI, consider running the full journey inside a transaction savepoint if the application's database driver supports it.
+
+**Strategy 2: Manual Cleanup**
+
+When transaction wrapping is not possible (e.g., data was created through the UI and already committed), clean up test records after validation:
+
+1. **Identify test data** — use timestamps, known test values, or naming conventions (e.g., emails like `test-*@example.com`) to distinguish test records from real data
+2. **Delete in dependency order** — remove child/dependent records before parent records to avoid foreign key violations:
+   ```sql
+   -- Example: clean up a test user and their related records
+   DELETE FROM user_sessions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+   DELETE FROM user_profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+   DELETE FROM users WHERE email LIKE 'test-%@example.com';
+   ```
+3. **Verify cleanup** — re-run validation queries to confirm test records are gone and no orphaned data remains
+
+**Guidance:**
+- Prefer transaction wrapping for validation queries — it leaves zero footprint
+- For UI-created data, manual cleanup is necessary since the application commits transactions internally
+- Always delete in reverse dependency order to respect foreign key constraints
+- If the project has a seed or reset script (`npm run db:reset`, `rails db:seed`, etc.), mention it in the report as an alternative full-reset option
+
+### 4b. Stop Services
+
 1. Stop the dev server background process
 2. Close the browser: `agent-browser close`
 
