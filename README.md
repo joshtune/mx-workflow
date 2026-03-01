@@ -208,6 +208,13 @@ Need a new command        → /mx:create-command <name> <purpose>
 New project setup         → /mx:create-rules (generate CLAUDE.md)
 ```
 
+> **PRD vs Plan — which do I need?**
+>
+> - **`/mx:prd`** defines **what** to build — problem statement, hypotheses, scope, and acceptance criteria. Use it when you have a rough idea but need to think through requirements before writing code.
+> - **`/mx:plan`** defines **how** to build it — implementation steps, file changes, and architecture decisions. Use it when the requirements are already clear and you are ready to code.
+>
+> *Typical flow:* new feature that needs scoping → `/mx:prd` first, then `/mx:plan`. Clear bug fix or well-defined task → skip straight to `/mx:plan`.
+
 ## Customization
 
 ### Override scope mappings
