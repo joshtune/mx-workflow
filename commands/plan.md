@@ -1,7 +1,7 @@
 ---
 description: "Create implementation plan with codebase analysis"
 argument-hint: "[description or ticket reference]"
-allowed-tools: ["Bash", "Glob", "Grep", "Read", "Task"]
+allowed-tools: ["Bash", "Glob", "Grep", "Read"]
 ---
 
 # Codebase-Aware Implementation Plan

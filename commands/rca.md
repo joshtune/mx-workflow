@@ -1,7 +1,7 @@
 ---
 description: "Deep root cause analysis — finds the actual cause, not just symptoms"
 argument-hint: "<issue|error|stacktrace> [quick]"
-allowed-tools: ["Read", "Glob", "Grep", "Bash"]
+allowed-tools: ["Read", "Glob", "Grep", "Bash", "Write"]
 ---
 
 <objective>

@@ -1,7 +1,7 @@
 ---
 description: "Process Linear tickets sequentially — plan, implement, commit, mark done"
 argument-hint: "[ticket-id | 'all']"
-allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Edit", "Agent",
+allowed-tools: ["Bash", "Glob", "Read", "Write", "Agent",
                 "mcp__plugin_linear_linear__list_issues",
                 "mcp__plugin_linear_linear__get_issue",
                 "mcp__plugin_linear_linear__save_issue",

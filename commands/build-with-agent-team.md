@@ -1,7 +1,7 @@
 ---
 description: "Build using Claude Code Agent Teams with tmux split panes"
 argument-hint: "<plan-path> [num-agents]"
-allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Edit"]
+allowed-tools: ["Bash", "Read"]
 ---
 
 # Build with Agent Team

@@ -1,7 +1,7 @@
 ---
 description: "Create conventional commit with auto-inferred scope/type/ticket"
 argument-hint: "[description]"
-allowed-tools: ["Bash"]
+allowed-tools: ["Bash", "Read"]
 ---
 
 # Conventional Commit
