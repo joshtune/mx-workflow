@@ -54,7 +54,7 @@ When set, mx-workflow includes the ticket reference in the commit subject line u
 ```bash
 # Jira-style tickets
 MX_TICKET_PREFIX="PROJ"
-# Produces: feat(billing)[PROJ-1234] add invoice export
+# Produces: feat(auth)[PROJ-1234] add token refresh
 
 # Linear-style tickets
 MX_TICKET_PREFIX="EIT"
@@ -62,7 +62,7 @@ MX_TICKET_PREFIX="EIT"
 
 # No ticket prefix (default)
 MX_TICKET_PREFIX=""
-# Produces: feat(billing) add invoice export
+# Produces: feat(auth) add token refresh
 ```
 
 If your team does not use ticket references in commits, leave this empty. The commit message will still follow conventional commit format, just without the bracketed ticket ID.

@@ -8,7 +8,6 @@ Infer the commit/MR scope from the file paths that changed. Match against the fi
 
 | File pattern | Scope |
 |---|---|
-| `*billing*` | billing |
 | `*auth*` | auth |
 | `*user*` | users |
 | `*admin*` | admin |

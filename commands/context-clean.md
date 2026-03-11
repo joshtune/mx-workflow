@@ -36,8 +36,8 @@ List the files that will be removed:
 ```
 CONTEXT FILES TO REMOVE
 ========================
-- src/billing/.claude/context.local.md (23 lines)
-- src/calendar/.claude/context.local.md (18 lines)
+- src/auth/.claude/context.local.md (23 lines)
+- src/dashboard/.claude/context.local.md (18 lines)
 
 Total: 2 files
 ```

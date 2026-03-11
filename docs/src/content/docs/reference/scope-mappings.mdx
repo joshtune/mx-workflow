@@ -24,7 +24,6 @@ These are the built-in mappings that ship with mx-workflow. They work as a reaso
 
 | File pattern | Scope |
 |---|---|
-| `*billing*` | billing |
 | `*auth*` | auth |
 | `*user*` | users |
 | `*admin*` | admin |
@@ -144,6 +143,6 @@ This configuration separates the CLI entry points (cli, commands) from user inte
 ## Tips for writing good scope mappings
 
 - **Order matters.** Put more specific patterns before general ones. A pattern like `*auth*` should come before `*api*` if your auth code lives inside the API directory.
-- **Keep scopes short.** Scope names appear in every commit message. Use one or two words: `auth`, `billing`, `data-access` — not `authentication-and-authorization`.
+- **Keep scopes short.** Scope names appear in every commit message. Use one or two words: `auth`, `api`, `data-access` — not `authentication-and-authorization`.
 - **Match your team's vocabulary.** If your team says "handlers" instead of "controllers", use `handlers` as the scope name.
 - **Revisit periodically.** As your codebase grows, new directories may not match any existing pattern. Check occasionally and add mappings for new areas.

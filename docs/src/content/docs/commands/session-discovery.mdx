@@ -41,7 +41,7 @@ Detects and displays available tools, configured settings, and project readiness
 **Analyze a directory and create local context notes**
 
 ```
-/mx:context-prime src/billing
+/mx:context-prime src/auth
 ```
 
 Reads the target directory's key files, traces inbound/outbound dependencies, and writes a `.claude/context.local.md` file capturing non-obvious behavioral knowledge — hidden coupling, framework quirks, gotchas, and constraints that aren't evident from code alone.
@@ -77,7 +77,7 @@ Context files are git-excluded and locally maintained. They act as a reference s
 **Remove local context files**
 
 ```
-/mx:context-clean src/billing     # remove context for one directory
+/mx:context-clean src/auth        # remove context for one directory
 /mx:context-clean --all           # remove all context files in the project
 /mx:context-clean                 # remove context in current directory
 ```
