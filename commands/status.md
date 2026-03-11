@@ -110,7 +110,7 @@ NEXT STEPS
 Based on the detected state, suggest next steps:
 
 - If no quality tools: "Run `/mx:plan` to identify patterns. Quality checks can be configured later."
-- If git not initialized: "Initialize git with `git init` before using `/mx:commit` or `/mx:ship`."
+- If git not initialized: "Initialize git with `git init` before using `/mx:commit` or `/mx:shipit`."
 - If agent-browser not installed but has frontend: "Install agent-browser globally to enable `/mx:e2e` testing."
 - If CLAUDE.md not found: "Run `/mx:create-rules` to generate project guidelines."
 - If tickets configured: "You can now use `/mx:plan` to create implementation plans with automatic ticket detection."

@@ -45,7 +45,7 @@ The prefix used for ticket references in conventional commit messages.
 |---|---|
 | **Default** | *(empty — ticket references are omitted)* |
 | **Type** | String |
-| **Used by** | `/mx:commit`, `/mx:ship`, `/mx:branch` |
+| **Used by** | `/mx:commit`, `/mx:shipit`, `/mx:branch` |
 
 When set, mx-workflow includes the ticket reference in the commit subject line using the format `type(scope)[PREFIX-123] message`.
 
@@ -75,7 +75,7 @@ A regex pattern used to extract ticket numbers from branch names. This tells mx-
 |---|---|
 | **Default** | `{type}/{ticket}-{description}` |
 | **Type** | String (regex pattern or template) |
-| **Used by** | `/mx:commit`, `/mx:ship`, `/mx:branch` |
+| **Used by** | `/mx:commit`, `/mx:shipit`, `/mx:branch` |
 
 The pattern must match the prefix portion of the branch name up to (but not including) the ticket number. mx-workflow uses this to extract the ticket number automatically.
 
@@ -102,7 +102,7 @@ The `Co-authored-by` trailer appended to AI-assisted commits. This gives attribu
 |---|---|
 | **Default** | `Claude <noreply@anthropic.com>` |
 | **Type** | String (Git author format: `Name <email>`) |
-| **Used by** | `/mx:commit`, `/mx:ship` |
+| **Used by** | `/mx:commit`, `/mx:shipit` |
 
 **Examples:**
 

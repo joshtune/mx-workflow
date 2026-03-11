@@ -25,9 +25,9 @@ This page covers the most common issues you may encounter when using mx-workflow
 
 4. If you cloned the repo to a different location, update the path accordingly.
 
-## /mx:ship fails on push
+## /mx:shipit fails on push
 
-**Symptom:** `/mx:ship` creates the commit successfully but fails when trying to push to the remote repository.
+**Symptom:** `/mx:shipit` creates the commit successfully but fails when trying to push to the remote repository.
 
 **Cause:** Either no git remote is configured, or your SSH key / HTTPS credentials are missing or expired.
 
@@ -152,7 +152,7 @@ See the [Configuration](/mx-workflow/reference/configuration/) page for full det
 
 3. **Use incremental implementation.** Instead of implementing everything at once, run `/mx:implement` for one section of the plan, commit, then continue with the next section. Each review pass only looks at the most recent changes.
 
-4. **Skip review for trivial changes.** For simple config changes or documentation updates, use `/mx:ship` instead of `/mx:implement`. The ship command runs validation but skips the agent review step.
+4. **Skip review for trivial changes.** For simple config changes or documentation updates, use `/mx:shipit` instead of `/mx:implement`. The ship command runs validation but skips the agent review step.
 
 ## /mx:e2e fails to launch browser
 

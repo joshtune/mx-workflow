@@ -3,7 +3,7 @@ title: Scope Mappings
 description: Conventional commit scope mappings reference.
 ---
 
-Scope mappings tell mx-workflow how to infer the commit scope from the files you changed. When you run `/mx:commit` or `/mx:ship`, the plugin looks at which files were modified, matches them against a set of patterns, and uses the first match as the commit scope.
+Scope mappings tell mx-workflow how to infer the commit scope from the files you changed. When you run `/mx:commit` or `/mx:shipit`, the plugin looks at which files were modified, matches them against a set of patterns, and uses the first match as the commit scope.
 
 For example, if you edit files in `src/auth/`, the commit scope becomes `auth`, producing a message like `feat(auth) add token refresh`.
 

@@ -97,7 +97,7 @@ Commands are invoked as `/mx:<command-name>`:
 /mx:implement           # Execute plan with validation
 /mx:e2e                 # Browser-based E2E testing
 /mx:commit              # Create a conventional commit
-/mx:ship                # Fix + check + commit + push
+/mx:shipit                # Fix + check + commit + push
 /mx:help                # Show the full command reference
 ```
 
@@ -145,7 +145,7 @@ See `.env.example` for detailed documentation on each variable.
 | `/mx:check-ignores` | Audit type/lint suppression comments |
 | `/mx:branch <ticket> <desc>` | Create branch with ticket-encoded naming convention |
 | `/mx:commit` | Conventional commit (auto-infers scope/type/ticket) |
-| `/mx:ship [desc]` | Fix + check + commit + push in one step |
+| `/mx:shipit [desc]` | Fix + check + commit + push in one step |
 | `/mx:pr [--draft]` | Create PR with auto-generated summary and agent findings |
 
 ### Multi-Agent Team Build (complex features)
@@ -204,7 +204,7 @@ After implementing        → /mx:e2e (verify it works in the browser)
 Complex multi-component   → /mx:prd → /mx:build-with-agent-team
 Ready to open a PR        → /mx:pr (or /mx:pr --draft)
 Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement
-Quick code change         → Just code, then /mx:ship
+Quick code change         → Just code, then /mx:shipit
 Mysterious bug            → /mx:rca <error message or symptom>
 Tech debt cleanup         → /mx:check-ignores
 Dependency health check   → /mx:deps
@@ -244,7 +244,7 @@ cd ~/mx-workflow && git pull
 | Problem | Cause | Solution |
 |---|---|---|
 | Commands not showing up in autocomplete after typing `/mx:` | Plugin not installed or not loaded by Claude Code | Re-run the install step (see [Installation](#installation)) and verify with `/mx:help`. For manual installs, confirm the path in `~/.claude/settings.json` is correct and the directory exists. |
-| `/mx:ship` fails on push | Git remote not configured, or SSH/HTTPS credentials missing | Run `git remote -v` to verify a remote is set. Check that your SSH key or HTTPS token is valid. If no remote exists, add one with `git remote add origin <url>`. |
+| `/mx:shipit` fails on push | Git remote not configured, or SSH/HTTPS credentials missing | Run `git remote -v` to verify a remote is set. Check that your SSH key or HTTPS token is valid. If no remote exists, add one with `git remote add origin <url>`. |
 | `/mx:validate` reports "no lint/test command found" | Project is missing `package.json` scripts, `Makefile` targets, or equivalent | Add `lint`, `typecheck`, and `test` scripts to your `package.json`, or the corresponding targets to your `Makefile`. `/mx:validate` discovers these automatically. |
 | Environment variables (e.g., `MX_TICKET_PREFIX`) not taking effect | Variable not exported in the shell profile, or not set in Claude Code settings | Add `export MX_TICKET_PREFIX=PROJ` to `~/.zshrc` or `~/.bashrc` and restart your terminal, or set it in `~/.claude/settings.json` under the `"env"` key (see [Configuration](#configuration)). |
 | Agent review passes timing out during `/mx:implement` | Codebase is very large and agents are analyzing too many files | Limit the scope by specifying which files or directories to review in your implementation plan. Break large changes into smaller, focused commits. |

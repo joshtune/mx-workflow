@@ -27,7 +27,7 @@ IMPLEMENTATION (most common path)
   /mx:check-ignores                    Audit type/lint suppression comments
   /mx:branch <ticket> <desc>           Create branch with ticket-encoded naming convention
   /mx:commit                           Conventional commit (auto-infers scope/type/ticket)
-  /mx:ship [desc]                      Fix + check + commit + push in one step
+  /mx:shipit [desc]                      Fix + check + commit + push in one step
   /mx:pr [--draft | --base <branch>]   Create PR with auto-generated summary and agent findings
   /mx:loop [ticket | all] [--branch-per-ticket]
                                        Process Linear tickets with smart pipeline routing (A/B/C/D)
@@ -61,7 +61,7 @@ ANYTIME
   /mx:rca <symptom>                    Root cause analysis (add "quick" for fast scan)
   /mx:check-ignores                    Find unnecessary type/lint suppressions
   /mx:commit                           Create a conventional commit
-  /mx:ship [desc]                      Fix + check + commit + push in one step
+  /mx:shipit [desc]                      Fix + check + commit + push in one step
 
 WHICH PATH SHOULD I USE?
   New session               → /mx:status (check project readiness) → /mx:prime (warm up context)
@@ -71,7 +71,7 @@ WHICH PATH SHOULD I USE?
   Complex multi-component   → /mx:prd → /mx:build-with-agent-team
   Ready to open a PR        → /mx:pr (or /mx:pr --draft for work-in-progress)
   Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement
-  Quick code change         → Just code, then /mx:ship (or /mx:validate → /mx:commit)
+  Quick code change         → Just code, then /mx:shipit (or /mx:validate → /mx:commit)
   Batch Linear tickets      → /mx:loop (or /mx:loop EIT-25,EIT-30 --branch-per-ticket)
   Mysterious bug            → /mx:rca <error message or symptom>
   Tech debt cleanup         → /mx:check-ignores

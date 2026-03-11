@@ -59,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/mx:deps` command — dependency security audit, outdated version checks, and unused package detection (EIT-31)
 - `/mx:version` command — centralized version management across plugin.json, marketplace.json, and CHANGELOG.md (EIT-36)
 - `mx-performance-auditor` agent — performance analysis covering algorithmic complexity, memory, I/O, frontend, and database patterns (EIT-32)
-- `--dry-run` flag for `/mx:ship` — preview what would be committed and pushed without actually doing it (EIT-33)
+- `--dry-run` flag for `/mx:shipit` — preview what would be committed and pushed without actually doing it (EIT-33)
 - `mx-comment-analyzer` integrated into `/mx:implement` review pass for comment quality checks (EIT-41)
 - Getting Started walkthrough in README — 7-step first-session guide (EIT-37)
 - Troubleshooting section in README — 6 common failure modes with solutions (EIT-38)
