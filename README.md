@@ -250,6 +250,10 @@ cd ~/mx-workflow && git pull
 | Agent review passes timing out during `/mx:implement` | Codebase is very large and agents are analyzing too many files | Limit the scope by specifying which files or directories to review in your implementation plan. Break large changes into smaller, focused commits. |
 | `/mx:e2e` reports "browser not found" or fails to launch | Puppeteer or Playwright is not installed, or the bundled browser binary is missing | Run `npx puppeteer install` or `npx playwright install` to download browser binaries. Ensure your project lists one of these as a dependency. |
 
+## Acknowledgments
+
+Much of the approach behind mx-workflow was inspired by [The 5 Techniques Separating Top Agentic Engineers Right Now](https://www.youtube.com/watch?v=ttdWPDmBN_4) by [Cole Medin](https://github.com/coleam00).
+
 ## License
 
 MIT

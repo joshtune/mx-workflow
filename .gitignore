@@ -5,3 +5,6 @@
 node_modules/
 docs/dist/
 docs/.astro/
+.idea
+.agents/
+.claude/settings.local.json
