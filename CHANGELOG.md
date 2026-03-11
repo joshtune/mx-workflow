@@ -11,11 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/mx:context-prime` command — analyze a directory and create a `.claude/context.local.md` with non-obvious behavioral notes (hidden coupling, framework quirks, gotchas)
 - `/mx:context-clean` command — remove local context files for a directory or the entire project
+- `/mx:rebase` command — rebase current branch onto trunk (main/master) or a specified branch with pre-flight checks
 - Documentation for both context commands on the docs site (Session & Discovery page)
 
 ### Changed
 
-- `/mx:help` updated with `/mx:context-prime` and `/mx:context-clean` in SESSION START, ANYTIME, and WHICH PATH sections
+- `/mx:help` updated with `/mx:context-prime`, `/mx:context-clean`, and `/mx:rebase`
+- `/mx:ship` renamed to `/mx:shipit`
 
 ## [1.3.0] - 2026-03-01
 

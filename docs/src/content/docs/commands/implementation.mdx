@@ -144,6 +144,26 @@ Creates a new git branch with a name that follows your team's naming convention.
 - When you want consistent branch naming across the team
 - Before `/mx:plan` to set up the branch first
 
+## /mx:rebase
+
+**Rebase current branch onto trunk or a specified branch**
+
+```
+/mx:rebase [branch]
+```
+
+Rebases the current branch onto the trunk branch (`main` or `master`, auto-detected) or a branch you specify. Fetches the latest remote state before rebasing. If conflicts arise, it reports the conflicting files and stops — it won't attempt to resolve conflicts automatically.
+
+**Pre-flight checks:**
+- Blocks if you have uncommitted changes (stash or commit first)
+- Blocks if you're already on the base branch
+- Shows a rebase plan (current branch, base branch, commits ahead) before proceeding
+
+**When to use it:**
+- Before opening a PR, to ensure your branch is up to date with trunk
+- After trunk has moved ahead and you want to incorporate the latest changes
+- As part of the flow: `/mx:rebase` then `/mx:pr`
+
 ## /mx:commit
 
 **Create conventional commit with auto-inferred scope/type/ticket**
