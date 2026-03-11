@@ -1,0 +1,119 @@
+---
+description: "Analyze a directory and create a local context file with non-obvious behavioral notes"
+argument-hint: "<path>"
+allowed-tools: ["Read", "Glob", "Grep", "Bash", "Write", "Edit"]
+---
+
+# Context Prime
+
+Analyze a directory and create a `.claude/context.local.md` file capturing non-obvious module knowledge — hidden coupling, framework quirks, gotchas, and constraints that aren't evident from code alone.
+
+**Input**: $ARGUMENTS
+
+## Instructions
+
+### Step 1: Resolve Target Directory
+
+Parse `$ARGUMENTS` for the target path. It should be a directory path relative to the project root.
+
+- If no argument is provided, use the project root directory.
+- Verify the directory exists. If not, report the error and stop.
+- If a file path is given instead of a directory, use the file's parent directory.
+
+### Step 2: Check for Existing Context
+
+Check if `.claude/context.local.md` already exists in the target directory.
+
+- If it exists, read it and note what's already captured. You'll update it rather than overwrite.
+- If it doesn't exist, you'll create it fresh.
+
+### Step 3: Analyze the Module
+
+Read and analyze the target directory to discover non-obvious patterns. Focus on things that would bite someone who hasn't worked here before.
+
+**Discovery steps:**
+
+1. **Map the directory** — use Glob to list all files. Note the file count, extensions, and structure.
+
+2. **Read entry points** — find and read index files, main entry points, config files, route definitions, and the most-imported files. Read up to 8 key files.
+
+3. **Trace dependencies** — use Grep to find:
+   - What imports FROM this directory (inbound consumers — who breaks if this changes?)
+   - What this directory imports from outside itself (outbound dependencies)
+   - Any dynamic imports, lazy loading, or bridge registrations
+   - Shared state, singletons, or global side effects
+
+4. **Identify framework patterns** — look for:
+   - Routing guards, middleware, interceptors
+   - State management setup (stores, contexts, providers)
+   - Build/bundling configuration specific to this module
+   - CSS/styling scoping (modules, global overrides, z-index layers)
+   - API contracts, service layers, or backend integration patterns
+
+5. **Check for gotchas** — look for:
+   - Files that are imported by many other modules (high fan-in = high blast radius)
+   - Circular or near-circular dependencies
+   - Mixed technologies (e.g., legacy JS alongside modern TS)
+   - Magic strings, environment-dependent behavior
+   - Initialization ordering dependencies
+   - Comments containing "HACK", "WORKAROUND", "XXX", "FIXME", "careful", "do not", "must be"
+
+### Step 4: Write the Context File
+
+Create or update `.claude/context.local.md` in the target directory.
+
+**Rules:**
+- Maximum 40 lines — be concise, every line must earn its place
+- Only include non-obvious information — skip anything clear from imports, types, or file names
+- Do NOT restate what the code does — capture what you'd warn a teammate about
+- Use the template below but omit empty sections entirely
+- Prefix time-sensitive entries with a date: `[2026-03] ...`
+
+**Template:**
+
+```markdown
+# Context: <module-name>
+
+## Stack
+<!-- What framework/patterns this module uses. Only if non-obvious or mixed. -->
+
+## Key Consumers
+<!-- Who imports from here? What breaks if you change this? -->
+
+## Gotchas
+<!-- Things that will bite you if you don't know them. -->
+
+## Do Not Touch
+<!-- Fragile files or patterns with hidden consumers. -->
+```
+
+If updating an existing file:
+- Preserve still-valid entries
+- Remove entries that contradict current code
+- Add newly discovered information
+- Ensure the file stays under 40 lines — prune least-useful entries if needed
+
+### Step 5: Ensure Git Exclusion
+
+Check that `.claude/*.local*` files are excluded from git. Look in both:
+- `.gitignore` at the project root
+- `.git/info/exclude`
+
+If not excluded in either location, add `**/.claude/*.local*` to `.git/info/exclude`.
+
+### Step 6: Report
+
+Output a summary:
+
+```
+CONTEXT PRIMED
+==============
+Directory:     {target path}
+Files scanned: {count}
+Consumers:     {count of modules that import from here}
+Context file:  {path to .claude/context.local.md} ({created | updated})
+Git excluded:  {yes | added to .git/info/exclude}
+────────────────────────────────
+Key findings:
+- {1-3 bullet summary of what was captured}
+```

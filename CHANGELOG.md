@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/mx:context-prime` command — analyze a directory and create a `.claude/context.local.md` with non-obvious behavioral notes (hidden coupling, framework quirks, gotchas)
+- `/mx:context-clean` command — remove local context files for a directory or the entire project
+- Documentation for both context commands on the docs site (Session & Discovery page)
+
+### Changed
+
+- `/mx:help` updated with `/mx:context-prime` and `/mx:context-clean` in SESSION START, ANYTIME, and WHICH PATH sections
+
 ## [1.3.0] - 2026-03-01
 
 ### Added

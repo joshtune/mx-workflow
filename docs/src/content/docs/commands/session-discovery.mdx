@@ -36,6 +36,59 @@ Detects and displays available tools, configured settings, and project readiness
 - To verify that your project is set up correctly for mx-workflow commands
 - When you want to know what quality checks will run during `/mx:validate`
 
+## /mx:context-prime
+
+**Analyze a directory and create local context notes**
+
+```
+/mx:context-prime src/billing
+```
+
+Reads the target directory's key files, traces inbound/outbound dependencies, and writes a `.claude/context.local.md` file capturing non-obvious behavioral knowledge — hidden coupling, framework quirks, gotchas, and constraints that aren't evident from code alone.
+
+Context files are git-excluded and locally maintained. They act as a reference sheet that Claude reads before modifying code in that area, so it understands how things are tied together.
+
+**What it captures:**
+- Non-obvious consumers — who breaks if you change this module?
+- Framework-specific constraints and bridge patterns
+- State management gotchas (initialization ordering, shared state side effects)
+- Fragile files or patterns with hidden dependencies
+- Things that broke unexpectedly and why
+
+**What it does NOT capture:**
+- Information obvious from imports, types, or file names
+- Restatements of what the code does
+- TODO items or feature requests
+
+**Rules:**
+- Each context file stays under 40 lines — concise and high-signal only
+- Time-sensitive entries get a date prefix: `[2026-03] Migration in progress...`
+- If a context file already exists, it updates rather than overwrites
+- Automatically ensures `.claude/*.local*` is git-excluded
+
+**When to use it:**
+- Before diving into unfamiliar code
+- After getting burned by a hidden dependency you want to remember
+- When onboarding into a new area of the codebase
+- After a long time away from a module
+
+## /mx:context-clean
+
+**Remove local context files**
+
+```
+/mx:context-clean src/billing     # remove context for one directory
+/mx:context-clean --all           # remove all context files in the project
+/mx:context-clean                 # remove context in current directory
+```
+
+Finds and removes `.claude/context.local.md` files created by `/mx:context-prime`. Shows a preview of what will be removed and asks for confirmation before deleting. Also cleans up empty `.claude/` directories left behind.
+
+**When to use it:**
+- When context files have gone stale and you want a fresh start
+- When leaving a project and cleaning up local artifacts
+- To remove context for a specific module that's been refactored
+
 ## /mx:agents
 
 **List available agents and their purposes**
