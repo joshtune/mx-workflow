@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `/mx:context-prime` command — analyze a directory and create a `.claude/context.local.md` with non-obvious behavioral notes (hidden coupling, framework quirks, gotchas)
+- `/mx:context-prime` enforcement audit (Step 3.5) — filters gotchas already caught by lint, TypeScript strict mode, pre-commit hooks, CI, or build checks
+- `/mx:context-prime` `## Verify` section — auto-populates 1–3 concrete test/lint/build commands specific to the target module
+- `/mx:context-prime` `--learn` flag — retrospective mode that prompts for session learnings and merges them into existing context files
+- `/mx:context-prime` CLAUDE.md overlap check — detects redundant content between root CLAUDE.md and local context files, suggests pruning
 - `/mx:context-clean` command — remove local context files for a directory or the entire project
 - `/mx:rebase` command — rebase current branch onto trunk (main/master) or a specified branch with pre-flight checks
 - Documentation for both context commands on the docs site (Session & Discovery page)

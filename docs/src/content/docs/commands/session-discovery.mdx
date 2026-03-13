@@ -42,6 +42,7 @@ Detects and displays available tools, configured settings, and project readiness
 
 ```
 /mx:context-prime src/auth
+/mx:context-prime src/auth --learn
 ```
 
 Reads the target directory's key files, traces inbound/outbound dependencies, and writes a `.claude/context.local.md` file capturing non-obvious behavioral knowledge — hidden coupling, framework quirks, gotchas, and constraints that aren't evident from code alone.
@@ -53,11 +54,13 @@ Context files are git-excluded and locally maintained. They act as a reference s
 - Framework-specific constraints and bridge patterns
 - State management gotchas (initialization ordering, shared state side effects)
 - Fragile files or patterns with hidden dependencies
+- Concrete verify commands (test, lint, build) specific to the module
 - Things that broke unexpectedly and why
 
 **What it does NOT capture:**
 - Information obvious from imports, types, or file names
 - Restatements of what the code does
+- Gotchas already enforced by tooling (lint rules, TypeScript strict mode, pre-commit hooks, CI checks) — these are automatically filtered out
 - TODO items or feature requests
 
 **Rules:**
@@ -65,10 +68,16 @@ Context files are git-excluded and locally maintained. They act as a reference s
 - Time-sensitive entries get a date prefix: `[2026-03] Migration in progress...`
 - If a context file already exists, it updates rather than overwrites
 - Automatically ensures `.claude/*.local*` is git-excluded
+- After writing, checks root `CLAUDE.md` for overlapping content and suggests pruning
+
+**`--learn` flag — retrospective mode:**
+
+Use `--learn` at the end of a session to record what surprised you. Instead of running static analysis, it prompts you for session learnings and merges them into the existing context file under the appropriate section. Learned entries are prefixed with `[YYYY-MM]` for traceability. If no context file exists yet, the full prime runs first.
 
 **When to use it:**
 - Before diving into unfamiliar code
 - After getting burned by a hidden dependency you want to remember
+- At the end of a session with `--learn` to capture what surprised you
 - When onboarding into a new area of the codebase
 - After a long time away from a module
 

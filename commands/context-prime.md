@@ -1,7 +1,7 @@
 ---
 description: "Analyze a directory and create a local context file with non-obvious behavioral notes"
-argument-hint: "<path>"
-allowed-tools: ["Read", "Glob", "Grep", "Bash", "Write", "Edit"]
+argument-hint: "<path> [--learn]"
+allowed-tools: ["Read", "Glob", "Grep", "Bash", "Write", "Edit", "AskUserQuestion"]
 ---
 
 # Context Prime
@@ -11,6 +11,22 @@ Analyze a directory and create a `.claude/context.local.md` file capturing non-o
 **Input**: $ARGUMENTS
 
 ## Instructions
+
+### Step 0: Check for --learn Flag
+
+If `$ARGUMENTS` contains `--learn`:
+
+1. Parse the target directory from remaining arguments (same rules as Step 1 — default to project root if none given).
+2. Check if `.claude/context.local.md` exists for that directory.
+   - If it **does not exist**, run the full prime flow first (Steps 1–7), then continue below.
+3. Prompt the user: *"What went wrong or surprised you in this directory during this session?"*
+4. Take the response and merge it into the existing context file under the most appropriate section (`Gotchas`, `Do Not Touch`, or `Verify`).
+   - Prefix each learned entry with the current month: `[YYYY-MM] ...`
+   - **Never delete existing entries** — only add or refine.
+   - If the file would exceed 40 lines after merging, prune the least-useful existing entries to stay within the cap.
+5. Report what was added and which section it was merged into, then **stop** — do not run the remaining steps.
+
+If `$ARGUMENTS` does **not** contain `--learn`, proceed normally.
 
 ### Step 1: Resolve Target Directory
 
@@ -58,6 +74,20 @@ Read and analyze the target directory to discover non-obvious patterns. Focus on
    - Initialization ordering dependencies
    - Comments containing "HACK", "WORKAROUND", "XXX", "FIXME", "careful", "do not", "must be"
 
+### Step 3.5: Enforcement Audit
+
+Before writing gotchas as prose, scan the target directory and project root for automated enforcement that already catches issues:
+
+- **Lint configs** — ESLint, Biome, Stylelint rules
+- **TypeScript strict mode** — `tsconfig.json` strict flags and path aliases
+- **Pre-commit hooks** — husky, lint-staged, `.pre-commit-config.yaml`
+- **CI pipeline checks** — `.github/workflows`, `.gitlab-ci.yml`
+- **Build-time checks** — compiler flags, `svelte-check`, type-check scripts in `package.json`
+
+**Any gotcha that is already machine-enforced must be excluded** from the context file — the tooling already prevents it.
+
+Track the count of filtered items for the report. If nothing was filtered, stay silent (don't add noise).
+
 ### Step 4: Write the Context File
 
 Create or update `.claude/context.local.md` in the target directory.
@@ -85,7 +115,12 @@ Create or update `.claude/context.local.md` in the target directory.
 
 ## Do Not Touch
 <!-- Fragile files or patterns with hidden consumers. -->
+
+## Verify
+<!-- Commands to run after modifying this module. Prefer specific over broad. -->
 ```
+
+During analysis (Step 3), discover relevant test commands, lint scopes, and build targets specific to the target directory. Populate `## Verify` with 1–3 **concrete, actionable commands** (e.g., `dotnet test --filter "Calendar"`, not `run tests`).
 
 If updating an existing file:
 - Preserve still-valid entries
@@ -101,7 +136,21 @@ Check that `.claude/*.local*` files are excluded from git. Look in both:
 
 If not excluded in either location, add `**/.claude/*.local*` to `.git/info/exclude`.
 
-### Step 6: Report
+### Step 6: CLAUDE.md Overlap Check
+
+After writing the context file, grep the **project root's `CLAUDE.md`** for content that overlaps with what was just captured in the local context file.
+
+If overlap is found, include in the report:
+
+```
+CLAUDE.md overlap detected:
+- Lines {range}: "{brief description}" — now covered in {context file path}
+  Consider removing from root CLAUDE.md to reduce token load.
+```
+
+If no overlap is found, omit this section entirely.
+
+### Step 7: Report
 
 Output a summary:
 
@@ -113,7 +162,10 @@ Files scanned: {count}
 Consumers:     {count of modules that import from here}
 Context file:  {path to .claude/context.local.md} ({created | updated})
 Git excluded:  {yes | added to .git/info/exclude}
+Filtered:      {count} items already enforced by tooling
 ────────────────────────────────
 Key findings:
 - {1-3 bullet summary of what was captured}
 ```
+
+Only include the `Filtered:` line if the count is > 0.
