@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-03-14
+
 ### Added
 
+- `mx-schema-builder` agent — database tables, RLS policies, types, and migrations for orchestrated builds
+- `mx-feature-builder` agent — single feature implementation (called per feature in pipeline builds)
+- `mx-test-builder` agent — Playwright e2e test suite generation
+- `mx-shipkit-builder` agent — production-readiness layer (analytics, SEO, Stripe, feedback, contact)
 - `/mx:context-prime` command — analyze a directory and create a `.claude/context.local.md` with non-obvious behavioral notes (hidden coupling, framework quirks, gotchas)
 - `/mx:context-prime` enforcement audit (Step 3.5) — filters gotchas already caught by lint, TypeScript strict mode, pre-commit hooks, CI, or build checks
 - `/mx:context-prime` `## Verify` section — auto-populates 1–3 concrete test/lint/build commands specific to the target module
@@ -104,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/joshtune/mx-workflow/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/joshtune/mx-workflow/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/joshtune/mx-workflow/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/joshtune/mx-workflow/compare/v1.1.0...v1.1.1
