@@ -43,6 +43,7 @@ Detects and displays available tools, configured settings, and project readiness
 ```
 /mx:context-prime src/auth
 /mx:context-prime src/auth --learn
+/mx:context-prime . --recursive
 ```
 
 Reads the target directory's key files, traces inbound/outbound dependencies, and writes a `.claude/context.local.md` file capturing non-obvious behavioral knowledge — hidden coupling, framework quirks, gotchas, and constraints that aren't evident from code alone.
@@ -70,6 +71,16 @@ Context files are git-excluded and locally maintained. They act as a reference s
 - Automatically ensures `.claude/*.local*` is git-excluded
 - After writing, checks root `CLAUDE.md` for overlapping content and suggests pruning
 
+**`--recursive` flag — prime an entire project:**
+
+Use `--recursive` to discover and prime all significant directories in one pass. Instead of scanning immediate children, it finds **module boundaries** across the full tree by looking for index files and config files (`package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`). Each candidate is scored based on source file count, inbound imports, and gotcha signals — only directories scoring ≥ 5 get primed.
+
+- Runs two project-wide Greps (not per-directory) for scalable scoring
+- Caps at 20 directories per run — defers the rest with a note to run again
+- Skips directories that already have context files
+- Shows a scored plan and asks for confirmation before priming
+- Each directory gets the full-quality analysis (up to 8 key files, dependency tracing, enforcement audit, 40-line context file)
+
 **`--learn` flag — retrospective mode:**
 
 Use `--learn` at the end of a session to record what surprised you. Instead of running static analysis, it prompts you for session learnings and merges them into the existing context file under the appropriate section. Learned entries are prefixed with `[YYYY-MM]` for traceability. If no context file exists yet, the full prime runs first.
@@ -80,6 +91,7 @@ Use `--learn` at the end of a session to record what surprised you. Instead of r
 - At the end of a session with `--learn` to capture what surprised you
 - When onboarding into a new area of the codebase
 - After a long time away from a module
+- With `--recursive` when priming an entire project or large subtree for the first time
 
 ## /mx:context-clean
 
