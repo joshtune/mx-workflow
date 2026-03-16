@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-03-16
+
+### Added
+
+- `/mx:context-prime` `--recursive` flag — walks subdirectories, triages by complexity score, and primes all qualifying directories in one pass
+
 ## [1.5.0] - 2026-03-16
 
 ### Added
@@ -116,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/joshtune/mx-workflow/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/joshtune/mx-workflow/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/joshtune/mx-workflow/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/joshtune/mx-workflow/compare/v1.2.0...v1.3.0

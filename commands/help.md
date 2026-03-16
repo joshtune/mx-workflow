@@ -13,7 +13,8 @@ All commands use the /mx: prefix (e.g., /mx:plan, /mx:commit).
 
 SESSION START
   /mx:prime                            Warm up codebase context (reads key files, runs checks)
-  /mx:context-prime <path> [--learn]   Analyze a directory and create local context notes
+  /mx:context-prime <path> [--learn] [--recursive]
+                                       Analyze a directory and create local context notes
   /mx:context-clean [path | --all]     Remove local context files
   /mx:status                           Show project status and available tools
 
@@ -56,7 +57,8 @@ RELEASE
 
 ANYTIME
   /mx:prime                            Re-ground context after git pull or branch switch
-  /mx:context-prime <path> [--learn]   Build local context (--learn to capture session insights)
+  /mx:context-prime <path> [--learn] [--recursive]
+                                       Build local context (--learn for insights, --recursive for all subdirs)
   /mx:validate                         Quick quality check
   /mx:deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
   /mx:e2e                              Full browser E2E testing with screenshots
@@ -82,6 +84,7 @@ WHICH PATH SHOULD I USE?
   Need a new command        → /mx:create-command <name> <purpose>
   Ready to release          → /mx:release (or /mx:release minor)
   Entering unfamiliar code  → /mx:context-prime <path> (build local context)
+  Prime entire project      → /mx:context-prime src --recursive (context for all complex subdirs)
   End of session learnings  → /mx:context-prime <path> --learn (capture what surprised you)
   Cleaning up context files → /mx:context-clean --all (remove all local context)
   Check for plugin updates  → /mx:whatsnew (see what's new and how to update)

@@ -1,6 +1,6 @@
 ---
 description: "Analyze a directory and create a local context file with non-obvious behavioral notes"
-argument-hint: "<path> [--learn]"
+argument-hint: "<path> [--learn] [--recursive]"
 allowed-tools: ["Read", "Glob", "Grep", "Bash", "Write", "Edit", "AskUserQuestion"]
 ---
 
@@ -27,6 +27,50 @@ If `$ARGUMENTS` contains `--learn`:
 5. Report what was added and which section it was merged into, then **stop** — do not run the remaining steps.
 
 If `$ARGUMENTS` does **not** contain `--learn`, proceed normally.
+
+### Step 0.5: Check for --recursive Flag
+
+If `$ARGUMENTS` contains `--recursive`:
+
+1. Parse the target directory from remaining arguments (same rules as Step 1 — default to project root if none given).
+2. **Discover candidate directories** — use Glob to find all immediate child directories of the target. Exclude:
+   - `node_modules`, `.git`, `.svn`, `dist`, `build`, `.next`, `.svelte-kit`, `.nuxt`, `coverage`, `__pycache__`, `.venv`, `vendor`
+   - Any directory that already has a `.claude/context.local.md` (already primed — skip unless stale)
+   - Hidden directories (starting with `.`) except `.claude`
+3. **Triage each candidate** — for each directory, do a quick scan:
+   - Count source files (code files, not assets/images/fonts)
+   - Count inbound imports (Grep for the directory name in `import`/`require` statements outside itself)
+   - Check for gotcha signals: `HACK`, `WORKAROUND`, `FIXME`, `XXX` comments
+   - Assign a **complexity score**: `source files + (inbound imports × 2) + (gotcha signals × 3)`
+4. **Filter** — only prime directories with a complexity score **≥ 5**. This skips trivial directories (e.g., a `utils/` with 2 files and no consumers).
+5. **Show the plan and confirm** — display the list of directories that will be primed vs skipped:
+   ```
+   RECURSIVE PRIME PLAN
+   =====================
+   Will prime ({count}):
+     {dir}  — {score} ({files} files, {imports} consumers, {signals} gotchas)
+     ...
+
+   Skipping ({count}):
+     {dir}  — score {score} (below threshold of 5)
+     ...
+
+   Proceed?
+   ```
+   Wait for user confirmation. If declined, stop.
+6. **Run the full prime flow** (Steps 1–7) for each qualifying directory, one at a time. Between directories, output a short progress line: `[{n}/{total}] Priming {dir}...`
+7. After all directories are processed, output a combined summary:
+   ```
+   RECURSIVE PRIME COMPLETE
+   ========================
+   Target:        {root target path}
+   Primed:        {count} directories
+   Skipped:       {count} directories (below complexity threshold)
+   Context files: {list of created/updated paths}
+   ```
+   Then **stop** — do not run the single-directory flow.
+
+If `$ARGUMENTS` does **not** contain `--recursive`, proceed normally.
 
 ### Step 1: Resolve Target Directory
 
