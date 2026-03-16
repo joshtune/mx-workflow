@@ -48,6 +48,7 @@ TESTING
 
 DISCOVERY
   /mx:agents                           List available agents and their purposes
+  /mx:whatsnew                         Check for plugin updates and show what's new
 
 RELEASE
   /mx:release [patch|minor|major|x.y.z] One-step release: bump, commit, tag, push, GitHub release
@@ -83,5 +84,6 @@ WHICH PATH SHOULD I USE?
   Entering unfamiliar code  → /mx:context-prime <path> (build local context)
   End of session learnings  → /mx:context-prime <path> --learn (capture what surprised you)
   Cleaning up context files → /mx:context-clean --all (remove all local context)
+  Check for plugin updates  → /mx:whatsnew (see what's new and how to update)
   New project setup         → /mx:create-rules (generate CLAUDE.md)
 ```

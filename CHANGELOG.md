@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/mx:whatsnew` command — check for plugin updates, show what's new, and how to update
+
 ## [1.4.0] - 2026-03-14
 
 ### Added
