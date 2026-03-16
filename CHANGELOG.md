@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-03-16
+
+### Changed
+
+- Documentation site updated with `--recursive` flag details on Session & Discovery page
+
 ## [1.7.0] - 2026-03-16
 
 ### Changed
@@ -128,7 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/joshtune/mx-workflow/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/joshtune/mx-workflow/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/joshtune/mx-workflow/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/joshtune/mx-workflow/compare/v1.4.0...v1.5.0
