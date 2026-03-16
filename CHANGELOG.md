@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-03-16
+
+### Changed
+
+- `/mx:context-prime` `--recursive` reworked for scalability — deep discovery via module boundary detection (index files + config files across full tree), batched project-wide scoring (2 Greps instead of N), 20-directory cap, deferred overflow, and already-primed detection
+
 ## [1.6.0] - 2026-03-16
 
 ### Added
@@ -122,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/joshtune/mx-workflow/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/joshtune/mx-workflow/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/joshtune/mx-workflow/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/joshtune/mx-workflow/compare/v1.3.0...v1.4.0

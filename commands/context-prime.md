@@ -32,43 +32,123 @@ If `$ARGUMENTS` does **not** contain `--learn`, proceed normally.
 
 If `$ARGUMENTS` contains `--recursive`:
 
-1. Parse the target directory from remaining arguments (same rules as Step 1 — default to project root if none given).
-2. **Discover candidate directories** — use Glob to find all immediate child directories of the target. Exclude:
-   - `node_modules`, `.git`, `.svn`, `dist`, `build`, `.next`, `.svelte-kit`, `.nuxt`, `coverage`, `__pycache__`, `.venv`, `vendor`
-   - Any directory that already has a `.claude/context.local.md` (already primed — skip unless stale)
-   - Hidden directories (starting with `.`) except `.claude`
-3. **Triage each candidate** — for each directory, do a quick scan:
-   - Count source files (code files, not assets/images/fonts)
-   - Count inbound imports (Grep for the directory name in `import`/`require` statements outside itself)
-   - Check for gotcha signals: `HACK`, `WORKAROUND`, `FIXME`, `XXX` comments
-   - Assign a **complexity score**: `source files + (inbound imports × 2) + (gotcha signals × 3)`
-4. **Filter** — only prime directories with a complexity score **≥ 5**. This skips trivial directories (e.g., a `utils/` with 2 files and no consumers).
-5. **Show the plan and confirm** — display the list of directories that will be primed vs skipped:
-   ```
-   RECURSIVE PRIME PLAN
-   =====================
-   Will prime ({count}):
-     {dir}  — {score} ({files} files, {imports} consumers, {signals} gotchas)
-     ...
+1. Parse the target directory from remaining arguments (same rules as Step 1 — default to project root if none given). Verify the directory exists. If not, report the error and stop.
 
-   Skipping ({count}):
-     {dir}  — score {score} (below threshold of 5)
-     ...
+#### Phase 1: Deep Discovery
 
-   Proceed?
-   ```
-   Wait for user confirmation. If declined, stop.
-6. **Run the full prime flow** (Steps 1–7) for each qualifying directory, one at a time. Between directories, output a short progress line: `[{n}/{total}] Priming {dir}...`
-7. After all directories are processed, output a combined summary:
-   ```
-   RECURSIVE PRIME COMPLETE
-   ========================
-   Target:        {root target path}
-   Primed:        {count} directories
-   Skipped:       {count} directories (below complexity threshold)
-   Context files: {list of created/updated paths}
-   ```
-   Then **stop** — do not run the single-directory flow.
+Find **module boundaries** across the full tree by running these Glob calls (in parallel where possible):
+
+- `**/index.{ts,tsx,js,jsx,svelte,vue,py,go,rs,cs,rb}`
+- `**/package.json`
+- `**/Cargo.toml`, `**/go.mod`, `**/pyproject.toml`
+
+Extract the unique parent directory of each matched file = **candidate set**.
+
+**Exclude** any candidate whose path contains any of these segments:
+`node_modules`, `.git`, `dist`, `build`, `.next`, `.svelte-kit`, `.nuxt`, `coverage`, `__pycache__`, `.venv`, `vendor`, `target`
+Also exclude hidden directories (starting with `.`) except `.claude`.
+
+**Already primed** — Glob for `**/.claude/context.local.md`. Any directory that already has a context file is excluded from candidates and counted separately.
+
+If zero candidates remain after exclusions, output `"No module boundaries detected. Nothing to prime."` and **stop**.
+
+#### Phase 2: Batched Scoring
+
+Run **two project-wide Greps** (not per-candidate):
+
+1. **Inbound imports**: pattern `(import|require|from)\s+['"]` — for each match, determine which candidate directory (if any) is referenced by the import path. Count inbound imports per candidate.
+2. **Gotcha signals**: pattern `(HACK|WORKAROUND|FIXME|XXX)` — partition matches by which candidate directory the match file falls under. Count signals per candidate.
+
+Also, for each candidate, count its source files and note whether it was discovered via an index file, a config file (`package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`), or both.
+
+**Scoring formula** per candidate:
+```
+score = min(source_files, 10)
+      + (has_index × 3)
+      + (has_config × 3)
+      + min(inbound_imports × 2, 10)
+      + min(gotcha_signals × 3, 9)
+```
+
+**Threshold**: score **≥ 5**. Discard candidates below this.
+
+Sort remaining candidates by score descending. **Cap at 20 directories.** Any candidates beyond the cap are "deferred".
+
+If zero candidates meet the threshold, show the plan (noting nothing qualifies) and **stop**.
+
+#### Phase 3: Confirmation
+
+Display the plan and wait for user confirmation:
+
+```
+RECURSIVE PRIME PLAN
+=====================
+Target: {path}
+
+Will prime ({count}, by priority):
+  1. src/auth     score:18  (12 files, 5 consumers, 2 gotchas) [index,config]
+  2. src/api      score:14  (8 files, 3 consumers, 1 gotcha)   [index]
+  ...
+
+Skipping ({count}): below threshold of 5
+Deferred ({count}): over cap of 20 — run again to continue
+Already primed ({count})
+
+Proceed?
+```
+
+If declined, stop.
+
+#### Phase 4: Sequential Full-Quality Analysis
+
+Run the **full prime flow** (Steps 1–7) for each qualifying directory, **one at a time**. No lighter analysis — each directory gets the complete treatment:
+- Up to 8 key files read
+- Full dependency tracing
+- Full enforcement audit
+- Full CLAUDE.md overlap check
+- Full 40-line context file
+
+Sequential processing lets cumulative understanding build — priming `src/auth` informs the analysis of `src/api` if they're related.
+
+Output progress between directories:
+```
+[1/8] Priming src/auth...
+[2/8] Priming src/api...
+```
+
+#### Phase 5: Combined Summary
+
+After all directories are processed, output:
+
+```
+RECURSIVE PRIME COMPLETE
+=========================
+Target:         {path}
+Primed:         {count} directories
+Skipped:        {count} (below threshold)
+Deferred:       {count} (over cap of 20)
+Already primed: {count}
+
+Context files:
+  src/auth/.claude/context.local.md      (32 lines, 5 consumers)
+  src/api/.claude/context.local.md       (28 lines, 3 consumers)
+  ...
+
+Top findings:
+  - src/auth: session token storage has hidden coupling to middleware
+  - src/api: rate limiter config is env-dependent, not in types
+```
+
+Then **stop** — do not run the single-directory flow.
+
+#### Edge Cases
+
+| Case | Handling |
+|------|----------|
+| No module boundaries found | `"No module boundaries detected. Nothing to prime."` Stop. |
+| All below threshold | Show plan, note nothing qualifies. Stop. |
+| All already primed | `"All {N} dirs already have context files."` Stop. |
+| >20 qualify | Top 20 by score, defer rest with note to run again. |
 
 If `$ARGUMENTS` does **not** contain `--recursive`, proceed normally.
 
