@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-28
+
+### Added
+
+- `mx-quality-keeper` agent — dedicated quality gatekeeper that verifies, tests, and rejects work without writing production code. Operates standalone via `/mx:qa` or as a mandatory QA teammate in agent team builds
+- `/mx:qa` command — comprehensive quality audit (lint, types, tests, suppressions, contract conformance) with structured reporting to `.agents/reports/`
+- QA teammate protocol in `/mx:build-with-agent-team` — automatic QA spawning, Phase 2.5 continuous verification, `TaskCompleted` hook enforcement, 3-attempt rejection loop with lead escalation
+
+### Changed
+
+- `/mx:build-with-agent-team` updated with mandatory QA teammate, continuous verification during implementation, concrete hook configuration examples, and updated definition of done
+- `/mx:help` updated with `/mx:qa` in IMPLEMENTATION, ANYTIME, and WHICH PATH sections
+- Documentation site multi-agent command page and team guide updated with QA agent protocol
+
 ## [1.8.0] - 2026-03-28
 
 ### Changed

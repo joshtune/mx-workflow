@@ -80,13 +80,16 @@ If team size is specified (second argument), use that number. Otherwise, analyze
 
 **Token cost awareness**: Each teammate has its own context window and consumes tokens independently — costs scale linearly with team size. Only scale up when the work genuinely benefits from parallelism.
 
-For each agent define:
+**QA teammate (always included):** In addition to the implementation agents above, a dedicated QA teammate is always spawned using the `mx-quality-keeper` agent persona. This agent does not count toward the implementation team size — if you determine 3 agents, the team will be 3 builders + 1 QA. The QA agent's sole job is to verify completed work and route failures back to owning agents.
+
+For each implementation agent define:
 1. **Name**: Short, descriptive (e.g., "frontend", "backend")
 2. **Ownership**: What files/directories they own exclusively
 3. **Does NOT touch**: What's off-limits (prevents conflicts)
 4. **Key responsibilities**: What they're building
 5. **Model** (optional): Specify a model per teammate if needed (e.g., "Use Sonnet for each teammate")
 6. **Validation checklist**: What they must verify before reporting done
+7. **QA verification tasks**: What the QA agent will check for this agent's deliverables
 
 ## Step 3: Map the Contract Chain
 
@@ -163,6 +166,50 @@ Run these validations and fix any failures:
 Do NOT report done until all validations pass.
 ```
 
+### Spawn the QA Teammate
+
+After all implementation agents are spawned and their contracts verified, spawn the QA agent:
+
+```
+You are the QA agent for this build. You follow the mx-quality-keeper persona.
+
+## Your Role
+- You verify ALL completed work before tasks can close
+- You run quality checks (lint, types, tests) against every completed task
+- You verify contract conformance — does implementation match agreed interfaces?
+- You route failures back to owning agents with specific details
+- You have authority to block task completion
+
+## You Do NOT
+- Write production code
+- Implement features
+- Modify any source files (read-only access to the codebase)
+
+## Verification Protocol
+When a teammate marks a task as complete:
+1. Run quality checks on the changed files (lint, type-check, tests)
+2. Check for new lint/type suppressions without justification
+3. Verify contract conformance — compare implementation against the agreed contract
+4. PASS → confirm task completion to the lead
+5. FAIL → message the owning agent with a QA FAILURE block (task, check, file:line, required fix)
+
+## Rejection Loop
+- Maximum 3 attempts per failure
+- Attempt 1: Route failure details to owning agent
+- Attempt 2: Route with additional context on why the previous fix didn't resolve it
+- Attempt 3: Final attempt warning
+- After 3 failures: Escalate to the lead with full history
+
+## After All Tasks Complete
+Run integration checks:
+1. Can the system start? (no startup errors)
+2. Do cross-boundary calls connect? (frontend URLs match backend endpoints)
+3. Produce a final QA REPORT for the lead
+
+## Project Quality Commands
+Detect from CLAUDE.md or project config (same detection as /mx:validate).
+```
+
 ### Context & Permissions
 
 - **Context**: Teammates load CLAUDE.md, MCP servers, and skills automatically — but they do NOT inherit the lead's conversation history. Include all task-specific context in the spawn prompt.
@@ -186,6 +233,20 @@ Use **Shift+Down** to cycle through teammates and message them directly. In spli
 ### Phase 2: Implementation (Parallel)
 - Agents build in parallel after contracts verified
 - They must flag any contract deviations to the lead
+
+### Phase 2.5: Continuous QA (during implementation)
+
+The QA agent runs continuously during Phase 2, verifying tasks as agents complete them:
+
+| Event | QA Action |
+|-------|-----------|
+| Agent marks task complete | QA runs quality checks on changed files + contract conformance |
+| QA finds failure | QA messages owning agent with `QA FAILURE` details, task reverts to in-progress |
+| Agent re-submits after fix | QA re-verifies (attempt N of 3) |
+| 3 attempts exhausted | QA escalates to lead with `QA ESCALATION` and full history |
+| All tasks pass QA | QA sends final summary to lead, Phase 3 begins |
+
+The QA agent does NOT block implementation — agents continue working on other tasks while QA verifies completed ones. QA only blocks the specific task that failed verification.
 
 ### Communication Patterns
 
@@ -223,16 +284,61 @@ Use hooks to enforce rules automatically when teammates finish work:
 | **`TaskCreated`** | A task is being created | Exit code 2 → prevents creation with feedback |
 | **`TaskCompleted`** | A task is being marked complete | Exit code 2 → prevents completion with feedback (e.g., "run tests first") |
 
-Configure hooks in your project's hooks config to enforce quality standards like "all tasks must have passing tests before completion" or "no teammate goes idle without reporting status."
+Configure hooks in your project's hooks config to enforce quality standards.
+
+### QA Hook Configuration
+
+Use `TaskCompleted` to enforce QA verification before tasks can close. Add to your project's `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Task completion requires QA verification. Message the QA agent to verify this task before marking complete.' && exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This blocks any teammate from marking a task complete without QA verification. Exit code 2 prevents the completion and sends the feedback message.
+
+For the QA agent specifically, use `TeammateIdle` to ensure it reports status before going idle:
+
+```json
+{
+  "hooks": {
+    "TeammateIdle": [
+      {
+        "matcher": "qa",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Before going idle, report: (1) tasks verified, (2) tasks pending verification, (3) any outstanding failures or escalations.' && exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ## Step 8: Lead Validation (End-to-End)
 
-After ALL agents report done:
+After ALL agents report done AND the QA agent confirms all tasks have passed verification:
 
-1. **Can the system start?** Start all services, no startup errors
-2. **Does the happy path work?** Walk through primary user flow
-3. **Do integrations connect?** Frontend → Backend → Database data flow
-4. **Are edge cases handled?** Empty states, error states, loading states
+1. **QA summary clean?** Review the QA agent's final report — any unresolved failures or escalations?
+2. **Can the system start?** Start all services, no startup errors
+3. **Does the happy path work?** Walk through primary user flow
+4. **Do integrations connect?** Frontend → Backend → Database data flow
+5. **Are edge cases handled?** Empty states, error states, loading states
 
 If validation fails:
 - Identify which agent's domain contains the bug
@@ -311,10 +417,11 @@ Clean up the team
 
 ## Definition of Done
 
-1. All agents report done
-2. Each agent validated their domain
-3. Integration points tested
-4. Cross-review feedback addressed
-5. Lead ran end-to-end validation
-6. Quality checks pass
-7. Team cleaned up (no orphaned sessions or resources)
+1. All implementation agents report done
+2. QA agent verified every task (no unresolved failures or escalations)
+3. Each agent validated their domain
+4. Integration points tested
+5. Cross-review feedback addressed
+6. Lead ran end-to-end validation
+7. Quality checks pass
+8. Team cleaned up (no orphaned sessions or resources)

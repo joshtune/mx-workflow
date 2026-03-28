@@ -64,4 +64,28 @@ Default is `"auto"` — uses split panes if inside tmux, in-process otherwise. O
 - After `/mx:prd` has defined the scope and `/mx:plan` has broken it into independent pieces
 - When a single-agent workflow would take too long for the scope of work
 
-See the [Multi-Agent Team guide](/guides/multi-agent-team) for the full protocol, hooks, task management, and troubleshooting.
+Every team build automatically includes a dedicated **QA teammate** (using the `mx-quality-keeper` agent) that verifies completed work, routes failures back to owning agents, and enforces a 3-attempt rejection loop before escalating to the lead. The QA agent does not count toward the implementation team size.
+
+See the [Multi-Agent Team guide](/guides/multi-agent-team) for the full protocol, hooks, QA agent details, task management, and troubleshooting.
+
+## /mx:qa
+
+**Comprehensive quality audit on current work**
+
+```
+/mx:qa [--scope <path> | --full | --contracts-only]
+```
+
+Runs a quality audit using the `mx-quality-keeper` agent. It detects and runs all available quality checks (lint, type-check, tests), audits suppressions, and optionally verifies contract conformance. Produces a structured report saved to `.agents/reports/`.
+
+| Flag | Effect |
+|---|---|
+| (none) | Audit current git diff (staged + unstaged) — lint, types, tests |
+| `--scope <path>` | Limit audit to a specific directory or file |
+| `--full` | All checks including dependency audit and suppression audit |
+| `--contracts-only` | Only check contract/interface conformance |
+
+**When to use it:**
+- After completing work, before committing, for a thorough quality check beyond `/mx:validate`
+- After a multi-agent team build to verify the full output
+- When you want suppression and dependency audits alongside standard quality checks

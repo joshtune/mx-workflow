@@ -26,6 +26,7 @@ IMPLEMENTATION (most common path)
   /mx:deps [--security|--outdated]     Audit deps for vulnerabilities and outdated versions
   /mx:e2e [url or 'auto']              Browser-based E2E testing (screenshots, DB validation, bug fixes)
   /mx:check-ignores                    Audit type/lint suppression comments
+  /mx:qa [--full | --contracts-only]   Quality audit (lint, types, tests, suppressions, contracts)
   /mx:branch <ticket> <desc>           Create branch with ticket-encoded naming convention
   /mx:rebase [branch]                  Rebase current branch onto trunk or specified branch
   /mx:commit                           Conventional commit (auto-infers scope/type/ticket)
@@ -64,6 +65,7 @@ ANYTIME
   /mx:e2e                              Full browser E2E testing with screenshots
   /mx:rca <symptom>                    Root cause analysis (add "quick" for fast scan)
   /mx:check-ignores                    Find unnecessary type/lint suppressions
+  /mx:qa [--full]                      Run quality audit on current changes
   /mx:rebase [branch]                  Rebase onto trunk before pushing
   /mx:commit                           Create a conventional commit
   /mx:shipit [desc]                      Fix + check + commit + push in one step
@@ -74,6 +76,7 @@ WHICH PATH SHOULD I USE?
   Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
   After implementing        → /mx:e2e (verify it works in the browser)
   Complex multi-component   → /mx:prd → /mx:build-with-agent-team
+  After a team build        → /mx:qa --full (verify everything passes before shipping)
   Ready to open a PR        → /mx:rebase → /mx:pr (or /mx:pr --draft for work-in-progress)
   Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement
   Quick code change         → Just code, then /mx:shipit (or /mx:validate → /mx:commit)

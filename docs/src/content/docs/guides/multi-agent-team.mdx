@@ -209,6 +209,71 @@ Configure these in your project's hooks config. Examples:
 - "No teammate goes idle without reporting status" — use `TeammateIdle` to enforce
 - "Tasks must include acceptance criteria" — use `TaskCreated` to validate
 
+## QA agent protocol
+
+Every team build includes a dedicated QA teammate that verifies completed work before tasks can close. The QA agent uses the `mx-quality-keeper` persona and never writes production code. It does not count toward the implementation team size — if you specify 3 agents, the team will be 3 builders + 1 QA.
+
+### How it works
+
+1. Implementation agents complete tasks as normal
+2. When a task is marked complete, the QA agent verifies it:
+   - Runs lint, type-check, and tests on changed files
+   - Checks for new type/lint suppressions
+   - Verifies contract conformance (do implementations match the agreed interfaces?)
+3. If verification passes, the task stays completed and dependent tasks unblock
+4. If verification fails, the QA agent messages the owning agent with specific failure details and the task reverts to in-progress
+
+### The rejection loop
+
+The QA agent enforces a structured retry protocol:
+
+| Attempt | QA action |
+|---|---|
+| **1st failure** | Messages owning agent with failure details and required fix |
+| **2nd failure** | Messages with additional context about why the previous fix did not resolve the issue |
+| **3rd failure** | Escalates to the lead with a summary of all attempts |
+
+After 3 failed attempts, the lead decides how to proceed — reassign the task, pair with the agent, or descope.
+
+### QA verification scope
+
+The QA agent checks:
+
+| Check | What it verifies |
+|---|---|
+| **Quality commands** | Lint, type-check, tests pass on changed files |
+| **Suppressions** | No new `@ts-ignore`, `eslint-disable`, etc. without justification |
+| **Contract conformance** | Implementation matches the agreed API contract (endpoints, shapes, status codes) |
+| **Integration points** | Cross-boundary calls match (frontend URLs match backend endpoints) |
+
+### Hook configuration for QA
+
+Use the `TaskCompleted` hook to enforce QA verification before tasks can close:
+
+```json title=".claude/settings.json"
+{
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Task completion requires QA verification. Message the QA agent to verify this task before marking complete.' && exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This blocks task completion with a feedback message, prompting the teammate to request QA verification first. The QA agent then runs its checks and either confirms the completion or routes a failure.
+
+:::tip[QA agent is role-agnostic]
+The QA agent works with any team composition. It does not need to understand the domain — it runs the project's existing quality commands and verifies contracts. A frontend/backend team, a microservices team, or a DevOps/infra team all get the same verification protocol.
+:::
+
 ## Running a multi-agent build
 
 ### Step 1: Create a PRD
@@ -244,6 +309,8 @@ The command reads the plan and determines the team structure:
 
 You can specify the team size explicitly, or let the command decide based on the plan. You can also specify a model per teammate (e.g., "Use Sonnet for each teammate").
 
+The command automatically spawns a QA teammate in addition to the implementation agents. You do not need to account for the QA agent in your team size number.
+
 **Sizing guidance**: Start with 3–5 teammates. Token costs scale linearly with team size, so only scale up when the work genuinely benefits from parallelism. Three focused teammates often outperform five scattered ones.
 
 ### Step 4: Enter Delegate Mode
@@ -263,12 +330,13 @@ Sometimes the lead starts implementing tasks itself instead of waiting for teamm
 
 ### Step 5: Lead validation (end-to-end)
 
-After all agents report done, the lead runs end-to-end validation:
+After all agents report done and the QA agent confirms all tasks have passed verification, the lead runs end-to-end validation:
 
-1. **Can the system start?** — Start all services, check for startup errors
-2. **Does the happy path work?** — Walk through the primary user flow
-3. **Do integrations connect?** — Verify data flows from frontend through backend to database
-4. **Are edge cases handled?** — Empty states, error states, loading states
+1. **QA summary clean?** — Review the QA agent's final report — any unresolved failures or escalations?
+2. **Can the system start?** — Start all services, check for startup errors
+3. **Does the happy path work?** — Walk through the primary user flow
+4. **Do integrations connect?** — Verify data flows from frontend through backend to database
+5. **Are edge cases handled?** — Empty states, error states, loading states
 
 If validation fails, the lead identifies which agent's domain contains the bug, re-spawns that agent with the specific issue, and re-runs validation after the fix.
 
