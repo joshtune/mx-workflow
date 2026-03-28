@@ -105,7 +105,51 @@ If contracts are found, compare the implementation against them:
 
 If no contracts are found and `--contracts-only` was specified, tell the user no contracts were found.
 
-## Step 5: Produce Report
+## Step 5: Spec Conformance Check (if --full or spec found)
+
+**This is the most important check.** Structural checks verify the code is clean. Spec conformance verifies the feature was actually built.
+
+### 5.1 Find the Spec
+
+Look for PRD files in `.agents/prds/` and plan files in `.agents/plans/`. If multiple exist, use the most recent one. Also check conversation context for requirements.
+
+If no spec is found and `--full` was not passed, skip this step.
+
+### 5.2 Extract Requirements
+
+From the PRD's MVP Scope table, pull every "Must" item. From the plan's Changes and Tests sections, pull every expected behavior. Each becomes a verification item.
+
+### 5.3 Verify Each Requirement
+
+For every must-have:
+
+1. **Does the code exist?** Search for the implementation — routes, components, functions, database tables, API endpoints. If the spec says "user can create a task," find the create-task handler/form/endpoint.
+
+2. **Is it wired up?** A component that exists but isn't rendered, an endpoint that exists but isn't routed, or a function that exists but isn't called is NOT implemented.
+
+3. **Does it handle the expected behavior?** Read the implementation and verify it matches the spec — correct fields, correct logic, correct flow.
+
+### 5.4 Report
+
+For each must-have, report one of:
+
+| Verdict | Meaning |
+|---------|---------|
+| **PASS** | Implementation exists, is wired up, and matches the spec |
+| **FAIL** | Implementation exists but is incomplete or incorrect |
+| **MISS** | No implementation found at all — the spec item was likely dropped or forgotten |
+
+```
+SPEC CONFORMANCE
+================
+[ PASS ] User can create a task — POST /api/tasks exists, form at /tasks/new renders
+[ FAIL ] User can assign a task — endpoint exists but UI has no assignee dropdown
+[ MISS ] User can set a due date — no implementation found
+```
+
+**MISS items are escalated immediately** — they indicate a requirement was entirely forgotten, not just implemented incorrectly.
+
+## Step 6: Produce Report
 
 Save the full report to `.agents/reports/qa-audit-{YYYY-MM-DD}.md`. Create the directory if it does not exist.
 
@@ -125,8 +169,14 @@ Tests:             PASS / FAIL
 Suppressions:      X new (Y flagged)      [--full only]
 Dependencies:      PASS / FAIL            [--full only]
 Contract:          PASS / FAIL / N/A      [--full or --contracts-only]
+Spec conformance:  X/Y must-haves (Z fail, W miss)  [--full or spec found]
 ────────────────────────────────
 Overall:           PASS / FAIL
+
+SPEC CONFORMANCE (if checked)
+[ PASS ] <requirement> — <evidence>
+[ FAIL ] <requirement> — <what's wrong>
+[ MISS ] <requirement> — <no implementation found>
 
 FAILURES (if any)
 - [check]: [file:line] — [description]

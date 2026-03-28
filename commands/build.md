@@ -317,22 +317,50 @@ Execute the plan using Agent Teams (same logic as `/mx:build-with-agent-team`):
 
 Run a full quality audit (same logic as `/mx:qa --full`):
 
+### 4.1 Structural Checks
 1. **Quality checks** — lint, typecheck, tests
 2. **Suppression audit** — scan for new `@ts-ignore`, `eslint-disable`, `# noqa`, etc.
 3. **Dependency audit** — security-only check for critical/high vulnerabilities
 4. **Contract conformance** (if team build) — verify implementation matches agreed contracts
 
+### 4.2 Spec Conformance (CRITICAL)
+
+This is the most important check. Read the PRD at `PRD_PATH` and verify **every must-have was actually built**:
+
+1. Extract every "Must" item from the PRD's MVP Scope table
+2. For each must-have, verify:
+   - **Does the code exist?** Search for the implementation (routes, components, functions, endpoints, tables)
+   - **Is it wired up?** A component that exists but isn't rendered, or an endpoint that isn't routed, is NOT implemented
+   - **Does it match the spec?** Read the implementation and verify it handles the expected behavior
+3. Report each as PASS / FAIL / MISS:
+
+```
+SPEC CONFORMANCE
+================
+[ PASS ] User can create a task — POST /api/tasks exists, form renders, submits correctly
+[ FAIL ] User can assign a task — endpoint exists but UI has no assignee dropdown
+[ MISS ] User can set a due date — no implementation found anywhere
+```
+
+- **FAIL**: Implementation exists but is incomplete → fix it in the QA fix cycle
+- **MISS**: No implementation at all → this is critical, the requirement was dropped
+
+### 4.3 Save Report
+
 Save report to `.agents/reports/build-qa-{YYYY-MM-DD}.md`.
 
-### If QA fails
+### 4.4 If QA Fails
 
 1. Attempt to fix issues (up to 3 fix-then-revalidate cycles)
+   - For **FAIL** items: fix the incomplete implementation
+   - For **MISS** items: implement the missing feature
 2. After each fix cycle, commit the fixes:
    ```bash
    git add -A
    git commit -m "fix(<scope>): address QA findings for {feature-name}"
    ```
-3. If still failing after 3 cycles:
+3. Re-run spec conformance after each fix cycle to verify the fixes
+4. If still failing after 3 cycles:
    - If `--auto`: report failure and stop
    - Otherwise: pause and ask user for guidance
 
@@ -362,6 +390,11 @@ Quality:
   Types:      PASS / FAIL
   Tests:      PASS / FAIL
   QA Audit:   PASS / FAIL
+
+Spec Conformance:
+  Must-haves: X/Y verified
+  Failed:     <count> (incomplete implementations)
+  Missing:    <count> (not implemented at all)
 
 Git:
   Commits:    <count> commits created

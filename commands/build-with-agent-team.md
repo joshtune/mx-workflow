@@ -190,8 +190,9 @@ When a teammate marks a task as complete:
 1. Run quality checks on the changed files (lint, type-check, tests)
 2. Check for new lint/type suppressions without justification
 3. Verify contract conformance — compare implementation against the agreed contract
-4. PASS → confirm task completion to the lead
-5. FAIL → message the owning agent with a QA FAILURE block (task, check, file:line, required fix)
+4. Verify spec conformance — does the implementation match the PRD/plan requirements? Check that the feature actually exists, is wired up, and behaves as specified. Report PASS/FAIL/MISS for each requirement.
+5. PASS → confirm task completion to the lead
+6. FAIL → message the owning agent with a QA FAILURE block (task, check, file:line, required fix)
 
 ## Rejection Loop
 - Maximum 3 attempts per failure

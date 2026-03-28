@@ -77,7 +77,36 @@ After all agents report done:
 - Do cross-boundary calls connect? Compare frontend fetch URLs against backend endpoint URLs.
 - Do error responses get handled? Check that downstream agents handle upstream error shapes.
 
-### 6. Dependency Audit
+### 6. Spec Conformance
+
+**This is the most important check.** Structural checks verify the code is clean. Spec conformance verifies the feature was actually built.
+
+1. **Find the spec** — Look for PRD files in `.agents/prds/`, plan files in `.agents/plans/`, or contract documents in `.agents/`. If no spec exists, check conversation context for requirements.
+
+2. **Extract requirements** — From the PRD's MVP Scope table, pull every "Must" item. From the plan's Changes and Tests sections, pull every expected behavior. Each becomes a verification item.
+
+3. **Verify each requirement** — For every must-have:
+   - **Does the code exist?** Search for the implementation (routes, components, functions, database tables). If the spec says "user can create a task," find the create-task endpoint/handler/form.
+   - **Is it wired up?** A component that exists but isn't rendered, an endpoint that exists but isn't routed, or a function that exists but isn't called is NOT implemented.
+   - **Does it handle the expected behavior?** Read the implementation and verify it matches what the spec described — correct fields, correct logic, correct UI flow.
+
+4. **Produce a checklist** — For each must-have, report:
+   ```
+   SPEC CONFORMANCE
+   ================
+   [ PASS ] User can create a task — POST /api/tasks exists, form at /tasks/new renders, submits correctly
+   [ FAIL ] User can assign a task to another user — endpoint exists but UI has no assignee dropdown
+   [ PASS ] Tasks show in a list view — GET /api/tasks returns array, /tasks page renders TaskList component
+   [ MISS ] User can set a due date — no implementation found anywhere in codebase
+   ```
+
+5. **FAIL vs MISS distinction**:
+   - **FAIL**: Implementation exists but is incomplete or incorrect — route back to owning agent to fix
+   - **MISS**: No implementation found at all — this is a more serious failure, escalate to lead immediately (the spec item was likely dropped or forgotten)
+
+This check runs in both standalone and team mode. In standalone mode, it only runs when a spec file is found or `--full` is passed.
+
+### 7. Dependency Audit
 
 Run a lightweight security-only check for critical and high vulnerabilities. This is the same check `/mx:deps --security` runs. Do not block on moderate or low findings — report them as warnings.
 
@@ -92,7 +121,7 @@ QA FAILURE
 ==========
 Task:         [task name/ID]
 Owner:        [agent name]
-Check:        [which check failed — lint / types / tests / contract / suppressions]
+Check:        [which check failed — lint / types / tests / contract / suppressions / spec-conformance]
 Details:      [specific error with file:line]
 Required fix: [what needs to change]
 Attempt:      [N of 3]
@@ -151,9 +180,16 @@ Tests:             PASS / FAIL
 Suppressions:      X new (Y flagged)
 Contract:          PASS / FAIL / N/A
 Integration:       PASS / FAIL / N/A
+Spec conformance:  X/Y must-haves verified (Z failed, W missing)
 Dependencies:      PASS / FAIL
 ────────────────────────────────
 Overall:           PASS / FAIL
+
+SPEC CONFORMANCE (if spec found)
+────────────────────────────────
+[ PASS ] <requirement> — <evidence>
+[ FAIL ] <requirement> — <what's wrong>
+[ MISS ] <requirement> — <no implementation found>
 
 FAILURES (if any)
 ─────────────────

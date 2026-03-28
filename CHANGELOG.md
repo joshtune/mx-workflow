@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Spec conformance check in `mx-quality-keeper` agent — verifies every must-have from the PRD was actually built, wired up, and works as specified. Reports PASS/FAIL/MISS per requirement. MISS items (entirely missing features) escalate immediately.
+
+### Changed
+
+- `/mx:qa` updated with Step 5 spec conformance check (runs when `--full` or spec found)
+- `/mx:build` Phase 4 now includes spec conformance as the critical QA check
+- `/mx:build-with-agent-team` QA spawn prompt updated with spec verification protocol
+- Multi-agent team guide updated with spec conformance in QA verification scope
+
 ## [1.10.0] - 2026-03-28
 
 ### Added
