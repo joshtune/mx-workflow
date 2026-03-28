@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-28
+
+### Added
+
+- `/mx:build` command — full pipeline orchestrator: discovery questions → PRD → plan → build (auto-selects agent team or single-agent) → QA → commit. Defaults to interactive discovery; `--auto` for autonomous mode. Makes incremental commits at each phase for visible progression. Supports `--skip-prd`, `--skip-plan`, and `--stack` flags.
+
+### Changed
+
+- `/mx:help` updated with `/mx:build` in new FULL PIPELINE section and WHICH PATH guidance
+- Documentation site multi-agent command page renamed to "Full Pipeline & Multi-Agent" with `/mx:build` reference
+
 ## [1.9.0] - 2026-03-28
 
 ### Added

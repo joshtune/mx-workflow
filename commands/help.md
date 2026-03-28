@@ -36,7 +36,8 @@ IMPLEMENTATION (most common path)
                                        Process Linear tickets with smart pipeline routing (A/B/C/D)
                                        --branch-per-ticket: separate branch + auto-PR per ticket
 
-MULTI-AGENT TEAM BUILD (complex features)
+FULL PIPELINE (idea to shipped code)
+  /mx:build [idea] [--auto]            Full pipeline: questions → PRD → plan → build → QA → commit
   /mx:prd                              Define the problem, scope, and spec first
   /mx:build-with-agent-team            Spawn agent team (contract-first, tmux or in-process)
 
@@ -72,6 +73,7 @@ ANYTIME
 
 WHICH PATH SHOULD I USE?
   New session               → /mx:status (check project readiness) → /mx:prime (warm up context)
+  Idea to shipped code      → /mx:build "your idea" (asks questions, then does everything)
   New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
   Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
   After implementing        → /mx:e2e (verify it works in the browser)

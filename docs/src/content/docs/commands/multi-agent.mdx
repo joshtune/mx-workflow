@@ -1,9 +1,45 @@
 ---
-title: Multi-Agent
-description: Commands for multi-agent collaboration and team builds.
+title: Full Pipeline & Multi-Agent
+description: Commands for end-to-end builds, multi-agent collaboration, and team builds.
 ---
 
-These commands are designed for complex features that benefit from parallel work. They let you define what to build (PRD) and then spawn a team of Claude instances to build it together.
+These commands handle the full build lifecycle — from a product idea through PRD, planning, implementation, QA, and commit. They include the full pipeline orchestrator and the individual multi-agent commands it coordinates.
+
+## /mx:build
+
+**Full pipeline — discovery questions, PRD, plan, build, QA, commit & ship**
+
+```
+/mx:build [product/feature idea] [--auto] [--skip-prd <path>] [--skip-plan <path>] [--stack <stack>]
+```
+
+Takes a product or feature idea and orchestrates the full mx pipeline end-to-end. By default, starts with discovery questions to understand what you're building before generating anything. Makes incremental commits at each phase so you can track progression in `git log`.
+
+| Flag | Effect |
+|---|---|
+| (none) | Ask discovery questions, then proceed through all phases with approval gates |
+| `--auto` | Skip questions and gates, run fully autonomous |
+| `--skip-prd <path>` | Skip PRD generation, use an existing PRD |
+| `--skip-plan <path>` | Skip plan generation, use an existing plan |
+| `--stack <stack>` | Pre-specify the tech stack |
+
+**Pipeline phases:**
+1. **Discovery** — Clarifying questions about scope, users, stack, constraints
+2. **PRD** — Problem-first product spec (commit: `docs(prd): ...`)
+3. **Plan** — Codebase-aware implementation plan (commit: `docs(plan): ...`)
+4. **Build** — Agent team or single-agent, auto-selected by plan complexity (commit: `feat: ...`)
+5. **QA** — Full quality audit with fix cycles (commit: `fix: ...` if fixes needed)
+
+The build phase auto-selects the strategy: **agent team** for multi-component work (3+ independent components), **single agent** for focused changes.
+
+**When to use it:**
+- When you have an idea and want Claude to handle the entire journey
+- When you want guided discovery questions before building
+- When you'd otherwise run `/mx:prd` → `/mx:plan` → `/mx:implement` → `/mx:qa` → `/mx:commit` manually
+
+:::tip[Build vs individual commands]
+`/mx:build` is the "I trust the pipeline" command. Use it for end-to-end orchestration. Use the individual commands (`/mx:prd`, `/mx:plan`, `/mx:implement`) when you want more control over each step.
+:::
 
 ## /mx:prd
 
