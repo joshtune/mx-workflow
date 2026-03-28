@@ -51,13 +51,21 @@ Just code → /mx:shipit
 
 For trivial changes where you already know what to do, make the edit and use `/mx:shipit` to validate, commit, and push in one step.
 
-**Complex multi-component feature:**
+**Idea to shipped code (full pipeline):**
+
+```
+/mx:build "your idea"
+```
+
+When you have a product or feature idea and want Claude to handle the entire journey — discovery questions, PRD, plan, build, QA, and commit. Auto-selects agent team or single-agent based on plan complexity. Makes incremental commits at each phase.
+
+**Complex multi-component feature (manual orchestration):**
 
 ```
 /mx:prd → /mx:build-with-agent-team
 ```
 
-When a feature spans multiple layers (frontend, backend, database) and benefits from parallel work, use the multi-agent team build. This spawns multiple Claude instances in tmux panes that coordinate via a contract-first protocol. See the [Multi-Agent Team guide](/mx-workflow/guides/multi-agent-team/) for details.
+When you want more control over each step. Use the PRD to define scope, then spawn a multi-agent team build manually. This gives you direct access to each agent. See the [Multi-Agent Team guide](/mx-workflow/guides/multi-agent-team/) for details.
 
 **Verify a feature works in the browser:**
 
@@ -118,7 +126,8 @@ Generate a CLAUDE.md file from codebase analysis to establish project convention
 
 - New feature that needs scoping: `/mx:prd` first, then `/mx:plan`
 - Clear bug fix or well-defined ticket: skip straight to `/mx:plan`
-- Complex system design: `/mx:prd` first, then `/mx:build-with-agent-team` (which generates its own internal plan)
+- Full pipeline from idea: `/mx:build "your idea"` (handles PRD, plan, build, QA, and commit end-to-end)
+- Complex system with manual control: `/mx:prd` first, then `/mx:build-with-agent-team`
 
 ## Common command sequences
 
@@ -148,13 +157,21 @@ Same as the standard loop but starts by creating a properly named branch with th
 
 For bugs where the cause is unclear. The RCA digs through code and git history to find the root cause before you start fixing.
 
-### The full-stack build
+### The full pipeline
+
+```
+/mx:prime → /mx:build "real-time collaboration feature"
+```
+
+For any feature from idea to code. Asks discovery questions, generates PRD and plan, builds (auto-selects agent team or single-agent), runs QA, and commits — all in one command.
+
+### The manual full-stack build
 
 ```
 /mx:prime → /mx:prd "real-time collaboration feature" → /mx:build-with-agent-team
 ```
 
-For complex features. The PRD defines what to build, then the agent team builds it in parallel with a contract-first protocol.
+For complex features when you want manual control over each step. The PRD defines what to build, then the agent team builds it in parallel with a contract-first protocol.
 
 ### The quick ship
 
