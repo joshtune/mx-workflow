@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-03-28
+
 ### Added
 
 - Spec conformance check in `mx-quality-keeper` agent — verifies every must-have from the PRD was actually built, wired up, and works as specified. Reports PASS/FAIL/MISS per requirement. MISS items (entirely missing features) escalate immediately.
