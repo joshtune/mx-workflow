@@ -37,7 +37,7 @@ IMPLEMENTATION (most common path)
 
 MULTI-AGENT TEAM BUILD (complex features)
   /mx:prd                              Define the problem, scope, and spec first
-  /mx:build-with-agent-team            Spawn agent team in tmux (contract-first protocol)
+  /mx:build-with-agent-team            Spawn agent team (contract-first, tmux or in-process)
 
 PLANNING & DESIGN
   /mx:prd [idea]                       Problem-first PRD generator (asks questions, outputs spec)

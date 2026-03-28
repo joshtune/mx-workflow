@@ -1,9 +1,9 @@
 ---
 title: Multi-Agent Team
-description: Build complex features with multiple Claude instances coordinating in parallel via tmux.
+description: Build complex features with multiple Claude instances coordinating in parallel — contract-first protocol with hooks, task management, and plan approval.
 ---
 
-When a feature spans multiple layers — frontend, backend, database, infrastructure — a single Claude instance working sequentially can be slow. The multi-agent team build spawns multiple Claude instances in tmux panes that work in parallel, coordinating through a contract-first protocol to avoid integration conflicts.
+When a feature spans multiple layers — frontend, backend, database, infrastructure — a single Claude instance working sequentially can be slow. The multi-agent team build spawns multiple Claude instances that work in parallel, coordinating through a contract-first protocol to avoid integration conflicts.
 
 ## When to use multi-agent builds
 
@@ -21,17 +21,42 @@ When a feature spans multiple layers — frontend, backend, database, infrastruc
 
 ## Prerequisites
 
-Before using `/mx:build-with-agent-team`, you need two things:
+Before using `/mx:build-with-agent-team`, ensure:
 
-### 1. tmux
+### 1. Claude Code version
 
-tmux must be installed on your system. Check with:
+Agent Teams require Claude Code v2.1.32+. Check with:
 
 ```bash
-tmux -V
+claude --version
 ```
 
-If not installed:
+### 2. Experimental flag
+
+Add to your Claude Code settings:
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+Without this flag, the command will stop with an error.
+
+### 3. Display mode setup (optional)
+
+Agent Teams support two display modes:
+
+| Mode | How it works | Requirements |
+|---|---|---|
+| **In-process** (default) | All teammates run in your main terminal. Use **Shift+Down** to cycle. | Any terminal |
+| **Split panes** | Each teammate gets its own pane — full visibility of all output at once. | tmux or iTerm2 |
+
+The default is `"auto"` — uses split panes if already inside tmux, in-process otherwise.
+
+**To install tmux** (recommended for split panes):
 
 ```bash
 # macOS
@@ -44,23 +69,58 @@ sudo apt install tmux
 sudo dnf install tmux
 ```
 
-### 2. Experimental flag
+**To use iTerm2 split panes**: install the [`it2` CLI](https://github.com/mkusaka/it2), then enable the Python API in iTerm2 → Settings → General → Magic → Enable Python API.
 
-Agent Teams require an experimental feature flag. Add it to your Claude Code settings:
+**To override the display mode**, set `teammateMode` in `~/.claude.json`:
 
-```json title="~/.claude/settings.json"
+```json title="~/.claude.json"
 {
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
+  "teammateMode": "in-process"
 }
 ```
 
-Without this flag, the command will stop with an error.
+Or pass per-session:
+
+```bash
+claude --teammate-mode in-process
+```
+
+:::note
+Split-pane mode is **not supported** in VS Code's integrated terminal, Windows Terminal, or Ghostty. Use in-process mode in these environments.
+:::
+
+## Keyboard controls
+
+| Shortcut | Action |
+|---|---|
+| **Shift+Down** | Cycle through teammates (wraps back to lead after last) |
+| **Enter** | View a teammate's session (in-process mode) |
+| **Escape** | Interrupt a teammate's current turn |
+| **Ctrl+T** | Toggle the shared task list |
 
 ## How it works
 
-The multi-agent team build follows a structured protocol with four phases.
+The multi-agent team build follows a structured protocol with phases.
+
+### Architecture
+
+An agent team consists of:
+
+| Component | Role |
+|---|---|
+| **Team lead** | Your main Claude Code session — creates the team, spawns teammates, coordinates work |
+| **Teammates** | Separate Claude Code instances that each work on assigned tasks |
+| **Task list** | Shared list of work items that teammates claim and complete |
+| **Mailbox** | Messaging system for direct communication between agents |
+
+Teams and tasks are stored locally:
+- **Team config**: `~/.claude/teams/{team-name}/config.json`
+- **Task list**: `~/.claude/tasks/{team-name}/`
+
+### Context and permissions
+
+- **Context**: Teammates load CLAUDE.md, MCP servers, and skills automatically — but they do **not** inherit the lead's conversation history. Include all task-specific context in the spawn prompt.
+- **Permissions**: Teammates start with the lead's permission settings. You can change individual teammate modes after spawning, but not at spawn time.
 
 ### Phase 1: Contracts (sequential)
 
@@ -68,7 +128,7 @@ This is the most important phase. Agents building in parallel will diverge on in
 
 1. **Upstream agents spawn first** (e.g., database agent, then backend agent)
 2. Each upstream agent's first task is to define and publish their contract — exact API endpoints, request/response shapes, status codes, error formats
-3. The **lead agent** (your main Claude instance) verifies each contract for:
+3. The **lead agent** verifies each contract for:
    - Exact URLs, including trailing slashes
    - Explicit response shapes (not vague descriptions like "returns data")
    - Error response formats
@@ -94,6 +154,60 @@ The lead compares responses and flags any mismatches before integration. This ca
 ### Phase 4: Cross-review
 
 Each agent reviews another agent's integration points. This catches issues at the boundaries between components — the most common source of integration bugs.
+
+## Communication patterns
+
+Teammates can communicate using two patterns:
+
+| Pattern | When to use |
+|---|---|
+| **message** | Send to one specific teammate — e.g., "tell the backend agent to add a new endpoint" |
+| **broadcast** | Send to ALL teammates simultaneously. Use sparingly — token costs scale with team size |
+
+In split-pane mode, click into any pane to interact with that teammate directly. In in-process mode, use **Shift+Down** to cycle to a teammate and type to send them a message.
+
+## Task management
+
+The shared task list coordinates work across the team:
+
+- **Task states**: pending → in progress → completed
+- **Dependencies**: Tasks can depend on other tasks. A pending task with unresolved dependencies cannot be claimed until those dependencies are completed. When a dependency completes, blocked tasks unblock automatically.
+- **Assignment**: The lead can assign tasks explicitly, or teammates can **self-claim** the next unassigned, unblocked task after finishing their current work.
+- **Race prevention**: Task claiming uses file locking — no two teammates can claim the same task simultaneously.
+
+:::tip[Task sizing]
+Aim for **5–6 tasks per teammate**. Too small and coordination overhead exceeds the benefit. Too large and teammates work too long without check-ins. The right size is a self-contained unit with a clear deliverable — a function, a test file, or a review.
+:::
+
+## Plan approval mode
+
+For complex or risky components, require teammates to plan before implementing:
+
+```
+Spawn an architect teammate to refactor the authentication module.
+Require plan approval before they make any changes.
+```
+
+When a teammate finishes planning, it sends a plan approval request to the lead. The lead reviews the plan and either:
+- **Approves** — the teammate exits plan mode and begins implementation
+- **Rejects with feedback** — the teammate stays in plan mode, revises, and resubmits
+
+**Influencing the lead's judgment**: Give it criteria in your prompt — e.g., "only approve plans that include test coverage" or "reject plans that modify the database schema."
+
+## Quality gates with hooks
+
+Use hooks to enforce rules automatically when teammates finish work or tasks change state:
+
+| Hook | Fires when | Use for |
+|---|---|---|
+| **`TeammateIdle`** | A teammate is about to go idle | Exit code 2 → sends feedback and keeps the teammate working |
+| **`TaskCreated`** | A task is being created | Exit code 2 → prevents creation with feedback |
+| **`TaskCompleted`** | A task is being marked complete | Exit code 2 → prevents completion with feedback (e.g., "run tests first") |
+
+Configure these in your project's hooks config. Examples:
+- "All tasks must have passing tests before completion" — use `TaskCompleted` to verify
+- "No teammate goes idle without reporting status" — use `TeammateIdle` to enforce
+- "Tasks must include acceptance criteria" — use `TaskCreated` to validate
 
 ## Running a multi-agent build
 
@@ -128,16 +242,54 @@ The command reads the plan and determines the team structure:
 | 4 agents | Additional concerns (testing, DevOps) |
 | 5+ agents | Large systems with many independent modules |
 
-You can specify the team size explicitly, or let the command decide based on the plan.
+You can specify the team size explicitly, or let the command decide based on the plan. You can also specify a model per teammate (e.g., "Use Sonnet for each teammate").
+
+**Sizing guidance**: Start with 3–5 teammates. Token costs scale linearly with team size, so only scale up when the work genuinely benefits from parallelism. Three focused teammates often outperform five scattered ones.
 
 ### Step 4: Enter Delegate Mode
 
-After spawning agents, the lead enters **Delegate Mode** (Shift+Tab in tmux). The lead should not implement code — only coordinate:
+After spawning agents, the lead enters Delegate Mode. The lead should not implement code — only coordinate:
 
 - Verify and forward contracts
 - Resolve conflicts between agents
 - Answer questions from agents
 - Run end-to-end validation after all agents complete
+
+Use **Shift+Down** to cycle through teammates. In split-pane mode, click into a pane to interact directly.
+
+:::caution[Lead not waiting]
+Sometimes the lead starts implementing tasks itself instead of waiting for teammates. If you notice this, tell it: "Wait for your teammates to complete their tasks before proceeding."
+:::
+
+### Step 5: Lead validation (end-to-end)
+
+After all agents report done, the lead runs end-to-end validation:
+
+1. **Can the system start?** — Start all services, check for startup errors
+2. **Does the happy path work?** — Walk through the primary user flow
+3. **Do integrations connect?** — Verify data flows from frontend through backend to database
+4. **Are edge cases handled?** — Empty states, error states, loading states
+
+If validation fails, the lead identifies which agent's domain contains the bug, re-spawns that agent with the specific issue, and re-runs validation after the fix.
+
+### Step 6: Shutdown and cleanup
+
+**Graceful shutdown:**
+1. Ask each teammate to shut down: "Ask the [role] teammate to shut down"
+2. The teammate can approve (exits gracefully) or reject with an explanation
+3. Teammates finish their current request/tool call before stopping — this can take time
+
+**Team cleanup** — after all teammates have shut down:
+
+```
+Clean up the team
+```
+
+:::caution[Cleanup rules]
+- Always use the **lead** to clean up — never a teammate (their team context may not resolve correctly)
+- Cleanup will fail if any teammates are still running — shut them all down first
+- The lead can only manage **one team at a time** — clean up before starting a new team
+:::
 
 ## The spawn prompt
 
@@ -155,27 +307,25 @@ You are the [ROLE] agent for this build.
 
 ## Before You Build (REQUIRED)
 - Your FIRST deliverable is your [API contract / schema / interface]
-- Send it to the lead via SendMessage BEFORE writing implementation code
+- Send it to the lead via message BEFORE writing implementation code
 - Wait for lead to confirm before proceeding
 
 ## The Contract You Must Conform To
 [Upstream agent's verified contract]
 
+## Cross-Cutting Concerns You Own
+[Integration behaviors this agent is responsible for]
+
 ## Project Conventions
 - Run quality checks after changes (see CLAUDE.md)
 - Commit format: <type>(<scope>)[TICKET] <description>
+
+## Before Reporting Done
+Run these validations and fix any failures:
+1. [specific validation command]
+2. [specific validation command]
+Do NOT report done until all validations pass.
 ```
-
-## Lead validation
-
-After all agents report done, the lead runs end-to-end validation:
-
-1. **Can the system start?** — Start all services, check for startup errors
-2. **Does the happy path work?** — Walk through the primary user flow
-3. **Do integrations connect?** — Verify data flows from frontend through backend to database
-4. **Are edge cases handled?** — Empty states, error states, loading states
-
-If validation fails, the lead identifies which agent's domain contains the bug, re-spawns that agent with the specific issue, and re-runs validation after the fix.
 
 ## Common pitfalls
 
@@ -186,18 +336,45 @@ If validation fails, the lead identifies which agent's domain contains the bug, 
 | Implicit contracts | "Returns sessions" — what does that mean? | Require exact JSON shapes, URLs, and status codes |
 | File conflicts | Two agents edit the same file | Assign clear, non-overlapping file ownership |
 | Orphaned cross-cutting concerns | Streaming, URL conventions, error shapes have no owner | Explicitly assign ownership of every cross-cutting concern |
+| Lead not waiting | Lead starts implementing instead of delegating | Tell it "Wait for your teammates to complete their tasks" |
+| Task status lag | Teammates fail to mark tasks complete, blocking dependents | Check if work is done and update manually or nudge the teammate |
+
+## Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| **Teammates not appearing** | In in-process mode, press **Shift+Down** — they may be running but not visible. For split panes, verify `which tmux` or that iTerm2's `it2` CLI is installed. Check that the task is complex enough to warrant a team. |
+| **Too many permission prompts** | Pre-approve common operations in your permission settings before spawning teammates. |
+| **Teammates stopping on errors** | Check their output via Shift+Down or click their pane. Give additional instructions directly, or spawn a replacement. |
+| **Lead shuts down early** | Tell the lead to keep going and wait for teammates to finish. |
+| **Orphaned tmux sessions** | Run `tmux ls` then `tmux kill-session -t <session-name>` to clean up. |
+| **`/resume` or `/rewind` after crash** | These do NOT restore in-process teammates. Tell the lead to spawn new teammates. |
+
+## Limitations
+
+Current known limitations of agent teams:
+
+- **No session resumption**: `/resume` and `/rewind` do not restore in-process teammates
+- **One team per session**: Clean up the current team before starting a new one
+- **No nested teams**: Teammates cannot spawn their own teams — only the lead can
+- **Lead is fixed**: Cannot promote a teammate to lead or transfer leadership
+- **Permissions set at spawn**: All teammates inherit lead's mode; change individually after spawning
+- **Split panes restricted**: Not supported in VS Code terminal, Windows Terminal, or Ghostty
+- **Task status can lag**: Teammates sometimes fail to mark tasks completed, blocking dependents
+- **Shutdown can be slow**: Teammates finish their current request before stopping
 
 ## Agent Teams vs Sub-Agents
 
 mx-workflow uses two forms of multi-agent execution. Here is when to use each:
 
-| | Sub-Agents (Task tool) | Agent Teams (tmux) |
+| | Sub-Agents (Task tool) | Agent Teams |
 |---|---|---|
-| **Communication** | Reports to main agent only | Agents message each other |
+| **Context** | Own context window; results return to caller | Own context window; fully independent |
+| **Communication** | Reports to main agent only | Teammates message each other directly |
 | **Coordination** | Main agent manages all | Shared task list, self-coordination |
-| **Visibility** | Results summarized | Each agent visible in a tmux pane |
-| **Best for** | Quick isolated tasks, parallel independent work | Full-stack features, new systems, complex integrations |
-| **Cost** | Lower (single session) | Higher (separate Claude instances) |
+| **Visibility** | Results summarized | Each visible in own pane or via Shift+Down |
+| **Best for** | Focused tasks where only the result matters | Complex work requiring discussion and collaboration |
+| **Cost** | Lower (results summarized back) | Higher (separate Claude instances) |
 
 **Use Sub-Agents** when work is isolated and agents do not need to coordinate with each other — for example, running code review and test analysis in parallel during `/mx:implement`.
 

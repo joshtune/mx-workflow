@@ -32,13 +32,13 @@ Typical flow: new feature that needs scoping goes through `/mx:prd` first, then 
 
 ## /mx:build-with-agent-team
 
-**Build using Claude Code Agent Teams with tmux split panes**
+**Build using Claude Code Agent Teams — multiple Claude instances working in parallel**
 
 ```
 /mx:build-with-agent-team <plan-path> [num-agents]
 ```
 
-Coordinates a build using Claude Code Agent Teams — multiple Claude instances working in parallel via tmux split panes. Each agent gets a specific contract (inputs, outputs, interfaces) and works independently on its portion of the plan. Agents communicate through a shared protocol file and follow a contract-first approach to avoid conflicts.
+Coordinates a build using Claude Code Agent Teams — multiple Claude instances working in parallel via tmux split panes or in-process mode. Each agent gets a specific contract (inputs, outputs, interfaces) and works independently on its portion of the plan. Agents communicate through direct messaging and a shared task list, following a contract-first approach to avoid interface divergence.
 
 | Argument | Description |
 |---|---|
@@ -46,10 +46,22 @@ Coordinates a build using Claude Code Agent Teams — multiple Claude instances 
 | `[num-agents]` | Number of parallel agents to spawn (optional, auto-determined if omitted) |
 
 **Prerequisites:**
-- `tmux` must be installed
-- Claude Code CLI must be available in your PATH
+- Claude Code v2.1.32+
+- Experimental flag enabled in `~/.claude/settings.json`
+- For split-pane mode: `tmux` or iTerm2 with the `it2` CLI (optional — in-process mode works in any terminal)
+
+**Display modes:**
+
+| Mode | How it works | Requirements |
+|---|---|---|
+| **In-process** | All teammates in your main terminal. Cycle with **Shift+Down**. | Any terminal |
+| **Split panes** | Each teammate in its own pane. Click to interact. | tmux or iTerm2 |
+
+Default is `"auto"` — uses split panes if inside tmux, in-process otherwise. Override with `--teammate-mode in-process` or set `teammateMode` in `~/.claude.json`.
 
 **When to use it:**
 - For complex, multi-component features where different parts can be built in parallel
 - After `/mx:prd` has defined the scope and `/mx:plan` has broken it into independent pieces
 - When a single-agent workflow would take too long for the scope of work
+
+See the [Multi-Agent Team guide](/guides/multi-agent-team) for the full protocol, hooks, task management, and troubleshooting.
