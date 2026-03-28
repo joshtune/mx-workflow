@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-03-28
+
+### Changed
+
+- `/mx:build-with-agent-team` fully aligned with official Claude Code Agent Teams docs — added display modes (in-process + iTerm2 alongside tmux), keyboard controls, hooks (`TeammateIdle`/`TaskCreated`/`TaskCompleted`), plan approval mode, task management with dependencies and self-claiming, communication patterns (message/broadcast), shutdown and cleanup protocol, troubleshooting guide, and all known limitations
+- `/mx:help` description updated to reflect in-process mode support
+- Documentation site command page and multi-agent team guide rewritten with full coverage
+
 ## [1.7.1] - 2026-03-16
 
 ### Changed
