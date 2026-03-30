@@ -104,6 +104,22 @@ We'll know we're right when {measurable outcome}.
 
 **Non-Users**: {Who this is NOT for}
 
+## User Roles & Expectations
+
+For each distinct user role, define what they must be able to do. Each expectation gets a unique ID for traceability — QA verifies every "Must" item by role.
+
+### {Role 1, e.g., Admin}
+| # | Expectation | Priority |
+|---|-------------|----------|
+| {A1} | {What this role can do} | Must / Should / Won't |
+| {A2} | {What this role can do} | Must / Should / Won't |
+
+### {Role 2, e.g., Customer}
+| # | Expectation | Priority |
+|---|-------------|----------|
+| {C1} | {What this role can do} | Must / Should / Won't |
+| {C2} | {What this role can do} | Must / Should / Won't |
+
 ## Solution
 
 {One paragraph: What we're building and why this approach}

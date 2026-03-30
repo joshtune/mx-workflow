@@ -41,22 +41,54 @@ Wait for response. Store as `IDEA`.
 Confirm understanding:
 > I understand you want to build: {restated understanding}. Before I start, I have some questions.
 
-### 0.3 Discovery Questions
+### 0.3 Quick Direction (yes/no, A/B choices)
 
-Ask all at once (do not ask one by one):
+Start with fast, binary questions that narrow the solution space. Each answer eliminates entire branches of decisions. Ask all at once:
 
-> **Discovery Questions:**
-> 1. **What does the user see/experience?** Walk me through the main interaction.
-> 2. **Who is it for?** The specific user, persona, or audience.
-> 3. **What stack/framework?** *(Skip if `--stack` was provided.)* Languages, frameworks, database, UI library.
-> 4. **Scope** — MVP or full feature? What's explicitly out of scope?
-> 5. **Existing code?** Building from scratch, or extending something in this repo?
-> 6. **Deployment target?** Local only, hosted (where?), or not yet decided?
-> 7. **Any constraints?** Time, dependencies on other systems, specific patterns to follow.
+> **Quick Direction:**
+> 1. **Web or mobile?** (Web / Mobile / Both)
+> 2. **Needs a backend/database?** (Yes / No)
+> 3. **Auth required?** (Yes / No)
+> 4. **Public-facing or internal tool?** (Public / Internal)
+> 5. **Multi-user or single-user?** (Multi / Single)
+> 6. **New project or extending existing code in this repo?** (New / Existing)
 
-**Wait for user responses.** Store all answers as `DISCOVERY_CONTEXT`.
+These questions are **dynamic** — tailor them to the idea. A CLI tool doesn't need "web or mobile." A data pipeline doesn't need "auth required." Only ask questions relevant to the idea. Skip questions where the answer is obvious from context.
 
-### 0.4 Auto Mode
+**Wait for user responses.**
+
+### 0.4 Inferred Context
+
+Based on the quick direction answers, infer the technical decisions and present them for confirmation:
+
+```
+INFERRED CONTEXT
+================
+Platform:    Web app
+Stack:       [infer from project CLAUDE.md, package.json, or user's known preferences]
+Database:    [Yes → Supabase/Postgres/etc. based on project context]
+Auth:        [Yes → method based on stack]
+Deployment:  [infer from project context or ask]
+Scope:       MVP
+
+Does this look right? Anything to change?
+```
+
+The user confirms or corrects. This is fast — most of the time they'll say "yes" or tweak one thing.
+
+### 0.5 Targeted Details (only where uncertain)
+
+Only ask open-ended questions for things you could NOT infer from the quick direction:
+
+> **A few more details I need:**
+> 1. **User roles** — Who are the distinct types of users? (e.g., admin, customer, viewer). For each role, what's the one thing they must be able to do?
+> 2. [Any other genuinely uncertain detail — e.g., specific business logic, third-party integrations, data constraints]
+
+**Do NOT re-ask** things already answered in quick direction or inferred context. Keep this to 1-3 questions maximum. If you can infer everything, skip this step entirely and move to pre-flight.
+
+**Wait for user responses.** Store all answers (quick direction + inferred context + targeted details) as `DISCOVERY_CONTEXT`.
+
+### 0.6 Auto Mode
 
 If `--auto` is set, skip all questions. Infer answers from:
 - The `IDEA` text
@@ -122,12 +154,45 @@ Follow the same template as `/mx:prd` Phase 5:
 - Problem Statement
 - Key Hypothesis
 - Users (primary, JTBD, non-users)
+- **User Roles & Expectations** (see below)
 - Solution with MVP Scope table (Must/Should/Won't)
 - Codebase Context (patterns found, files affected)
 - Success Metrics
 - Open Questions
 - Implementation Phases
 - Suggested Tickets
+
+**User Roles & Expectations (REQUIRED):**
+
+The PRD MUST include a "User Roles & Expectations" section that defines every distinct role and what they can do. This section is the primary input for QA spec conformance — if it's not in the PRD, QA can't verify it.
+
+Format:
+
+```markdown
+## User Roles & Expectations
+
+### Admin
+| # | Expectation | Priority |
+|---|-------------|----------|
+| A1 | Can remove users from the system | Must |
+| A2 | Can view all users and their activity | Must |
+| A3 | Can configure system settings | Should |
+
+### Customer
+| # | Expectation | Priority |
+|---|-------------|----------|
+| C1 | Can add items to shopping cart | Must |
+| C2 | Can checkout and pay | Must |
+| C3 | Can view order history | Should |
+
+### Viewer (unauthenticated)
+| # | Expectation | Priority |
+|---|-------------|----------|
+| V1 | Can browse product catalog | Must |
+| V2 | Can search products by name | Should |
+```
+
+Each expectation gets a unique ID (role prefix + number) for traceability. QA will verify every "Must" expectation by role.
 
 Store `PRD_PATH` = the generated file path.
 
@@ -327,19 +392,27 @@ Run a full quality audit (same logic as `/mx:qa --full`):
 
 This is the most important check. Read the PRD at `PRD_PATH` and verify **every must-have was actually built**:
 
-1. Extract every "Must" item from the PRD's MVP Scope table
-2. For each must-have, verify:
+1. Extract every role and every "Must" expectation from the PRD's "User Roles & Expectations" section, using the unique IDs (A1, C2, etc.)
+2. For each must-have, grouped by role, verify:
    - **Does the code exist?** Search for the implementation (routes, components, functions, endpoints, tables)
    - **Is it wired up?** A component that exists but isn't rendered, or an endpoint that isn't routed, is NOT implemented
    - **Does it match the spec?** Read the implementation and verify it handles the expected behavior
-3. Report each as PASS / FAIL / MISS:
+   - **Is it role-gated?** If multiple roles exist, verify role-specific actions are properly restricted
+3. Report each as PASS / FAIL / MISS, grouped by role:
 
 ```
 SPEC CONFORMANCE
 ================
-[ PASS ] User can create a task — POST /api/tasks exists, form renders, submits correctly
-[ FAIL ] User can assign a task — endpoint exists but UI has no assignee dropdown
-[ MISS ] User can set a due date — no implementation found anywhere
+
+ADMIN
+[ PASS ] A1: Can remove users — DELETE /api/users/:id exists, admin middleware applied
+[ FAIL ] A2: Can view all users — endpoint exists but no UI page
+
+CUSTOMER
+[ PASS ] C1: Can add items to cart — POST /api/cart wired up
+[ MISS ] C2: Can checkout and pay — no implementation found
+
+Summary: 2/4 PASS, 1 FAIL, 1 MISS
 ```
 
 - **FAIL**: Implementation exists but is incomplete → fix it in the QA fix cycle
@@ -392,9 +465,14 @@ Quality:
   QA Audit:   PASS / FAIL
 
 Spec Conformance:
+  Roles:      <count> roles verified
   Must-haves: X/Y verified
   Failed:     <count> (incomplete implementations)
   Missing:    <count> (not implemented at all)
+  Per-role:
+    Admin:    X/Y PASS
+    Customer: X/Y PASS
+    ...
 
 Git:
   Commits:    <count> commits created

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `/mx:build` Phase 0 redesigned with funnel discovery — quick direction questions (yes/no, A/B) → inferred context confirmation → targeted details only where uncertain. Replaces the 7 open-ended questions wall.
+- `/mx:build` Phase 1 and `/mx:prd` now include "User Roles & Expectations" section in PRD — each role gets a table of expectations with unique IDs (A1, C2) and priority levels
+- `mx-quality-keeper` spec conformance now verifies per role — groups results by role, checks role-gating, reports PASS/FAIL/MISS with expectation IDs
+- `/mx:qa` spec conformance updated with per-role verification and role-gating checks
+- Multi-agent team guide updated with role-based spec conformance
+
 ## [1.11.0] - 2026-03-28
 
 ### Added

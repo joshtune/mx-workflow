@@ -83,26 +83,39 @@ After all agents report done:
 
 1. **Find the spec** — Look for PRD files in `.agents/prds/`, plan files in `.agents/plans/`, or contract documents in `.agents/`. If no spec exists, check conversation context for requirements.
 
-2. **Extract requirements** — From the PRD's MVP Scope table, pull every "Must" item. From the plan's Changes and Tests sections, pull every expected behavior. Each becomes a verification item.
+2. **Extract requirements by role** — From the PRD's "User Roles & Expectations" section, pull every role and every "Must" expectation. Each role+expectation pair becomes a verification item with its unique ID (e.g., A1, C2). Also pull from the MVP Scope table for any system-level must-haves not tied to a specific role.
 
-3. **Verify each requirement** — For every must-have:
-   - **Does the code exist?** Search for the implementation (routes, components, functions, database tables). If the spec says "user can create a task," find the create-task endpoint/handler/form.
+3. **Verify each requirement** — For every must-have, grouped by role:
+   - **Does the code exist?** Search for the implementation (routes, components, functions, database tables). If expectation C1 says "Customer can add items to shopping cart," find the add-to-cart endpoint/handler/form.
    - **Is it wired up?** A component that exists but isn't rendered, an endpoint that exists but isn't routed, or a function that exists but isn't called is NOT implemented.
    - **Does it handle the expected behavior?** Read the implementation and verify it matches what the spec described — correct fields, correct logic, correct UI flow.
+   - **Is it role-gated?** If the system has multiple roles, verify that role-specific actions are properly restricted. An admin action should not be accessible to a customer.
 
-4. **Produce a checklist** — For each must-have, report:
+4. **Produce a checklist grouped by role** — For each role and its must-haves, report:
    ```
    SPEC CONFORMANCE
    ================
-   [ PASS ] User can create a task — POST /api/tasks exists, form at /tasks/new renders, submits correctly
-   [ FAIL ] User can assign a task to another user — endpoint exists but UI has no assignee dropdown
-   [ PASS ] Tasks show in a list view — GET /api/tasks returns array, /tasks page renders TaskList component
-   [ MISS ] User can set a due date — no implementation found anywhere in codebase
+
+   ADMIN
+   [ PASS ] A1: Can remove users from system — DELETE /api/users/:id exists, admin-only middleware applied
+   [ FAIL ] A2: Can view all users — GET /api/users exists but no UI page renders the list
+
+   CUSTOMER
+   [ PASS ] C1: Can add items to cart — POST /api/cart exists, AddToCart button wired up
+   [ MISS ] C2: Can checkout and pay — no checkout implementation found
+   [ PASS ] C3: Can view order history — GET /api/orders exists, /orders page renders
+
+   SYSTEM
+   [ PASS ] Auth required for protected routes — middleware applied to all /api/* routes
+
+   SUMMARY: 4/6 PASS, 1 FAIL, 1 MISS
    ```
 
 5. **FAIL vs MISS distinction**:
    - **FAIL**: Implementation exists but is incomplete or incorrect — route back to owning agent to fix
    - **MISS**: No implementation found at all — this is a more serious failure, escalate to lead immediately (the spec item was likely dropped or forgotten)
+
+6. **Role-gating verification**: If the PRD defines multiple roles with different permission levels, verify that role boundaries are enforced. An endpoint that should be admin-only but is accessible to all authenticated users is a FAIL.
 
 This check runs in both standalone and team mode. In standalone mode, it only runs when a spec file is found or `--full` is passed.
 
@@ -187,9 +200,15 @@ Overall:           PASS / FAIL
 
 SPEC CONFORMANCE (if spec found)
 ────────────────────────────────
-[ PASS ] <requirement> — <evidence>
-[ FAIL ] <requirement> — <what's wrong>
-[ MISS ] <requirement> — <no implementation found>
+<ROLE 1>
+[ PASS ] <ID>: <expectation> — <evidence>
+[ FAIL ] <ID>: <expectation> — <what's wrong>
+
+<ROLE 2>
+[ PASS ] <ID>: <expectation> — <evidence>
+[ MISS ] <ID>: <expectation> — <no implementation found>
+
+Summary: X/Y PASS, Z FAIL, W MISS
 
 FAILURES (if any)
 ─────────────────

@@ -115,23 +115,25 @@ Look for PRD files in `.agents/prds/` and plan files in `.agents/plans/`. If mul
 
 If no spec is found and `--full` was not passed, skip this step.
 
-### 5.2 Extract Requirements
+### 5.2 Extract Requirements by Role
 
-From the PRD's MVP Scope table, pull every "Must" item. From the plan's Changes and Tests sections, pull every expected behavior. Each becomes a verification item.
+From the PRD's "User Roles & Expectations" section, pull every role and every "Must" expectation with its unique ID (e.g., A1, C2). Also pull from the MVP Scope table for system-level must-haves not tied to a specific role.
 
 ### 5.3 Verify Each Requirement
 
-For every must-have:
+For every must-have, grouped by role:
 
-1. **Does the code exist?** Search for the implementation — routes, components, functions, database tables, API endpoints. If the spec says "user can create a task," find the create-task handler/form/endpoint.
+1. **Does the code exist?** Search for the implementation — routes, components, functions, database tables, API endpoints.
 
 2. **Is it wired up?** A component that exists but isn't rendered, an endpoint that exists but isn't routed, or a function that exists but isn't called is NOT implemented.
 
 3. **Does it handle the expected behavior?** Read the implementation and verify it matches the spec — correct fields, correct logic, correct flow.
 
+4. **Is it role-gated?** If the system has multiple roles, verify that role-specific actions are properly restricted. An admin action accessible to all users is a FAIL.
+
 ### 5.4 Report
 
-For each must-have, report one of:
+For each must-have, grouped by role, report one of:
 
 | Verdict | Meaning |
 |---------|---------|
@@ -142,9 +144,16 @@ For each must-have, report one of:
 ```
 SPEC CONFORMANCE
 ================
-[ PASS ] User can create a task — POST /api/tasks exists, form at /tasks/new renders
-[ FAIL ] User can assign a task — endpoint exists but UI has no assignee dropdown
-[ MISS ] User can set a due date — no implementation found
+
+ADMIN
+[ PASS ] A1: Can remove users from system — DELETE /api/users/:id exists, admin middleware applied
+[ FAIL ] A2: Can view all users — GET /api/users exists but no UI page renders the list
+
+CUSTOMER
+[ PASS ] C1: Can add items to cart — POST /api/cart exists, AddToCart button wired up
+[ MISS ] C2: Can checkout and pay — no checkout implementation found
+
+Summary: 2/4 PASS, 1 FAIL, 1 MISS
 ```
 
 **MISS items are escalated immediately** — they indicate a requirement was entirely forgotten, not just implemented incorrectly.
