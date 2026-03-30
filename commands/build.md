@@ -305,15 +305,47 @@ Wait for user approval.
 
 ## Phase 3: Build
 
+### Test-First Approach
+
+**CRITICAL: Write tests before implementation.** For every feature/must-have, the build follows a test-first cycle:
+
+```
+For each feature from the plan's must-haves:
+  1. Write the test — what should this feature do?
+  2. Run it — confirm it FAILS (feature doesn't exist yet)
+  3. Implement the feature
+  4. Run it — confirm it PASSES
+  5. Run all tests — confirm nothing else broke
+  6. Next feature
+```
+
+**Which test type to write:**
+
+| Feature type | Test type | Example |
+|---|---|---|
+| API endpoint | Unit/integration | Call endpoint, assert response shape and status code |
+| UI flow / user action | E2e (if Playwright/Cypress available) | Navigate, interact, assert visible result |
+| Business logic / utility | Unit | Input → output assertion |
+| Database operation | Integration | Write record, read back, assert state |
+| Auth / role-gating | Integration + e2e | Assert access granted/denied per role |
+
+Detect what test infrastructure exists in the project (Playwright, vitest, jest, pytest, etc.) and write the appropriate type. If no test infra exists, set it up first (install test runner, create config, add first test file).
+
+Each incremental commit includes the feature **and** its test together — never commit a feature without its test.
+
 ### If BUILD_STRATEGY = "single"
 
-Execute the plan sequentially (same logic as `/mx:implement`):
+Execute the plan sequentially with test-first cycles:
 
-1. **For each step in the plan's Order of Operations:**
-   - Implement the change
-   - Run quality checks (lint, typecheck, tests)
+1. **For each feature/must-have in the plan's Order of Operations:**
+   - Write the test for this feature (assert expected behavior)
+   - Run it — confirm it fails (red)
+   - Implement the feature
+   - Run it — confirm it passes (green)
+   - Run all tests — confirm nothing else broke
+   - Run quality checks (lint, typecheck)
    - If validation fails: fix, re-run, repeat until clean
-   - Move to next step
+   - Move to next feature
 
 2. **Run agent review pass** (via Agent tool, in parallel):
    - Always: `mx-code-reviewer`, `mx-silent-failure-hunter`
@@ -357,8 +389,8 @@ Execute the plan using Agent Teams (same logic as `/mx:build-with-agent-team`):
 
 6. **Facilitate phases:**
    - Phase 1: Contracts (sequential, lead-orchestrated)
-   - Phase 2: Implementation (parallel)
-   - Phase 2.5: Continuous QA
+   - Phase 2: Implementation (parallel, test-first) — each agent writes the test before implementing each feature
+   - Phase 2.5: Continuous QA — QA verifies both the feature AND its test
    - Phase 3: Pre-completion contract diff
    - Phase 4: Cross-review
 

@@ -154,6 +154,22 @@ You are the [ROLE] agent for this build.
 ## Cross-Cutting Concerns You Own
 [Integration behaviors this agent is responsible for]
 
+## Test-First Build Cycle (REQUIRED)
+For EVERY feature you implement, follow this cycle:
+1. Write the test first — assert what the feature should do
+2. Run it — confirm it FAILS (feature doesn't exist yet)
+3. Implement the feature
+4. Run it — confirm it PASSES
+5. Run all tests — confirm nothing else broke
+Never commit a feature without its test. The test IS the spec.
+
+Test types:
+- API endpoints → unit/integration tests (call endpoint, assert response)
+- UI flows → e2e tests if Playwright/Cypress available (navigate, interact, assert)
+- Business logic → unit tests (input → output)
+- Database ops → integration tests (write, read back, assert)
+- Auth/role-gating → integration tests (assert access per role)
+
 ## Project Conventions
 - Run quality checks after changes (see CLAUDE.md)
 - Commit format: `<type>(<scope>)[${MX_TICKET_PREFIX} <ticket>] <description>`
@@ -161,8 +177,9 @@ You are the [ROLE] agent for this build.
 
 ## Before Reporting Done
 Run these validations and fix any failures:
-1. [specific validation command]
+1. All tests pass (including the ones you wrote)
 2. [specific validation command]
+3. [specific validation command]
 Do NOT report done until all validations pass.
 ```
 
@@ -191,8 +208,9 @@ When a teammate marks a task as complete:
 2. Check for new lint/type suppressions without justification
 3. Verify contract conformance — compare implementation against the agreed contract
 4. Verify spec conformance — does the implementation match the PRD/plan requirements? Check that the feature actually exists, is wired up, and behaves as specified. Report PASS/FAIL/MISS for each requirement.
-5. PASS → confirm task completion to the lead
-6. FAIL → message the owning agent with a QA FAILURE block (task, check, file:line, required fix)
+5. Verify test coverage — does each implemented feature have a corresponding test? If the agent used test-first (they should have), the test should already exist. If not, FAIL the task — the agent must write the test before it can close.
+6. PASS → confirm task completion to the lead
+7. FAIL → message the owning agent with a QA FAILURE block (task, check, file:line, required fix)
 
 ## Rejection Loop
 - Maximum 3 attempts per failure

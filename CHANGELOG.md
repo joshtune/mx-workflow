@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `/mx:build` Phase 3 now uses test-first cycle: write test → confirm fails → implement → confirm passes. Applies to both single-agent and agent team strategies.
+- `/mx:build-with-agent-team` spawn prompt template updated with test-first build cycle as a REQUIRED protocol for all implementation agents
+- QA teammate verification protocol now checks that tests were written alongside features — tasks without tests are failed
+- Multi-agent team guide updated with test-first workflow
+
 ## [1.13.0] - 2026-03-29
 
 ### Added
