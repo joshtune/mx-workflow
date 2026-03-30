@@ -57,7 +57,7 @@ For trivial changes where you already know what to do, make the edit and use `/m
 /mx:build "your idea"
 ```
 
-When you have a product or feature idea and want Claude to handle the entire journey — discovery questions, PRD, plan, build, QA, and commit. Auto-selects agent team or single-agent based on plan complexity. Makes incremental commits at each phase.
+When you have a product or feature idea and want Claude to handle the entire journey. Starts with quick yes/no direction questions, then infers stack and scope. Generates a PRD with per-role expectations, builds test-first (write test → implement → verify), runs QA that checks spec conformance per role, and commits incrementally at each phase. Auto-selects agent team or single-agent based on plan complexity.
 
 **Complex multi-component feature (manual orchestration):**
 
@@ -163,7 +163,7 @@ For bugs where the cause is unclear. The RCA digs through code and git history t
 /mx:prime → /mx:build "real-time collaboration feature"
 ```
 
-For any feature from idea to code. Asks discovery questions, generates PRD and plan, builds (auto-selects agent team or single-agent), runs QA, and commits — all in one command.
+For any feature from idea to code. Quick yes/no direction questions, PRD with per-role expectations, test-first build (auto-selects agent team or single-agent), QA with spec conformance per role, and incremental commits — all in one command.
 
 ### The manual full-stack build
 

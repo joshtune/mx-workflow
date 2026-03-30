@@ -13,7 +13,7 @@ These commands handle the full build lifecycle — from a product idea through P
 /mx:build [product/feature idea] [--auto] [--skip-prd <path>] [--skip-plan <path>] [--stack <stack>]
 ```
 
-Takes a product or feature idea and orchestrates the full mx pipeline end-to-end. By default, starts with discovery questions to understand what you're building before generating anything. Makes incremental commits at each phase so you can track progression in `git log`.
+Takes a product or feature idea and orchestrates the full mx pipeline end-to-end. Makes incremental commits at each phase so you can track progression in `git log`.
 
 | Flag | Effect |
 |---|---|
@@ -24,13 +24,18 @@ Takes a product or feature idea and orchestrates the full mx pipeline end-to-end
 | `--stack <stack>` | Pre-specify the tech stack |
 
 **Pipeline phases:**
-1. **Discovery** — Clarifying questions about scope, users, stack, constraints
-2. **PRD** — Problem-first product spec (commit: `docs(prd): ...`)
+1. **Discovery** — Funnel-style: quick yes/no direction questions → inferred context confirmation → targeted details only where uncertain
+2. **PRD** — Problem-first product spec with User Roles & Expectations (each role gets a table of must-haves with unique IDs for QA traceability) (commit: `docs(prd): ...`)
 3. **Plan** — Codebase-aware implementation plan (commit: `docs(plan): ...`)
-4. **Build** — Agent team or single-agent, auto-selected by plan complexity (commit: `feat: ...`)
-5. **QA** — Full quality audit with fix cycles (commit: `fix: ...` if fixes needed)
+4. **Build** — Test-first cycle (write test → confirm fails → implement → confirm passes) for every feature. Auto-selects agent team or single-agent by plan complexity. (commit: `feat: ...`)
+5. **QA** — Spec conformance per role (PASS/FAIL/MISS per expectation ID), test coverage verification, structural checks, and fix cycles (commit: `fix: ...` if needed)
 
-The build phase auto-selects the strategy: **agent team** for multi-component work (3+ independent components), **single agent** for focused changes.
+**Key features:**
+
+- **Funnel discovery** — starts with fast yes/no questions (Web or mobile? Auth needed? Multi-user?) to narrow decisions, then infers stack and scope. Only asks open-ended questions for things it can't figure out.
+- **User Roles & Expectations** — the PRD defines what each role can do (e.g., "Admin can remove users", "Customer can checkout"). QA verifies every must-have was built, per role.
+- **Test-first** — every feature gets its test written before implementation. QA fails any feature that doesn't have a corresponding test.
+- **Auto strategy selection** — agent team for multi-component work (3+ independent components), single agent for focused changes.
 
 **When to use it:**
 - When you have an idea and want Claude to handle the entire journey
