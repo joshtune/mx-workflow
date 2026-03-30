@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-03-29
+
 ### Changed
 
 - `/mx:build` Phase 0 redesigned with funnel discovery — quick direction questions (yes/no, A/B) → inferred context confirmation → targeted details only where uncertain. Replaces the 7 open-ended questions wall.
