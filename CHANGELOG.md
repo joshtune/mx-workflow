@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-03-29
+
 ### Changed
 
 - `/mx:build` Phase 3 now uses test-first cycle: write test → confirm fails → implement → confirm passes. Applies to both single-agent and agent team strategies.
