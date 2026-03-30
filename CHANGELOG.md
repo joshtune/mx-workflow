@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-03-29
+
+### Added
+
+- Test coverage verification in `mx-quality-keeper` — verifies that every implemented feature has a corresponding test (e2e for user flows, unit for business logic). Auto-detects test infrastructure (Playwright, Cypress, vitest, jest, pytest, Go/Rust). Reports PASS/FAIL/SKIP per role and expectation ID.
+
+### Changed
+
+- `/mx:qa` updated with Step 6 test coverage verification (runs when `--full` or spec found)
+- `/mx:build` Phase 4 now includes test coverage check — QA fix cycle writes missing tests
+- Multi-agent team guide updated with test coverage in QA verification scope
+
 ## [1.12.0] - 2026-03-29
 
 ### Changed

@@ -418,21 +418,49 @@ Summary: 2/4 PASS, 1 FAIL, 1 MISS
 - **FAIL**: Implementation exists but is incomplete → fix it in the QA fix cycle
 - **MISS**: No implementation at all → this is critical, the requirement was dropped
 
-### 4.3 Save Report
+### 4.3 Test Coverage Verification
+
+After spec conformance, verify that tests exist for the features that were built:
+
+1. **Detect test infrastructure** — Playwright, Cypress, vitest, jest, pytest, Go/Rust test files
+2. **For each must-have that PASSED spec conformance**, search test files for a corresponding test
+3. Match test type to feature: user-facing flows → e2e tests (if available); business logic → unit tests
+4. Report per role:
+
+```
+TEST COVERAGE
+=============
+
+ADMIN
+[ PASS ] A1: Can remove users — test in admin.spec.ts:24 "should delete user"
+[ FAIL ] A2: Can view all users — feature exists but no test
+
+CUSTOMER
+[ PASS ] C1: Can add to cart — test in cart.spec.ts:12 "should add item"
+[ SKIP ] C2: Can checkout — feature MISS, no test expected
+
+Summary: 2/3 implemented features have tests (1 missing)
+```
+
+- **FAIL** here means the feature works but has no test → the fix cycle should write the test
+- **SKIP** means the feature itself is MISS/FAIL → can't test what doesn't work yet
+
+### 4.4 Save Report
 
 Save report to `.agents/reports/build-qa-{YYYY-MM-DD}.md`.
 
-### 4.4 If QA Fails
+### 4.5 If QA Fails
 
 1. Attempt to fix issues (up to 3 fix-then-revalidate cycles)
-   - For **FAIL** items: fix the incomplete implementation
-   - For **MISS** items: implement the missing feature
+   - For spec **FAIL** items: fix the incomplete implementation
+   - For spec **MISS** items: implement the missing feature
+   - For test coverage **FAIL** items: write the missing test
 2. After each fix cycle, commit the fixes:
    ```bash
    git add -A
    git commit -m "fix(<scope>): address QA findings for {feature-name}"
    ```
-3. Re-run spec conformance after each fix cycle to verify the fixes
+3. Re-run spec conformance and test coverage after each fix cycle
 4. If still failing after 3 cycles:
    - If `--auto`: report failure and stop
    - Otherwise: pause and ask user for guidance
@@ -472,7 +500,10 @@ Spec Conformance:
   Per-role:
     Admin:    X/Y PASS
     Customer: X/Y PASS
-    ...
+
+Test Coverage:
+  Features with tests: X/Y
+  Missing tests:       <count>
 
 Git:
   Commits:    <count> commits created

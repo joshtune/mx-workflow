@@ -119,7 +119,56 @@ After all agents report done:
 
 This check runs in both standalone and team mode. In standalone mode, it only runs when a spec file is found or `--full` is passed.
 
-### 7. Dependency Audit
+### 7. Test Coverage Verification
+
+After spec conformance, verify that tests exist for the features that were built. A feature without tests is not verified — it's just code that happens to exist.
+
+1. **Detect test infrastructure** — Look for what testing tools the project has:
+
+   | Indicator | Type | What to expect |
+   |-----------|------|----------------|
+   | `playwright.config.*`, `e2e/` | E2E | Tests for user-facing flows (navigation, forms, interactions) |
+   | `vitest.config.*`, `jest.config.*`, `*.test.*`, `*.spec.*` (non-e2e) | Unit/Integration | Tests for business logic, API handlers, utilities |
+   | `cypress.config.*`, `cypress/` | E2E | Tests for user-facing flows |
+   | `pytest.ini`, `conftest.py`, `tests/` | Unit/Integration | Tests for business logic |
+   | `*_test.go`, `*_test.rs` | Unit | Tests for business logic |
+
+2. **For each must-have that PASSED spec conformance**, check if a corresponding test exists:
+   - Search test files for references to the feature (endpoint name, component name, function name, route path)
+   - A test "exists" if it exercises the feature's behavior — not just imports or mentions it
+   - Match the test type to the feature: user-facing flows should have e2e tests if the project has e2e infrastructure; business logic should have unit tests
+
+3. **Report per role**, alongside spec conformance:
+
+   ```
+   TEST COVERAGE
+   =============
+
+   ADMIN
+   [ PASS ] A1: Can remove users — test in admin.spec.ts:24 "should delete user by admin"
+   [ FAIL ] A2: Can view all users — feature exists but no test found
+
+   CUSTOMER
+   [ PASS ] C1: Can add to cart — test in cart.spec.ts:12 "should add item to cart"
+   [ SKIP ] C2: Can checkout — feature MISS in spec conformance, no test expected
+
+   Summary: 2/3 implemented features have tests (1 missing test coverage)
+   ```
+
+4. **Verdicts**:
+   - **PASS**: A test exists that exercises the feature's expected behavior
+   - **FAIL**: Feature was implemented (passed spec conformance) but has no test — route to owning agent to write the test
+   - **SKIP**: Feature was MISS or FAIL in spec conformance — can't test what doesn't work yet
+
+5. **What counts as a test**:
+   - An e2e test that navigates to the feature and asserts expected behavior
+   - A unit/integration test that calls the function/endpoint and asserts the response
+   - A test that asserts the correct state change (database record created, UI element rendered)
+   - **NOT** a test that only checks a utility function used by the feature — the feature's behavior itself must be asserted
+
+This check runs in both standalone and team mode. Skip if no test infrastructure is detected in the project.
+
+### 8. Dependency Audit
 
 Run a lightweight security-only check for critical and high vulnerabilities. This is the same check `/mx:deps --security` runs. Do not block on moderate or low findings — report them as warnings.
 
@@ -194,6 +243,7 @@ Suppressions:      X new (Y flagged)
 Contract:          PASS / FAIL / N/A
 Integration:       PASS / FAIL / N/A
 Spec conformance:  X/Y must-haves verified (Z failed, W missing)
+Test coverage:     X/Y implemented features have tests (Z missing)
 Dependencies:      PASS / FAIL
 ────────────────────────────────
 Overall:           PASS / FAIL
@@ -209,6 +259,14 @@ SPEC CONFORMANCE (if spec found)
 [ MISS ] <ID>: <expectation> — <no implementation found>
 
 Summary: X/Y PASS, Z FAIL, W MISS
+
+TEST COVERAGE (if test infra detected)
+───────────────────────────────────────
+<ROLE 1>
+[ PASS ] <ID>: <expectation> — test in <file:line> "<test name>"
+[ FAIL ] <ID>: <expectation> — no test found
+
+Summary: X/Y implemented features have tests
 
 FAILURES (if any)
 ─────────────────

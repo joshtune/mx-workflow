@@ -158,7 +158,47 @@ Summary: 2/4 PASS, 1 FAIL, 1 MISS
 
 **MISS items are escalated immediately** — they indicate a requirement was entirely forgotten, not just implemented incorrectly.
 
-## Step 6: Produce Report
+## Step 6: Test Coverage Verification (if --full or spec found)
+
+After spec conformance, verify that tests exist for features that were built. A feature without tests is not verified.
+
+### 6.1 Detect Test Infrastructure
+
+| Indicator | Type |
+|-----------|------|
+| `playwright.config.*`, `cypress.config.*`, `e2e/` | E2E tests |
+| `vitest.config.*`, `jest.config.*`, `*.test.*`, `*.spec.*` | Unit/integration tests |
+| `pytest.ini`, `conftest.py`, `tests/` | Unit tests (Python) |
+| `*_test.go`, `*_test.rs` | Unit tests (Go/Rust) |
+
+If no test infrastructure detected, skip this step.
+
+### 6.2 Verify Tests Exist
+
+For each must-have that **PASSED spec conformance**, search test files for a corresponding test that exercises the feature's behavior. Match test type to feature: user-facing flows should have e2e tests if available; business logic should have unit tests.
+
+### 6.3 Report
+
+```
+TEST COVERAGE
+=============
+
+ADMIN
+[ PASS ] A1: Can remove users — test in admin.spec.ts:24 "should delete user"
+[ FAIL ] A2: Can view all users — feature exists but no test found
+
+CUSTOMER
+[ PASS ] C1: Can add to cart — test in cart.spec.ts:12 "should add item"
+[ SKIP ] C2: Can checkout — feature MISS, no test expected
+
+Summary: 2/3 implemented features have tests (1 missing)
+```
+
+- **PASS**: Test exists that exercises the feature
+- **FAIL**: Feature implemented but no test — needs a test written
+- **SKIP**: Feature was MISS/FAIL in spec conformance — can't test what doesn't work
+
+## Step 7: Produce Report
 
 Save the full report to `.agents/reports/qa-audit-{YYYY-MM-DD}.md`. Create the directory if it does not exist.
 
@@ -179,6 +219,7 @@ Suppressions:      X new (Y flagged)      [--full only]
 Dependencies:      PASS / FAIL            [--full only]
 Contract:          PASS / FAIL / N/A      [--full or --contracts-only]
 Spec conformance:  X/Y must-haves (Z fail, W miss)  [--full or spec found]
+Test coverage:     X/Y features have tests (Z missing)  [--full or spec found]
 ────────────────────────────────
 Overall:           PASS / FAIL
 
