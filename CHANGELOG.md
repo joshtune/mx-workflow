@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `slack-bot/` — Slack bot orchestrator for headless autonomous builds on a Mac mini. Listens to #builds channel and @mentions, triggers `/mx:build --auto`, streams verbose progress back to Slack in real-time, reports PR links on completion. Includes launchd daemon for auto-start, session isolation, and full logging.
+
 ## [1.14.1] - 2026-04-01
 
 ### Changed
