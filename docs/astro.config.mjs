@@ -49,6 +49,7 @@ export default defineConfig({
             { label: 'First Session', slug: 'guides/first-session' },
             { label: 'Multi-Agent Team', slug: 'guides/multi-agent-team' },
             { label: 'E2E Testing', slug: 'guides/e2e-testing' },
+            { label: 'Slack Bot (Headless Builds)', slug: 'guides/slack-bot' },
           ],
         },
         {
