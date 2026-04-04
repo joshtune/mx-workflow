@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `/mx:setup-mac-mini` now starts with Phase 0 pre-flight readiness check — instantly scans all system tools, Slack config, daemon status, and project config. Reports what's ready, what's missing, and skips phases that are already complete. Only walks through what needs fixing.
+
 ## [1.17.0] - 2026-04-04
 
 ### Changed

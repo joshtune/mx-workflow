@@ -21,9 +21,79 @@ Slack integration to project registration.
 | `--skip-slack` | Skip Slack integration setup |
 | `--projects-only` | Only run project scanning and alias registration |
 
+## Phase 0: Pre-Flight Readiness Check
+
+**Run this FIRST before any interactive steps.** Quickly check the state of everything and give the user a full picture of what's ready, what's missing, and what the setup will need to do.
+
+```bash
+# Run all of these in parallel — they're independent checks
+which brew                                          # Homebrew
+node --version 2>/dev/null                          # Node.js
+claude --version 2>/dev/null                        # Claude Code CLI
+git --version                                       # Git
+ssh -T git@github.com 2>&1                          # GitHub SSH
+which tmux                                          # tmux
+which tailscale                                     # Tailscale
+ls <mx-workflow>/slack-bot/.env 2>/dev/null          # Slack .env exists
+ls <mx-workflow>/slack-bot/node_modules 2>/dev/null  # Slack bot deps installed
+launchctl list 2>/dev/null | grep mx-workflow        # Daemon running
+ls <mx-workflow>/slack-bot/.mx-mac-mini.json 2>/dev/null  # Project config exists
+```
+
+Display a readiness report:
+
+```
+PRE-FLIGHT CHECK
+================
+System:
+  Homebrew:      INSTALLED / MISSING
+  Node.js:       INSTALLED (v22.1.0) / MISSING
+  Claude Code:   INSTALLED (v2.1.35) / MISSING — auth: OK / NOT AUTHENTICATED
+  Git:           INSTALLED / MISSING
+  GitHub SSH:    CONFIGURED / NOT CONFIGURED
+  tmux:          INSTALLED / MISSING
+  Tailscale:     INSTALLED / MISSING
+
+Slack Integration:
+  .env config:   CONFIGURED / NOT CONFIGURED
+  Bot deps:      INSTALLED / NOT INSTALLED
+  Bot daemon:    RUNNING / NOT RUNNING / NOT INSTALLED
+
+Projects:
+  Config:        FOUND (3 projects) / NOT CONFIGURED
+────────────────────────────────────────────────────
+Ready for Slack:  YES / NO — <what's missing>
+```
+
+**If everything is green:**
+```
+Mac mini is fully configured and ready.
+
+  1. Run verification checks
+  2. Add/remove projects
+  3. Reconfigure Slack
+  4. Full setup (re-run everything)
+  5. Exit
+>
+```
+
+**If something is missing**, tell the user exactly what needs to happen:
+```
+Missing 2 items before Slack bot can work:
+
+  [MISSING] Claude Code CLI — needed to run builds
+  [MISSING] Slack .env — bot tokens not configured
+
+The setup will walk you through fixing these. Proceed? (Y/n)
+```
+
+Then skip phases that are already complete and only run what's needed. For example, if system tools are all installed but Slack isn't configured, jump straight to Phase 2.
+
+---
+
 ## Phase 1: System Prerequisites
 
-Check and install everything needed. For each tool, check if installed, report status, and offer to install if missing.
+Check and install everything needed. **Skip this phase if pre-flight showed all system tools are installed.** For each tool, check if installed, report status, and offer to install if missing.
 
 ```
 SYSTEM CHECK
