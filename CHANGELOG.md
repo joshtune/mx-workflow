@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-04-04
+
 ### Changed
 
-- `/mx:setup-mac-mini` now starts with Phase 0 pre-flight readiness check — instantly scans all system tools, Slack config, daemon status, and project config. Reports what's ready, what's missing, and skips phases that are already complete. Only walks through what needs fixing.
+- `/mx:setup-mac-mini` redesigned to be proactive and verification-driven — auto-installs required deps, verifies every step via API/CLI before proceeding, gates each phase, validates Slack tokens on paste, checks #builds channel membership, diagnoses daemon failures, and only reports "complete" when everything is verified working. Added Phase 0 pre-flight readiness check and Phase gates at every stage.
 
 ## [1.17.0] - 2026-04-04
 
