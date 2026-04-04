@@ -12,6 +12,18 @@ Slack integration to project registration.
 
 **Run:** `/mx:setup-mac-mini`
 
+## Core Behavior
+
+**This command is proactive, not passive.** Its goal is to ensure the Mac mini is fully ready to receive Slack build requests by the time it finishes running. It does not just report problems — it fixes them.
+
+**Rules:**
+- **Required dependencies are installed automatically.** Do not ask "want to install Node.js?" — it is required, install it. Only ask when there is a genuine choice (e.g., which project is the default).
+- **If something fails, stop and fix it before moving on.** Do not continue to Phase 2 if Phase 1 has unresolved failures. Each phase must be green before proceeding.
+- **If a step requires user action** (e.g., creating a Slack app in the browser, adding an SSH key to GitHub), give clear instructions, wait for them to complete it, then **verify it worked** before moving on. Do not take their word for it — check.
+- **At the end of every phase, re-verify** that everything in that phase is working. If something slipped through, catch it now.
+- **At the very end, run a full end-to-end check.** If anything is still not right, tell the user exactly what's wrong and what to do. Do not say "setup complete" if setup is not actually complete.
+- **Never leave the user in a broken state.** If the command is interrupted or a step fails permanently, tell the user what was completed, what was not, and what to run next time to pick up where they left off.
+
 ## Flags
 
 | Flag | Effect |
@@ -93,7 +105,7 @@ Then skip phases that are already complete and only run what's needed. For examp
 
 ## Phase 1: System Prerequisites
 
-Check and install everything needed. **Skip this phase if pre-flight showed all system tools are installed.** For each tool, check if installed, report status, and offer to install if missing.
+**Skip this phase if pre-flight showed all system tools are installed.** Otherwise, install everything that's missing. These are all required — install them automatically, do not ask.
 
 ```
 SYSTEM CHECK
@@ -106,13 +118,12 @@ SYSTEM CHECK
 which brew
 ```
 
-If missing:
-```
-Homebrew is not installed. It's needed to install other tools.
-Install now? (y/n) >
+If missing — Homebrew is required for everything else. Install it:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-If yes: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+**Verify:** `which brew` must succeed before continuing. If it fails, stop and tell the user what went wrong.
 
 ### 1.2 Node.js 20+
 
@@ -120,13 +131,12 @@ If yes: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/i
 node --version
 ```
 
-If missing or below v20:
-```
-Node.js 20+ is required for the Slack bot.
-Install via Homebrew? (y/n) >
+If missing or below v20 — required for the Slack bot. Install it:
+```bash
+brew install node
 ```
 
-If yes: `brew install node`
+**Verify:** `node --version` must show v20+. If not, stop.
 
 ### 1.3 Claude Code CLI
 
@@ -134,25 +144,29 @@ If yes: `brew install node`
 claude --version
 ```
 
-If missing:
-```
-Claude Code CLI is required. It's the engine that runs builds.
-Install now? (y/n) >
+If missing — this is the engine that runs builds. Install it:
+```bash
+npm install -g @anthropic-ai/claude-code
 ```
 
-If yes: `npm install -g @anthropic-ai/claude-code`
+**Verify:** `claude --version` must succeed.
 
-After install, check if authenticated:
+Then check authentication:
 ```bash
 claude --print "echo hello" 2>&1
 ```
 
-If not authenticated:
+If not authenticated, this is a **blocker** — the user must authenticate interactively:
 ```
 Claude Code is installed but not authenticated.
-Please run: claude auth login
-Then re-run /mx:setup-mac-mini
+You need to log in before builds can run.
+
+Please run this command now:  claude auth login
+
+I'll wait — press Enter when you're done.
 ```
+
+Wait for user to press Enter. Then **re-check** authentication. If still not authenticated, repeat the instruction. Do not proceed until auth is confirmed.
 
 ### 1.4 Git + SSH
 
@@ -161,19 +175,27 @@ git --version
 ssh -T git@github.com 2>&1
 ```
 
-Check if SSH is configured for GitHub. If not:
-```
-GitHub SSH is not configured. You'll need it for pushing code.
-Want me to generate an SSH key and show you how to add it? (y/n) >
-```
+Git is pre-installed on macOS. If somehow missing: `brew install git`
 
-If yes:
+If GitHub SSH is not configured — this is a **blocker** for pushing code. Generate a key automatically:
 ```bash
 ssh-keygen -t ed25519 -C "mac-mini-agent" -f ~/.ssh/id_ed25519 -N ""
+eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519
 cat ~/.ssh/id_ed25519.pub
 ```
 
-Show the public key and instruct: "Add this to https://github.com/settings/keys"
+Show the public key and instruct:
+```
+GitHub SSH key generated. You need to add it to your GitHub account:
+
+1. Copy the key above
+2. Go to https://github.com/settings/keys
+3. Click "New SSH key", paste it, save
+
+Press Enter when done.
+```
+
+Wait for user. Then **re-check**: `ssh -T git@github.com 2>&1`. If it still fails, repeat the instruction. Do not proceed until SSH works.
 
 ### 1.5 tmux
 
@@ -181,13 +203,12 @@ Show the public key and instruct: "Add this to https://github.com/settings/keys"
 which tmux
 ```
 
-If missing:
-```
-tmux is needed for agent team builds and persistent sessions.
-Install via Homebrew? (y/n) >
+If missing — required for agent team builds. Install it:
+```bash
+brew install tmux
 ```
 
-If yes: `brew install tmux`
+**Verify:** `which tmux` must succeed.
 
 ### 1.6 Tailscale (remote access)
 
@@ -195,53 +216,70 @@ If yes: `brew install tmux`
 which tailscale
 ```
 
-If missing:
-```
-Tailscale lets you SSH into the Mac mini from anywhere without port forwarding.
-Install via Homebrew? (y/n) >
+If missing — required for remote SSH access from your MacBook. Install it:
+```bash
+brew install tailscale
 ```
 
-If yes: `brew install tailscale`
-
-After install:
+After install, check if connected:
+```bash
+tailscale status 2>&1
 ```
-Run 'tailscale up' to connect to your Tailnet.
+
+If not connected:
+```
+Tailscale is installed but not connected to your network.
+
+Please run this command now:  tailscale up
+
+I'll wait — press Enter when you're done.
+```
+
+Wait for user. **Re-check** `tailscale status`. If not connected, repeat. Also remind:
+```
 Your MacBook also needs Tailscale installed to connect remotely.
 ```
 
 ### 1.7 mx-workflow Plugin
 
-Check if mx-workflow is installed as a Claude Code plugin:
+Check if mx-workflow is registered as a Claude Code plugin:
 ```bash
 claude plugin list 2>&1
 ```
 
-If not found, check if the repo is cloned locally. If cloned but not registered:
+If not found, look for the repo locally. If found but not registered, register it automatically. If the repo is not cloned at all:
 ```
-mx-workflow repo found at <path> but not registered as a plugin.
-Register it now? (y/n) >
+mx-workflow is not found on this machine.
+Cloning from GitHub...
+```
+```bash
+git clone https://github.com/joshtune/mx-workflow.git ~/mx-workflow
 ```
 
-### 1.8 System Summary
+Then register it as a plugin.
+
+**Verify:** mx-workflow must appear in `claude plugin list`.
+
+### 1.8 Phase 1 Gate
+
+Re-run ALL checks from 1.1–1.7 to confirm everything is installed and working:
 
 ```
-SYSTEM CHECK COMPLETE
+PHASE 1 VERIFICATION
 =====================
-Homebrew:       INSTALLED (4.2.0)
-Node.js:        INSTALLED (v22.1.0)
-Claude Code:    INSTALLED (v2.1.35) — authenticated
-Git:            INSTALLED (2.44.0)
-GitHub SSH:     CONFIGURED
-tmux:           INSTALLED (3.4)
-Tailscale:      INSTALLED — connected
-mx-workflow:    INSTALLED (v1.16.0)
+Homebrew:       PASS (4.2.0)
+Node.js:        PASS (v22.1.0)
+Claude Code:    PASS (v2.1.35) — authenticated
+Git:            PASS (2.44.0)
+GitHub SSH:     PASS
+tmux:           PASS (3.4)
+Tailscale:      PASS — connected
+mx-workflow:    PASS (v1.17.0)
 ────────────────────────────────
-Status:         READY
+Phase 1:        ALL CLEAR — proceeding to Slack integration
 ```
 
-If anything is missing or failed, list what needs attention before proceeding.
-
-Wait for user to confirm before moving to Phase 2.
+If ANY item shows FAIL, **do not proceed**. Show the failure and attempt to fix it again. Only move to Phase 2 when Phase 1 is fully green.
 
 ---
 
@@ -307,95 +345,132 @@ When you have all three tokens, press Enter to continue.
 
 Wait for user to confirm they have the tokens.
 
-### 2.3 Collect Tokens
+### 2.3 Collect and Verify Tokens
 
-Ask for each token one at a time:
+Ask for each token one at a time. **Validate each immediately** — do not collect all three and hope they work.
 
+**Bot Token:**
 ```
 Paste your Bot Token (xoxb-...): >
 ```
 
-Validate it starts with `xoxb-`. Store it.
+Validate format (starts with `xoxb-`). Then **immediately verify** it works:
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" https://slack.com/api/auth.test
+```
 
+If `"ok": true` — token is valid. Show: `Bot Token: VALID (workspace: <team_name>)`
+If `"ok": false` — token is bad. Show the error and ask them to paste again. Do not proceed with a bad token.
+
+**App Token:**
 ```
 Paste your App Token (xapp-...): >
 ```
 
-Validate it starts with `xapp-`. Store it.
+Validate format (starts with `xapp-`). Store it — this one can't be verified with a simple API call, but format validation catches most errors.
 
+**Signing Secret:**
 ```
 Paste your Signing Secret: >
 ```
 
-Store it.
+Validate it's a hex string (32+ chars). Store it.
 
 ### 2.4 Auto-Detect Bot User ID
 
-Use the bot token to fetch the user ID automatically:
-
+Use the already-verified bot token to fetch the user ID:
 ```bash
 curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/auth.test
 ```
 
-Parse `user_id` from the JSON response. If the call fails, ask the user to provide it manually.
+Parse `user_id` from the JSON response. This must succeed — we already verified the token. Show: `Bot User ID: <id>`
 
-### 2.5 Write .env
+### 2.5 Write .env and Install Dependencies
 
-Write `slack-bot/.env` with all collected values:
+Write `slack-bot/.env` with all collected values. Auto-detect paths — do not ask unless detection fails:
 
-```
-SLACK_BOT_TOKEN=xoxb-...
-SLACK_SIGNING_SECRET=...
-SLACK_APP_TOKEN=xapp-...
-SLACK_BOT_USER_ID=U...
-SLACK_BUILDS_CHANNEL=builds
-MX_PLUGIN_DIR=<detected path to mx-workflow>
-MX_WORK_DIR=<home>/builds
-MX_LOG_DIR=<home>/builds/.logs
-```
-
-Also set the paths based on the current environment:
-- `MX_PLUGIN_DIR` = the directory where mx-workflow is cloned
-- `MX_WORK_DIR` = `~/builds` (or ask)
+- `MX_PLUGIN_DIR` = the directory where this command is running from (the mx-workflow repo)
+- `MX_WORK_DIR` = `~/builds`
 - `MX_LOG_DIR` = `~/builds/.logs`
 
-Create the work and log directories:
+Create directories:
 ```bash
 mkdir -p ~/builds/.logs
 ```
 
-### 2.6 Test Slack Connection
-
-Install dependencies and test:
-
+Install bot dependencies:
 ```bash
 cd <mx-workflow>/slack-bot && npm install
 ```
 
-Then start the bot briefly to verify connection:
+**Verify:** `ls slack-bot/node_modules/@slack/bolt` must exist. If npm install failed, show the error and retry.
+
+### 2.6 Test Slack Connection
+
+Start the bot briefly to verify it can connect:
 ```bash
 timeout 10 node index.js 2>&1
 ```
 
-Check output for "mx-workflow Slack bot is running". Report:
+Check output for "mx-workflow Slack bot is running".
 
-```
-Slack bot connection: PASS — connected to workspace
+If it connects: `Slack connection: PASS`
+
+If it fails, diagnose:
+- "invalid_auth" → bot token is wrong, ask user to re-paste
+- "not_authed" → app token is wrong, ask user to re-paste
+- Connection timeout → network issue, check if the Mac mini has internet access
+- Other error → show the full error message
+
+**Do not proceed until the bot successfully connects to Slack.**
+
+### 2.7 Verify #builds Channel
+
+Use the bot token to check if a #builds channel exists and the bot is a member:
+```bash
+curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+  "https://slack.com/api/conversations.list?types=public_channel&limit=200"
 ```
 
-Or if it fails, show the error and suggest fixes.
+Search the response for a channel named "builds".
 
-### 2.7 Create #builds Channel
+If it exists and bot is a member: `#builds channel: READY`
 
+If it exists but bot is NOT a member:
 ```
-Do you have a #builds channel in Slack? (y/n) >
-```
-
-If no:
-```
-Create a channel called "builds" in Slack and invite your bot (@mx-bot).
+The #builds channel exists but the bot isn't in it.
+Please invite @mx-bot to #builds in Slack.
 Press Enter when done.
 ```
+
+Wait. **Re-check** membership. Repeat until confirmed.
+
+If it doesn't exist:
+```
+No #builds channel found. Create it in Slack and invite @mx-bot.
+Press Enter when done.
+```
+
+Wait. **Re-check.** Repeat until the channel exists and the bot is in it.
+
+### 2.8 Phase 2 Gate
+
+```
+PHASE 2 VERIFICATION
+=====================
+Bot Token:       VALID (workspace: <name>)
+App Token:       CONFIGURED
+Signing Secret:  CONFIGURED
+Bot User ID:     <id>
+.env file:       WRITTEN
+Dependencies:    INSTALLED
+Slack connection: PASS
+#builds channel: READY (bot is a member)
+────────────────────────────────
+Phase 2:         ALL CLEAR — proceeding to project registration
+```
+
+If ANY item shows FAIL, **do not proceed**. Fix it first.
 
 ---
 
@@ -547,14 +622,36 @@ launchctl start com.joshtune.mx-workflow-slack-bot
 launchctl list | grep mx-workflow
 ```
 
-If running, report:
-```
-Daemon: RUNNING (PID <pid>)
+If running: `Daemon: RUNNING (PID <pid>)`
+
+If NOT running — diagnose immediately:
+```bash
+cat ~/builds/.logs/slack-bot-error.log 2>/dev/null | tail -10
 ```
 
-If not running, check the error log:
+Common fixes:
+- "Cannot find module" → `npm install` in slack-bot dir, then restart daemon
+- "invalid_auth" → token in .env is wrong, re-run Phase 2 token collection
+- Path errors → plist has wrong username, re-run `sed` from 4.1
+
+Attempt the fix, then restart:
 ```bash
-cat ~/builds/.logs/slack-bot-error.log 2>/dev/null | tail -5
+launchctl stop com.joshtune.mx-workflow-slack-bot
+launchctl start com.joshtune.mx-workflow-slack-bot
+```
+
+**Re-check.** Do not proceed until the daemon is running.
+
+### 4.5 Phase 4 Gate
+
+```
+PHASE 4 VERIFICATION
+=====================
+launchd plist:   INSTALLED
+start.sh:        EXECUTABLE
+Daemon:          RUNNING (PID <pid>)
+────────────────────────────────
+Phase 4:         ALL CLEAR — proceeding to verification
 ```
 
 ---
@@ -592,55 +689,100 @@ claude --print --dangerously-skip-permissions "echo 'Mac mini agent ready'" 2>&1
 
 ---
 
-## Phase 6: Summary
+## Phase 6: Final Verification and Summary
+
+**Do not show "setup complete" unless everything actually works.** Re-run every critical check one final time.
+
+### 6.1 Final Check
+
+Run ALL of these and collect results:
+
+```bash
+# System
+which brew && node --version && claude --version && git --version && which tmux && tailscale status
+
+# Auth
+ssh -T git@github.com 2>&1
+claude --print --dangerously-skip-permissions "echo ready" 2>&1
+
+# Slack
+source slack-bot/.env
+curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/auth.test
+
+# Daemon
+launchctl list | grep mx-workflow
+
+# Config
+cat slack-bot/.mx-mac-mini.json
+```
+
+### 6.2 Report
+
+If ALL checks pass:
 
 ```
-MAC MINI SETUP COMPLETE
-========================
+MAC MINI SETUP COMPLETE — ALL VERIFIED
+=======================================
 
 System:
-  Homebrew:     INSTALLED
-  Node.js:      INSTALLED (v22.1.0)
-  Claude Code:  INSTALLED (v2.1.35) — authenticated
-  Git + SSH:    CONFIGURED
-  tmux:         INSTALLED
-  Tailscale:    INSTALLED
-  mx-workflow:  INSTALLED (v1.16.0)
+  Homebrew:     PASS (4.2.0)
+  Node.js:      PASS (v22.1.0)
+  Claude Code:  PASS (v2.1.35) — authenticated
+  Git + SSH:    PASS — GitHub connected
+  tmux:         PASS (3.4)
+  Tailscale:    PASS — connected as <hostname>
+  mx-workflow:  PASS (v1.17.0)
 
 Slack:
-  Bot:          CONNECTED (mx-bot)
-  Channel:      #builds
-  Daemon:       RUNNING (auto-restarts on crash, starts on boot)
+  Bot Token:    PASS — connected to <workspace>
+  #builds:      PASS — bot is a member
+  Daemon:       PASS — running (PID <pid>, auto-restarts, starts on boot)
 
 Projects:
-  dashboard -> /Users/josh/projects/dashboard-app
-  api       -> /Users/josh/projects/api-service
-  billing   -> /Users/josh/projects/billing-app
+  dashboard -> /Users/josh/projects/dashboard-app  (CLAUDE.md: yes)
+  api       -> /Users/josh/projects/api-service    (CLAUDE.md: yes)
+  billing   -> /Users/josh/projects/billing-app    (CLAUDE.md: no)
   Default:     dashboard
   New builds:  ~/builds
 
-Verification:
-  Project routing:  PASS (5/5 patterns)
-  Slack connection: PASS
-  Claude Code:      PASS
+Routing:
+  "dashboard: add dark mode"   -> dashboard-app     PASS
+  "api fix webhook bug"        -> api-service        PASS
+  "fix login bug"              -> dashboard (default) PASS
+  "--repo billing add export"  -> billing-app        PASS
+  "Build a new SaaS system"   -> ~/builds (new)      PASS
 
-How to use from Slack:
+Your Mac mini is ready. Use it from Slack:
 
   @mx-bot dashboard: add dark mode toggle
   @mx-bot api fix the webhook bug
-  @mx-bot fix the login bug (uses default: dashboard)
+  @mx-bot fix the login bug
   @mx-bot --repo billing add export button
   @mx-bot Build a new SaaS billing system
   /build <anything>
 
-Remote access from your MacBook:
-
-  ssh <user>@<mac-mini-tailscale> (access the mini)
-  ssh <mac-mini> "tail -f ~/builds/.logs/slack-bot.log" (watch bot)
-  ssh <mac-mini> "tail -f ~/builds/.logs/<session>.log" (watch build)
-
-To update later, run /mx:setup-mac-mini again.
+Remote access:
+  ssh <user>@<tailscale-hostname>
+  ssh <mini> "tail -f ~/builds/.logs/slack-bot.log"
 ```
+
+If ANY check fails:
+
+```
+MAC MINI SETUP INCOMPLETE
+=========================
+
+PASSED: 14/16 checks
+FAILED: 2 checks
+
+  [FAIL] Tailscale: not connected — run 'tailscale up'
+  [FAIL] #builds channel: bot not a member — invite @mx-bot in Slack
+
+Everything else is working. Fix the above and run /mx:setup-mac-mini again
+to re-verify.
+```
+
+**Never say "complete" when something is broken.** If the final check finds failures, the setup is INCOMPLETE and the user must know exactly what to fix.
 
 ---
 
