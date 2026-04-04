@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-04-04
+
 ### Changed
 
 - `/mx:setup-mac-mini` expanded to full day-one setup — 6 phases: system prerequisites (Homebrew, Node.js, Claude Code, Git/SSH, tmux, Tailscale), Slack integration (guided app creation, token collection, auto-detect bot ID, connection test), project registration, daemon setup (launchd with auto-restart), end-to-end verification, and summary. Supports `--skip-system`, `--skip-slack`, `--projects-only` flags and re-run menu.
