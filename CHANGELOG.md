@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-04-04
+
+### Fixed
+
+- `/mx:setup-mac-mini` now enforces mandatory phase execution order — Phase 2 (Slack Integration) and Phase 4 (Daemon Setup) explicitly cannot be skipped. Fixes issue where Claude sessions were skipping Slack setup.
+
 ## [1.18.0] - 2026-04-04
 
 ### Changed
