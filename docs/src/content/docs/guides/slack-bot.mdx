@@ -63,14 +63,18 @@ Project aliases are configured via `/mx:setup-mac-mini`, which scans your repos,
 
 ## Setup
 
-See the full setup guide at [`slack-bot/SETUP.md`](https://github.com/joshtune/mx-workflow/blob/main/slack-bot/SETUP.md). The key steps:
+Run `/mx:setup-mac-mini` on day one. It handles everything in 6 phases:
 
-1. Create a Slack app with Socket Mode, bot scopes, and event subscriptions
-2. Configure `.env` with tokens and paths
-3. `npm install` and test with `node index.js`
-4. Run `/mx:setup-mac-mini` to register your projects and create aliases
-5. Install the launchd daemon for auto-start on boot
-6. Set up Tailscale for remote SSH access from your MacBook
+| Phase | What it does |
+|---|---|
+| **1. System prerequisites** | Checks and installs Homebrew, Node.js 20+, Claude Code CLI, Git/SSH, tmux, Tailscale, mx-workflow plugin |
+| **2. Slack integration** | Guides you through creating a Slack app, collects tokens, writes `.env`, auto-detects bot user ID, tests connection |
+| **3. Project registration** | Scans for repos, creates aliases, sets default project, validates CLAUDE.md |
+| **4. Daemon setup** | Configures launchd to run the bot on boot with auto-restart |
+| **5. Verification** | Tests project routing, Slack connection, and Claude Code readiness |
+| **6. Summary** | Shows everything configured and how to use it |
+
+For manual reference, see [`slack-bot/SETUP.md`](https://github.com/joshtune/mx-workflow/blob/main/slack-bot/SETUP.md).
 
 ## Remote monitoring
 

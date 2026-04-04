@@ -17,7 +17,7 @@ SESSION START
                                        Analyze a directory and create local context notes
   /mx:context-clean [path | --all]     Remove local context files
   /mx:status                           Show project status and available tools
-  /mx:setup-mac-mini                   One-time Mac mini setup (scan projects, create aliases)
+  /mx:setup-mac-mini                   Full Mac mini setup (system, Slack, projects, daemon)
 
 IMPLEMENTATION (most common path)
   /mx:rca <error or symptom>           Deep root cause analysis (5 Whys + git history)
