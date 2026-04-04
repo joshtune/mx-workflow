@@ -16,10 +16,27 @@ Slack integration to project registration.
 
 **This command is proactive, not passive.** Its goal is to ensure the Mac mini is fully ready to receive Slack build requests by the time it finishes running. It does not just report problems — it fixes them.
 
+**MANDATORY EXECUTION ORDER — YOU MUST FOLLOW ALL 6 PHASES:**
+
+```
+Phase 0: Pre-Flight Check     ← run FIRST, always
+Phase 1: System Prerequisites  ← install all missing tools
+Phase 2: Slack Integration     ← configure bot, tokens, test connection
+Phase 3: Project Registration  ← scan repos, create aliases
+Phase 4: Daemon Setup          ← install launchd, start bot daemon
+Phase 5: End-to-End Verification
+Phase 6: Final Summary
+```
+
+**DO NOT skip Phase 2 (Slack Integration).** The entire purpose of this setup is to get the Slack bot working. Without Slack configured, the Mac mini is not ready. Phase 2 is not optional — it is the core of this command.
+
+**DO NOT skip Phase 4 (Daemon Setup).** Without the daemon, the bot stops when the terminal closes. The bot must run permanently.
+
 **Rules:**
+- **Execute ALL phases in order.** The only way to skip a phase is if the pre-flight check confirms it is already fully working. Even then, re-verify at the end.
 - **Required dependencies are installed automatically.** Do not ask "want to install Node.js?" — it is required, install it. Only ask when there is a genuine choice (e.g., which project is the default).
 - **If something fails, stop and fix it before moving on.** Do not continue to Phase 2 if Phase 1 has unresolved failures. Each phase must be green before proceeding.
-- **If a step requires user action** (e.g., creating a Slack app in the browser, adding an SSH key to GitHub), give clear instructions, wait for them to complete it, then **verify it worked** before moving on. Do not take their word for it — check.
+- **If a step requires user action** (e.g., creating a Slack app in the browser, adding an SSH key to GitHub), give clear instructions, wait for them to complete it, then **verify it worked** before moving on. Do not take their word for it — check via API or CLI.
 - **At the end of every phase, re-verify** that everything in that phase is working. If something slipped through, catch it now.
 - **At the very end, run a full end-to-end check.** If anything is still not right, tell the user exactly what's wrong and what to do. Do not say "setup complete" if setup is not actually complete.
 - **Never leave the user in a broken state.** If the command is interrupted or a step fails permanently, tell the user what was completed, what was not, and what to run next time to pick up where they left off.
