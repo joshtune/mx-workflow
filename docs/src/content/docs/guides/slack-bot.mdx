@@ -47,6 +47,20 @@ Each build runs in its own directory under `$MX_WORK_DIR/session-<id>/`. This me
 - Each session has its own git repo
 - Logs are stored per session in `$MX_LOG_DIR/<session-id>.log`
 
+## Project resolution
+
+The bot knows which project to work on via four reference patterns:
+
+| Pattern | Example | How it works |
+|---|---|---|
+| **Project prefix** | `dashboard: add dark mode` | Parses alias before the colon |
+| **First word** | `api fix the webhook bug` | First word matched against known aliases |
+| **Default project** | `fix the login bug` | Uses the configured default when no project specified |
+| **Explicit flag** | `--repo billing add export` | Override with `--repo` flag |
+| **New project** | `Build a new SaaS billing system` | Detected by "build a/create a" pattern, creates fresh session |
+
+Project aliases are configured via `/mx:setup-mac-mini`, which scans your repos, lets you name them, and writes `.mx-mac-mini.json`.
+
 ## Setup
 
 See the full setup guide at [`slack-bot/SETUP.md`](https://github.com/joshtune/mx-workflow/blob/main/slack-bot/SETUP.md). The key steps:
@@ -54,8 +68,9 @@ See the full setup guide at [`slack-bot/SETUP.md`](https://github.com/joshtune/m
 1. Create a Slack app with Socket Mode, bot scopes, and event subscriptions
 2. Configure `.env` with tokens and paths
 3. `npm install` and test with `node index.js`
-4. Install the launchd daemon for auto-start on boot
-5. Set up Tailscale for remote SSH access from your MacBook
+4. Run `/mx:setup-mac-mini` to register your projects and create aliases
+5. Install the launchd daemon for auto-start on boot
+6. Set up Tailscale for remote SSH access from your MacBook
 
 ## Remote monitoring
 

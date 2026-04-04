@@ -7,4 +7,5 @@ docs/dist/
 docs/.astro/
 .idea
 .agents/
+.mx-mac-mini.json
 .claude/settings.local.json

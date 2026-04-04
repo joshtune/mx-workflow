@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/mx:setup-mac-mini` command — one-time interactive setup for the Slack bot. Scans for projects, creates aliases, sets default project, validates CLAUDE.md, writes `.mx-mac-mini.json` config.
+- Project resolution in `slack-bot/runner.js` — supports 4 patterns: project prefix (`dashboard: add dark mode`), first word (`api fix bug`), default project (bare messages), explicit flag (`--repo billing add export`)
+- `.mx-mac-mini.example.json` — example config for reference
+
+### Changed
+
+- `slack-bot/runner.js` rewritten with project resolution, config loading, new/existing project detection
+- `/mx:help` updated with `/mx:setup-mac-mini` in SESSION START and WHICH PATH sections
+- Slack bot docs guide updated with project resolution patterns and setup-mac-mini step
+
 ## [1.15.0] - 2026-04-03
 
 ### Added
