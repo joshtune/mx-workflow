@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-04-04
+
 ### Added
 
 - `/mx:setup-mac-mini` command — one-time interactive setup for the Slack bot. Scans for projects, creates aliases, sets default project, validates CLAUDE.md, writes `.mx-mac-mini.json` config.
