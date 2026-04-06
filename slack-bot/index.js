@@ -2,14 +2,21 @@
 /**
  * mx-workflow Slack Bot Orchestrator
  * Listens for build instructions in Slack → runs Claude Code + mx-workflow
- * Reports verbose progress back to Slack in real time
+ *
+ * Two modes:
+ *   --auto: Fire-and-forget (original behavior)
+ *   default: Interactive — phases run one at a time, user reviews at each gate
  */
 
 import { App } from "@slack/bolt";
-import { runner } from "./runner.js";
+import { runner, resolveProject } from "./runner.js";
+import { createSession, findSessionByThread, loadActiveSessions } from "./session.js";
+import { startInteractive, handleReply } from "./interactive.js";
 import { config } from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
+import { mkdirSync } from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(__dirname, ".env") });
@@ -21,15 +28,36 @@ const app = new App({
   appToken: process.env.SLACK_APP_TOKEN,
 });
 
-// ── Trigger: message in #builds channel or @mention anywhere ─────────────────
-
 const BUILDS_CHANNEL = process.env.SLACK_BUILDS_CHANNEL || "builds";
 
-// Handle messages in the #builds channel (no mention needed)
+// ── Load persisted sessions on startup ───────────────────────────────────────
+
+loadActiveSessions();
+
+// ── Message handler ──────────────────────────────────────────────────────────
+
 app.message(async ({ message, client, say }) => {
-  if (message.subtype) return; // skip bot messages, edits, etc.
+  if (message.subtype) return;
   if (message.bot_id) return;
 
+  // ── Thread reply routing: check if this is a reply to an active session ──
+  if (message.thread_ts && message.thread_ts !== message.ts) {
+    const session = findSessionByThread(message.channel, message.thread_ts);
+    if (session) {
+      if (session.userId && session.userId !== message.user) {
+        await client.chat.postMessage({
+          channel: message.channel,
+          thread_ts: message.thread_ts,
+          text: `_This build session belongs to <@${session.userId}>. Only they can approve or provide feedback._`,
+        });
+        return;
+      }
+      await handleReply({ session, text: message.text, client });
+      return;
+    }
+  }
+
+  // ── New build request: channel / mention check ──
   const channelInfo = await client.conversations
     .info({ channel: message.channel })
     .catch(() => null);
@@ -42,7 +70,6 @@ app.message(async ({ message, client, say }) => {
 
   if (!isBuildsChannel && !isBotMentioned) return;
 
-  // Strip the bot mention if present
   const instruction = message.text.replace(/<@[A-Z0-9]+>/g, "").trim();
 
   if (!instruction || instruction.length < 5) {
@@ -53,10 +80,23 @@ app.message(async ({ message, client, say }) => {
     return;
   }
 
-  await handleBuildRequest({ instruction, message, client, say });
+  // ── Dispatch: --auto → fire-and-forget, otherwise → interactive ──
+  if (/--auto\b/i.test(instruction)) {
+    await handleAutoRequest({ instruction, message, client, say });
+  } else {
+    await startNewInteractiveSession({
+      instruction,
+      threadTs: message.ts,
+      channel: message.channel,
+      userId: message.user,
+      client,
+      say,
+    });
+  }
 });
 
-// Handle slash command /build
+// ── Slash command: /build ────────────────────────────────────────────────────
+
 app.command("/build", async ({ command, ack, client, respond }) => {
   await ack();
   const instruction = command.text?.trim();
@@ -68,35 +108,92 @@ app.command("/build", async ({ command, ack, client, respond }) => {
     return;
   }
 
-  await handleBuildRequest({
-    instruction,
-    message: { ts: null, channel: command.channel_id },
-    client,
-    say: respond,
-    userId: command.user_id,
-  });
+  if (/--auto\b/i.test(instruction)) {
+    await handleAutoRequest({
+      instruction,
+      message: { ts: null, channel: command.channel_id },
+      client,
+      say: respond,
+      userId: command.user_id,
+    });
+  } else {
+    // Slash commands don't create a visible message, so post one to anchor the thread
+    const initMsg = await client.chat.postMessage({
+      channel: command.channel_id,
+      text: `*Build requested by <@${command.user_id}>*\n> ${instruction}`,
+    });
+
+    await startNewInteractiveSession({
+      instruction,
+      threadTs: initMsg.ts,
+      channel: command.channel_id,
+      userId: command.user_id,
+      client,
+      say: respond,
+    });
+  }
 });
 
-// ── Core handler ─────────────────────────────────────────────────────────────
+// ── Interactive session creation ─────────────────────────────────────────────
 
-async function handleBuildRequest({
-  instruction,
-  message,
-  client,
-  say,
-  userId,
-}) {
+async function startNewInteractiveSession({ instruction, threadTs, channel, userId, client, say }) {
+  const resolved = resolveProject(instruction);
+
+  if (resolved.error) {
+    await client.chat.postMessage({
+      channel,
+      thread_ts: threadTs,
+      text: resolved.error,
+    });
+    return;
+  }
+
+  const sessionId = crypto.randomBytes(4).toString("hex");
+  const workDir = process.env.MX_WORK_DIR || path.join(process.env.HOME, "builds");
+  let sessionDir;
+
+  if (resolved.isNewProject) {
+    sessionDir = path.join(workDir, `session-${sessionId}`);
+    mkdirSync(sessionDir, { recursive: true });
+  } else {
+    sessionDir = resolved.projectPath;
+  }
+
+  if (resolved.warning) {
+    await client.chat.postMessage({
+      channel,
+      thread_ts: threadTs,
+      text: `_${resolved.warning}_`,
+    });
+  }
+
+  const session = createSession({
+    id: sessionId,
+    channel,
+    threadTs,
+    userId,
+    instruction: resolved.instruction,
+    projectPath: resolved.projectPath,
+    projectName: resolved.projectName,
+    isNewProject: resolved.isNewProject,
+    sessionDir,
+  });
+
+  await startInteractive({ session, client });
+}
+
+// ── Auto mode (original fire-and-forget behavior) ───────────────────────────
+
+async function handleAutoRequest({ instruction, message, client, say, userId }) {
   const threadTs = message.ts;
   const channel = message.channel;
 
-  // Confirmation
   await client.chat.postMessage({
     channel,
     thread_ts: threadTs,
-    text: `*Build started*\n> ${instruction}\n\nSpinning up Claude Code + mx-workflow...`,
+    text: `*Build started (auto mode)*\n> ${instruction}\n\nSpinning up Claude Code + mx-workflow...`,
   });
 
-  // Create a live log message we'll update as output streams in
   const logMsg = await client.chat.postMessage({
     channel,
     thread_ts: threadTs,
@@ -104,23 +201,16 @@ async function handleBuildRequest({
   });
 
   let logBuffer = [];
-  const MAX_LOG_LINES = 40; // Slack message size limit buffer
+  const MAX_LOG_LINES = 40;
 
-  // Update the log message periodically with latest output
   async function flushLog() {
     const visibleLines = logBuffer.slice(-MAX_LOG_LINES);
-    const text =
-      "*Build log:*\n```\n" + visibleLines.join("\n") + "\n```";
+    const text = "*Build log:*\n```\n" + visibleLines.join("\n") + "\n```";
     await client.chat
-      .update({
-        channel,
-        ts: logMsg.ts,
-        text,
-      })
-      .catch(() => {}); // Don't crash on rate limits
+      .update({ channel, ts: logMsg.ts, text })
+      .catch(() => {});
   }
 
-  // Debounced flush — update at most every 3s to avoid Slack rate limits
   let flushTimer = null;
   function scheduleFlush() {
     if (flushTimer) return;
@@ -135,7 +225,6 @@ async function handleBuildRequest({
     scheduleFlush();
   }
 
-  // Run the build
   let result;
   try {
     result = await runner({
@@ -155,15 +244,11 @@ async function handleBuildRequest({
     return;
   }
 
-  // Final flush
   if (flushTimer) clearTimeout(flushTimer);
   await flushLog();
 
-  // Success report
   const prLine = result.prUrl ? `\n*PR:* ${result.prUrl}` : "";
-  const branchLine = result.branch
-    ? `\n*Branch:* \`${result.branch}\``
-    : "";
+  const branchLine = result.branch ? `\n*Branch:* \`${result.branch}\`` : "";
 
   await client.chat.postMessage({
     channel,
@@ -172,10 +257,11 @@ async function handleBuildRequest({
   });
 }
 
-// ── Start ─────────────────────────────────────────────────────────────────────
+// ── Start ────────────────────────────────────────────────────────────────────
 
 (async () => {
   await app.start();
   console.log("mx-workflow Slack bot is running");
   console.log(`  Listening in #${BUILDS_CHANNEL} and for @mentions`);
+  console.log(`  Interactive mode: enabled (use --auto for fire-and-forget)`);
 })();

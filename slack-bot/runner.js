@@ -120,75 +120,24 @@ export function resolveProject(rawMessage) {
   };
 }
 
-// ── Main runner ───────────────────────────────────────────────────────────────
+// ── Spawn primitive ──────────────────────────────────────────────────────────
 
 /**
+ * Low-level Claude Code spawner. Used by both the auto runner and the
+ * interactive runner. Returns raw output; caller handles parsing.
+ *
  * @param {object} opts
- * @param {string} opts.instruction  - Raw Slack message text (before project resolution)
+ * @param {string} opts.prompt       - The prompt to send to Claude
+ * @param {string} opts.cwd          - Working directory
+ * @param {string} opts.sessionId    - Session ID (set as MX_SESSION_ID env var)
+ * @param {string} [opts.projectName] - Project name (set as MX_PROJECT_NAME env var)
  * @param {function} opts.onOutput   - Called with each line of streamed output
- * @param {string} [opts.workDir]    - Override work directory (fallback for new projects)
- * @returns {Promise<{prUrl, branch, sessionId, projectName, logFile}>}
+ * @param {string} opts.logFile      - Path to append log output
+ * @returns {Promise<{ stdout: string, stderr: string, code: number }>}
  */
-export async function runner({ instruction: rawMessage, onOutput, workDir }) {
-  const sessionId = crypto.randomBytes(4).toString("hex");
-
-  // Resolve project from the raw Slack message
-  const resolved = resolveProject(rawMessage);
-
-  if (resolved.error) {
-    throw new Error(resolved.error);
-  }
-
-  if (resolved.warning) {
-    onOutput(`[warn] ${resolved.warning}`);
-  }
-
-  if (resolved.usedDefault) {
-    onOutput(`[mx] Using default project: ${resolved.projectName}`);
-  } else if (resolved.projectName) {
-    onOutput(`[mx] Project: ${resolved.projectName} -> ${resolved.projectPath}`);
-  } else if (resolved.isNewProject) {
-    onOutput(`[mx] New project — will be created in ${resolved.projectPath}`);
-  }
-
-  // Determine working directory
-  let sessionDir;
-  if (resolved.isNewProject) {
-    sessionDir = path.join(workDir || resolved.projectPath, `session-${sessionId}`);
-    mkdirSync(sessionDir, { recursive: true });
-  } else {
-    sessionDir = resolved.projectPath;
-  }
-
-  mkdirSync(LOG_DIR, { recursive: true });
-
-  const logFile = path.join(LOG_DIR, `${sessionId}.log`);
+export async function spawnClaude({ prompt, cwd, sessionId, projectName, onOutput, logFile }) {
+  mkdirSync(path.dirname(logFile), { recursive: true });
   const logStream = createWriteStream(logFile, { flags: "a" });
-
-  onOutput(`[mx] Session: ${sessionId}`);
-  onOutput(`[mx] Dir: ${sessionDir}`);
-  onOutput(`[mx] Task: ${resolved.instruction}`);
-  onOutput("─".repeat(50));
-
-  // Build the prompt — tells Claude to run /mx:build --auto and output a parseable summary
-  const prompt = [
-    `Run /mx:build --auto "${resolved.instruction}"`,
-    "",
-    "After the build completes, output a summary block in this exact format:",
-    "---SUMMARY---",
-    "STATUS: success",
-    "BRANCH: <branch name>",
-    "PR_URL: <full GitHub PR URL or none>",
-    "STEPS_COMPLETED: <comma-separated list>",
-    "---END---",
-    "",
-    "If any step fails, output:",
-    "---SUMMARY---",
-    "STATUS: failed",
-    "FAILED_STEP: <which step>",
-    "ERROR: <brief error description>",
-    "---END---",
-  ].join("\n");
 
   return new Promise((resolve, reject) => {
     const proc = spawn(
@@ -201,11 +150,11 @@ export async function runner({ instruction: rawMessage, onOutput, workDir }) {
         prompt,
       ],
       {
-        cwd: sessionDir,
+        cwd,
         env: {
           ...process.env,
           MX_SESSION_ID: sessionId,
-          MX_PROJECT_NAME: resolved.projectName || "new-project",
+          MX_PROJECT_NAME: projectName || "new-project",
           FORCE_COLOR: "0",
         },
         stdio: ["ignore", "pipe", "pipe"],
@@ -231,20 +180,7 @@ export async function runner({ instruction: rawMessage, onOutput, workDir }) {
 
     proc.on("close", (code) => {
       logStream.end();
-      onOutput("─".repeat(50));
-      onOutput(`[mx] Exited with code ${code}`);
-
-      if (code !== 0) {
-        return reject(new Error(`Build failed (exit ${code})\n\n${stderr.slice(-800)}`));
-      }
-
-      resolve({
-        prUrl: extractPrUrl(stdout),
-        branch: extractBranch(stdout),
-        sessionId,
-        projectName: resolved.projectName,
-        logFile,
-      });
+      resolve({ stdout, stderr, code });
     });
 
     proc.on("error", (err) => {
@@ -254,14 +190,103 @@ export async function runner({ instruction: rawMessage, onOutput, workDir }) {
   });
 }
 
+// ── Main runner (auto mode — unchanged external API) ─────────────────────────
+
+/**
+ * @param {object} opts
+ * @param {string} opts.instruction  - Raw Slack message text (before project resolution)
+ * @param {function} opts.onOutput   - Called with each line of streamed output
+ * @param {string} [opts.workDir]    - Override work directory (fallback for new projects)
+ * @returns {Promise<{prUrl, branch, sessionId, projectName, logFile}>}
+ */
+export async function runner({ instruction: rawMessage, onOutput, workDir }) {
+  const sessionId = crypto.randomBytes(4).toString("hex");
+
+  const resolved = resolveProject(rawMessage);
+
+  if (resolved.error) {
+    throw new Error(resolved.error);
+  }
+
+  if (resolved.warning) {
+    onOutput(`[warn] ${resolved.warning}`);
+  }
+
+  if (resolved.usedDefault) {
+    onOutput(`[mx] Using default project: ${resolved.projectName}`);
+  } else if (resolved.projectName) {
+    onOutput(`[mx] Project: ${resolved.projectName} -> ${resolved.projectPath}`);
+  } else if (resolved.isNewProject) {
+    onOutput(`[mx] New project — will be created in ${resolved.projectPath}`);
+  }
+
+  let sessionDir;
+  if (resolved.isNewProject) {
+    sessionDir = path.join(workDir || resolved.projectPath, `session-${sessionId}`);
+    mkdirSync(sessionDir, { recursive: true });
+  } else {
+    sessionDir = resolved.projectPath;
+  }
+
+  const logFile = path.join(LOG_DIR, `${sessionId}.log`);
+
+  onOutput(`[mx] Session: ${sessionId}`);
+  onOutput(`[mx] Dir: ${sessionDir}`);
+  onOutput(`[mx] Task: ${resolved.instruction}`);
+  onOutput("─".repeat(50));
+
+  const prompt = [
+    `Run /mx:build --auto "${resolved.instruction}"`,
+    "",
+    "After the build completes, output a summary block in this exact format:",
+    "---SUMMARY---",
+    "STATUS: success",
+    "BRANCH: <branch name>",
+    "PR_URL: <full GitHub PR URL or none>",
+    "STEPS_COMPLETED: <comma-separated list>",
+    "---END---",
+    "",
+    "If any step fails, output:",
+    "---SUMMARY---",
+    "STATUS: failed",
+    "FAILED_STEP: <which step>",
+    "ERROR: <brief error description>",
+    "---END---",
+  ].join("\n");
+
+  const result = await spawnClaude({
+    prompt,
+    cwd: sessionDir,
+    sessionId,
+    projectName: resolved.projectName,
+    onOutput,
+    logFile,
+  });
+
+  onOutput("─".repeat(50));
+  onOutput(`[mx] Exited with code ${result.code}`);
+
+  if (result.code !== 0) {
+    throw new Error(`Build failed (exit ${result.code})\n\n${result.stderr.slice(-800)}`);
+  }
+
+  return {
+    prUrl: extractPrUrl(result.stdout),
+    branch: extractBranch(result.stdout),
+    sessionId,
+    projectName: resolved.projectName,
+    logFile,
+  };
+}
+
 // ── Output parsers ────────────────────────────────────────────────────────────
 
-function extractPrUrl(output) {
+export function extractPrUrl(output) {
   const match = output.match(/PR_URL:\s*(https:\/\/github\.com\/[^\s]+)/);
   return match ? match[1] : null;
 }
 
-function extractBranch(output) {
+export function extractBranch(output) {
   const match = output.match(/BRANCH:\s*([^\n]+)/);
   return match ? match[1].trim() : null;
 }
