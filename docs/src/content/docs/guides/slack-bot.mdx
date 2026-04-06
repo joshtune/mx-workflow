@@ -1,15 +1,15 @@
 ---
 title: Slack Bot (Headless Builds)
-description: Run builds on a Mac mini triggered from Slack — interactive by default, or fully autonomous with --auto.
+description: Chat with the bot, discuss ideas, and build when ready — or use --auto for fully autonomous builds.
 ---
 
-The mx-workflow Slack bot turns a Mac mini into a build server you control from Slack. Send a message in Slack, and Claude Code runs the `/mx:build` pipeline — with you reviewing and approving each phase in the thread, or fully autonomous with `--auto`.
+The mx-workflow Slack bot turns a Mac mini into an AI-powered build assistant you chat with in Slack. Discuss ideas naturally, and when you're ready, tell it to build. It runs the `/mx:build` pipeline phase-by-phase, letting you review and steer at each step — or go fully autonomous with `--auto`.
 
 ## Two modes
 
 | Mode | Trigger | Behavior |
 |---|---|---|
-| **Interactive** (default) | Any message without `--auto` | Runs phase-by-phase, posts results to the thread, waits for your approval or feedback at each gate |
+| **Conversational** (default) | Any message without `--auto` | Chat naturally, build when ready, review phases interactively with questions and feedback |
 | **Auto** | Add `--auto` to your message | Fire-and-forget — runs the full pipeline autonomously, streams output, posts final result |
 
 ## Architecture
@@ -22,44 +22,47 @@ You (Slack #builds) → Slack Bot → Claude Code (per phase or full pipeline) �
 |---|---|
 | **Slack bot** (`slack-bot/index.js`) | Listens to #builds channel and @mentions, routes thread replies to active sessions |
 | **Session manager** (`slack-bot/session.js`) | Tracks build state, persists to disk, survives restarts |
-| **Interactive runner** (`slack-bot/interactive.js`) | Drives sessions through phases, mediates conversation at each gate |
-| **Phase prompts** (`slack-bot/phases.js`) | Generates per-phase Claude prompts, parses structured output, classifies replies |
+| **Conversation orchestrator** (`slack-bot/interactive.js`) | Claude-mediated conversation handler — routes every message through Claude, triggers phases via markers |
+| **Phase prompts** (`slack-bot/phases.js`) | Conversation system prompts, per-phase Claude prompts, structured output parsers, marker detection |
 | **Runner** (`slack-bot/runner.js`) | Spawns Claude Code with `--print`, streams output |
 | **mx-workflow** | The plugin — `/mx:build` handles the pipeline |
 | **launchd daemon** | Keeps the bot running on boot, auto-restarts on crash |
 
-## Interactive mode (default)
+## Conversational mode (default)
 
-When you send a message without `--auto`, the bot runs each phase as a separate Claude invocation and pauses between them for your input:
+The bot is a conversational AI by default. Chat naturally — discuss ideas, ask questions, brainstorm. When you're ready to build, just say so.
 
 ```
-You:  "dashboard: add a settings page with theme toggle"
+You:  "I've been thinking about adding a settings page to the dashboard"
+Bot:  "What kind of settings? Theme, notifications, profile preferences?"
+You:  "theme toggle and notification preferences, per-user"
+Bot:  "Good scope for an MVP. You could store prefs in a user_settings table..."
+You:  "yeah let's build that"
 Bot:  → Runs discovery → posts questions to thread
-You:  "web app, yes backend, per-user settings"
-Bot:  → Infers context → posts summary, asks "proceed?"
-You:  "go"
+You:  "web app, yes backend, per-user"
+Bot:  → Infers context → posts summary
+You:  "what database would you use?"           ← question, not approval
+Bot:  "Based on the project's existing Supabase setup, I'd add a user_settings table..."
+You:  "ok go ahead"
 Bot:  → Generates PRD → posts summary with must-haves
-You:  "add a reset-to-defaults button as a must-have"    ← feedback loop
-Bot:  → Re-generates PRD with your feedback → posts updated summary
+You:  "add a reset-to-defaults button"          ← feedback, PRD re-generates
+Bot:  → Re-generates PRD → posts updated summary
 You:  "approved"
-Bot:  → Generates plan → posts summary with file count, strategy
+Bot:  → Generates plan → posts summary
 You:  "approved"
-Bot:  → Runs build + QA + report (phases 3-5 as one block)
-Bot:  → Posts final result with branch and PR link
+Bot:  → Builds, QA, finalizes
+Bot:  → Posts branch and PR link
 ```
 
-At each gate you can:
-- **Approve** — say "yes", "approved", "go", "lgtm", etc. to proceed
-- **Give feedback** — describe changes and the phase re-runs with your feedback incorporated
-- **Cancel** — say "cancel" or "stop" to abort the build
+Claude understands your intent naturally — no special keywords required. It knows when you're asking a question vs approving vs giving feedback.
 
 ### Session persistence
 
-Sessions are saved to disk as JSON files. If the bot restarts while waiting for your review, it picks up where it left off — just reply in the thread. Sessions expire after 24 hours.
+Sessions are saved to disk as JSON files. If the bot restarts while you're chatting or reviewing, it picks up where it left off — just reply in the thread. Sessions expire after 24 hours.
 
 ### Identity check
 
-Only the user who started the build can approve or give feedback in that thread. Other users get a polite message pointing them to the session owner.
+Only the user who started the conversation can interact in that thread. Other users get a polite message pointing them to the session owner.
 
 ## Auto mode
 
