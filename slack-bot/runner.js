@@ -150,6 +150,52 @@ export function resolveProject(rawMessage) {
   };
 }
 
+// ── Naming helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Derive a readable directory name from a build instruction.
+ * e.g., "Build a task management system" → "task-management-system"
+ * Falls back to session-{id} if nothing meaningful can be derived.
+ */
+export function slugifyInstruction(instruction, sessionId) {
+  if (!instruction) return `session-${sessionId}`;
+
+  const slug = instruction
+    .toLowerCase()
+    .replace(/^(build|create|add|make|implement|scaffold)\s+(a\s+|an\s+|new\s+|the\s+)?/i, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 4)
+    .join("-");
+
+  return slug && slug.length >= 3 ? slug.slice(0, 40) : `session-${sessionId}`;
+}
+
+/**
+ * Create a project directory with a readable name. If the name already exists,
+ * append a short numeric suffix.
+ */
+export function createProjectDir(baseDir, name) {
+  let dir = path.join(baseDir, name);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+    return dir;
+  }
+  // Name collision — append incrementing suffix
+  for (let i = 2; i <= 99; i++) {
+    dir = path.join(baseDir, `${name}-${i}`);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+      return dir;
+    }
+  }
+  // Fallback
+  dir = path.join(baseDir, `${name}-${Date.now()}`);
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 // ── Spawn primitive ──────────────────────────────────────────────────────────
 
 /**
@@ -252,8 +298,8 @@ export async function runner({ instruction: rawMessage, onOutput, workDir }) {
 
   let sessionDir;
   if (resolved.isNewProject) {
-    sessionDir = path.join(workDir || resolved.projectPath, `session-${sessionId}`);
-    mkdirSync(sessionDir, { recursive: true });
+    const dirName = slugifyInstruction(resolved.instruction, sessionId);
+    sessionDir = createProjectDir(workDir || resolved.projectPath, dirName);
   } else {
     sessionDir = resolved.projectPath;
   }

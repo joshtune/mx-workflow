@@ -9,14 +9,13 @@
  */
 
 import { App } from "@slack/bolt";
-import { runner, resolveProject } from "./runner.js";
+import { runner, resolveProject, slugifyInstruction, createProjectDir } from "./runner.js";
 import { createSession, findSessionByThread, loadActiveSessions } from "./session.js";
 import { startConversation, handleReply } from "./interactive.js";
 import { config } from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
-import { mkdirSync } from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(__dirname, ".env") });
@@ -151,8 +150,8 @@ async function startNewConversation({ instruction, threadTs, channel, userId, cl
   let sessionDir;
 
   if (resolved.isNewProject) {
-    sessionDir = path.join(workDir, `session-${sessionId}`);
-    mkdirSync(sessionDir, { recursive: true });
+    const dirName = slugifyInstruction(resolved.instruction, sessionId);
+    sessionDir = createProjectDir(workDir, dirName);
   } else {
     sessionDir = resolved.projectPath;
   }
