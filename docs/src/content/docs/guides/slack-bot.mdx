@@ -1,36 +1,79 @@
 ---
 title: Slack Bot (Headless Builds)
-description: Run autonomous builds on a Mac mini triggered from Slack — using /mx:build --auto.
+description: Run builds on a Mac mini triggered from Slack — interactive by default, or fully autonomous with --auto.
 ---
 
-The mx-workflow Slack bot turns a Mac mini into an autonomous build server. Send a message in Slack, and Claude Code runs the full `/mx:build --auto` pipeline — discovery, PRD, plan, test-first build, QA, and commit — streaming progress back to you in real-time.
+The mx-workflow Slack bot turns a Mac mini into a build server you control from Slack. Send a message in Slack, and Claude Code runs the `/mx:build` pipeline — with you reviewing and approving each phase in the thread, or fully autonomous with `--auto`.
+
+## Two modes
+
+| Mode | Trigger | Behavior |
+|---|---|---|
+| **Interactive** (default) | Any message without `--auto` | Runs phase-by-phase, posts results to the thread, waits for your approval or feedback at each gate |
+| **Auto** | Add `--auto` to your message | Fire-and-forget — runs the full pipeline autonomously, streams output, posts final result |
 
 ## Architecture
 
 ```
-You (Slack #builds) → Slack Bot → Claude Code + /mx:build --auto → GitHub PR → Slack (progress + result)
+You (Slack #builds) → Slack Bot → Claude Code (per phase or full pipeline) → GitHub PR → Slack thread
 ```
 
 | Component | Role |
 |---|---|
-| **Slack bot** (`slack-bot/index.js`) | Listens to #builds channel and @mentions, dispatches build requests |
-| **Runner** (`slack-bot/runner.js`) | Spawns Claude Code with `--print` and `--dangerously-skip-permissions`, streams output |
-| **mx-workflow** | The plugin — `/mx:build --auto` handles the full pipeline |
+| **Slack bot** (`slack-bot/index.js`) | Listens to #builds channel and @mentions, routes thread replies to active sessions |
+| **Session manager** (`slack-bot/session.js`) | Tracks build state, persists to disk, survives restarts |
+| **Interactive runner** (`slack-bot/interactive.js`) | Drives sessions through phases, mediates conversation at each gate |
+| **Phase prompts** (`slack-bot/phases.js`) | Generates per-phase Claude prompts, parses structured output, classifies replies |
+| **Runner** (`slack-bot/runner.js`) | Spawns Claude Code with `--print`, streams output |
+| **mx-workflow** | The plugin — `/mx:build` handles the pipeline |
 | **launchd daemon** | Keeps the bot running on boot, auto-restarts on crash |
 
-## How it works
+## Interactive mode (default)
 
-1. You send a message in `#builds`: _"Build a task management system with admin and user roles"_
-2. The bot confirms and creates a live log thread in Slack
-3. Runner spawns `claude --print --dangerously-skip-permissions` with `/mx:build --auto`
-4. `/mx:build --auto` runs the full pipeline:
-   - **Discovery** — infers stack, scope, and roles from the instruction
-   - **PRD** — generates spec with User Roles & Expectations (commit: `docs(prd): ...`)
-   - **Plan** — codebase-aware implementation plan (commit: `docs(plan): ...`)
-   - **Build** — test-first, auto-selects agent team or single-agent (commit: `feat: ...`)
-   - **QA** — spec conformance per role, test coverage, structural checks (commit: `fix: ...` if needed)
-5. Output streams to Slack every 3 seconds (debounced to avoid rate limits)
-6. On completion, the bot posts the branch name and PR link
+When you send a message without `--auto`, the bot runs each phase as a separate Claude invocation and pauses between them for your input:
+
+```
+You:  "dashboard: add a settings page with theme toggle"
+Bot:  → Runs discovery → posts questions to thread
+You:  "web app, yes backend, per-user settings"
+Bot:  → Infers context → posts summary, asks "proceed?"
+You:  "go"
+Bot:  → Generates PRD → posts summary with must-haves
+You:  "add a reset-to-defaults button as a must-have"    ← feedback loop
+Bot:  → Re-generates PRD with your feedback → posts updated summary
+You:  "approved"
+Bot:  → Generates plan → posts summary with file count, strategy
+You:  "approved"
+Bot:  → Runs build + QA + report (phases 3-5 as one block)
+Bot:  → Posts final result with branch and PR link
+```
+
+At each gate you can:
+- **Approve** — say "yes", "approved", "go", "lgtm", etc. to proceed
+- **Give feedback** — describe changes and the phase re-runs with your feedback incorporated
+- **Cancel** — say "cancel" or "stop" to abort the build
+
+### Session persistence
+
+Sessions are saved to disk as JSON files. If the bot restarts while waiting for your review, it picks up where it left off — just reply in the thread. Sessions expire after 24 hours.
+
+### Identity check
+
+Only the user who started the build can approve or give feedback in that thread. Other users get a polite message pointing them to the session owner.
+
+## Auto mode
+
+Add `--auto` to your message for the original fire-and-forget behavior:
+
+```
+"dashboard: add dark mode --auto"
+```
+
+1. The bot confirms and creates a live log thread
+2. Runner spawns `claude --print` with `/mx:build --auto`
+3. `/mx:build --auto` runs the full pipeline — discovery, PRD, plan, build, QA
+4. Output streams to Slack every 3 seconds (debounced to avoid rate limits)
+5. On completion, the bot posts the branch name and PR link
 
 ## Triggers
 
