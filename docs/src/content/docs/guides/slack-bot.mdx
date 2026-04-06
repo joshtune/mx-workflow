@@ -93,32 +93,44 @@ Each build runs in its own directory under `$MX_WORK_DIR/session-<id>/`. This me
 - Each session has its own git repo
 - Logs are stored per session in `$MX_LOG_DIR/<session-id>.log`
 
-## Project resolution
+## Projects
 
-The bot knows which project to work on via four reference patterns:
+Projects are registered **automatically** after each build completes. The bot derives a meaningful name from the PRD (e.g., `task-manager`, `settings-page`) and logs it in `.mx-mac-mini.json`.
 
-| Pattern | Example | How it works |
-|---|---|---|
-| **Project prefix** | `dashboard: add dark mode` | Parses alias before the colon |
-| **First word** | `api fix the webhook bug` | First word matched against known aliases |
-| **Default project** | `fix the login bug` | Uses the configured default when no project specified |
-| **Explicit flag** | `--repo billing add export` | Override with `--repo` flag |
-| **New project** | `Build a new SaaS billing system` | Detected by "build a/create a" pattern, creates fresh session |
+Once registered, you can reference a project by name in future conversations:
 
-Project aliases are configured via `/mx:setup-mac-mini`, which scans your repos, lets you name them, and writes `.mx-mac-mini.json`.
+| Pattern | Example |
+|---|---|
+| **Project prefix** | `task-manager: add dark mode` |
+| **First word** | `task-manager add export feature` |
+| **Explicit flag** | `--repo task-manager add export` |
+| **New project** | `Build a new SaaS billing system` (creates fresh) |
+
+No manual project registration required — just build something and it's available by name.
+
+## Build strategy
+
+The build pipeline automatically selects the right strategy based on plan complexity:
+
+| Signal | Strategy |
+|---|---|
+| 3+ independent components, separate concerns, or 10+ cross-domain file changes | **Agent Team** (parallel multi-agent build) |
+| Focused on a single concern, < 10 files, linear dependencies | **Single Agent** (sequential build) |
+
+You can override at the plan review stage if you prefer a different approach.
 
 ## Setup
 
-Run `/mx:setup-mac-mini` on day one. It handles everything in 6 phases:
+Run `/mx:setup-mac-mini` on day one. It handles everything in 5 phases:
 
 | Phase | What it does |
 |---|---|
 | **1. System prerequisites** | Checks and installs Homebrew, Node.js 20+, Claude Code CLI, Git/SSH, tmux, Tailscale, mx-workflow plugin |
 | **2. Slack integration** | Guides you through creating a Slack app, collects tokens, writes `.env`, auto-detects bot user ID, tests connection |
-| **3. Project registration** | Scans for repos, creates aliases, sets default project, validates CLAUDE.md |
-| **4. Daemon setup** | Configures launchd to run the bot on boot with auto-restart |
-| **5. Verification** | Tests project routing, Slack connection, and Claude Code readiness |
-| **6. Summary** | Shows everything configured and how to use it |
+| **3. Daemon setup** | Configures launchd to run the bot on boot with auto-restart |
+| **4. Verification + summary** | Tests Slack connection, Claude Code readiness, shows final report |
+
+No project registration phase — projects register themselves after each build.
 
 For manual reference, see [`slack-bot/SETUP.md`](https://github.com/joshtune/mx-workflow/blob/main/slack-bot/SETUP.md).
 

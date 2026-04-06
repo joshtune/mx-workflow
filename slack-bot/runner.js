@@ -11,7 +11,7 @@
  */
 
 import { spawn } from "child_process";
-import { existsSync, mkdirSync, createWriteStream, readFileSync } from "fs";
+import { existsSync, mkdirSync, createWriteStream, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import crypto from "crypto";
 
@@ -42,6 +42,36 @@ function loadConfig() {
 /** Reload config on next call (used when config may have changed) */
 export function reloadConfig() {
   _config = null;
+}
+
+/**
+ * Register a completed project in .mx-mac-mini.json so it can be referenced
+ * by alias in future builds. Called automatically after a build completes.
+ *
+ * @param {string} alias - Short name for the project (e.g., "task-manager")
+ * @param {string} projectPath - Absolute path to the project directory
+ * @param {string} [repo] - GitHub repo in "owner/repo" format
+ */
+export function registerProject(alias, projectPath, repo) {
+  let config = loadConfig();
+  if (!config) {
+    config = {
+      version: "1.0",
+      new_project_dir: process.env.MX_WORK_DIR || path.resolve(process.env.HOME, "builds"),
+      projects: {},
+    };
+  }
+  if (!config.projects) config.projects = {};
+
+  config.projects[alias] = {
+    path: projectPath,
+    repo: repo || null,
+    registered: new Date().toISOString(),
+  };
+
+  writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  _config = null; // bust cache
+  console.log(`[runner] Registered project: ${alias} -> ${projectPath}`);
 }
 
 // ── Project resolver ──────────────────────────────────────────────────────────

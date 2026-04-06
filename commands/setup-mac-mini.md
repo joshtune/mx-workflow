@@ -1,6 +1,6 @@
 ---
-description: "One-time Mac mini setup — system prereqs, Slack integration, project aliases, daemon"
-argument-hint: "[--skip-system | --skip-slack | --projects-only]"
+description: "One-time Mac mini setup — system prereqs, Slack integration, daemon"
+argument-hint: "[--skip-system | --skip-slack]"
 allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write"]
 ---
 
@@ -16,21 +16,21 @@ Slack integration to project registration.
 
 **This command is proactive, not passive.** Its goal is to ensure the Mac mini is fully ready to receive Slack build requests by the time it finishes running. It does not just report problems — it fixes them.
 
-**MANDATORY EXECUTION ORDER — YOU MUST FOLLOW ALL 6 PHASES:**
+**MANDATORY EXECUTION ORDER — YOU MUST FOLLOW ALL 5 PHASES:**
 
 ```
 Phase 0: Pre-Flight Check     ← run FIRST, always
 Phase 1: System Prerequisites  ← install all missing tools
 Phase 2: Slack Integration     ← configure bot, tokens, test connection
-Phase 3: Project Registration  ← scan repos, create aliases
-Phase 4: Daemon Setup          ← install launchd, start bot daemon
-Phase 5: End-to-End Verification
-Phase 6: Final Summary
+Phase 3: Daemon Setup          ← install launchd, start bot daemon
+Phase 4: End-to-End Verification + Summary
 ```
 
 **DO NOT skip Phase 2 (Slack Integration).** The entire purpose of this setup is to get the Slack bot working. Without Slack configured, the Mac mini is not ready. Phase 2 is not optional — it is the core of this command.
 
-**DO NOT skip Phase 4 (Daemon Setup).** Without the daemon, the bot stops when the terminal closes. The bot must run permanently.
+**DO NOT skip Phase 3 (Daemon Setup).** Without the daemon, the bot stops when the terminal closes. The bot must run permanently.
+
+**No project registration phase.** Projects are registered automatically after each build completes. The bot derives a meaningful name from the PRD or branch and logs it in `.mx-mac-mini.json`.
 
 **Rules:**
 - **Execute ALL phases in order.** The only way to skip a phase is if the pre-flight check confirms it is already fully working. Even then, re-verify at the end.
@@ -48,7 +48,6 @@ Phase 6: Final Summary
 | (none) | Full setup — all phases |
 | `--skip-system` | Skip system prerequisite checks |
 | `--skip-slack` | Skip Slack integration setup |
-| `--projects-only` | Only run project scanning and alias registration |
 
 ## Phase 0: Pre-Flight Readiness Check
 
@@ -66,7 +65,6 @@ which tailscale                                     # Tailscale
 ls <mx-workflow>/slack-bot/.env 2>/dev/null          # Slack .env exists
 ls <mx-workflow>/slack-bot/node_modules 2>/dev/null  # Slack bot deps installed
 launchctl list 2>/dev/null | grep mx-workflow        # Daemon running
-ls <mx-workflow>/slack-bot/.mx-mac-mini.json 2>/dev/null  # Project config exists
 ```
 
 Display a readiness report:
@@ -89,7 +87,7 @@ Slack Integration:
   Bot daemon:    RUNNING / NOT RUNNING / NOT INSTALLED
 
 Projects:
-  Config:        FOUND (3 projects) / NOT CONFIGURED
+  Build dir:     ~/builds (X projects registered)
 ────────────────────────────────────────────────────
 Ready for Slack:  YES / NO — <what's missing>
 ```
@@ -99,10 +97,9 @@ Ready for Slack:  YES / NO — <what's missing>
 Mac mini is fully configured and ready.
 
   1. Run verification checks
-  2. Add/remove projects
-  3. Reconfigure Slack
-  4. Full setup (re-run everything)
-  5. Exit
+  2. Reconfigure Slack
+  3. Full setup (re-run everything)
+  4. Exit
 >
 ```
 
@@ -491,118 +488,34 @@ If ANY item shows FAIL, **do not proceed**. Fix it first.
 
 ---
 
-## Phase 3: Project Registration
+## Phase 2.5: Write Build Config
 
-This is the existing project scanning and alias setup. Same as before but renumbered.
-
-### 3.1 Scan for Projects
-
-Scan these directories for git repos (directories containing `.git/`):
-- `~/projects/`
-- `~/workspace/`
-- `~/dev/`
-- `~/code/`
-- `~/work/`
-
-For each repo found, display:
-```
-Found: /Users/josh/projects/dashboard-app  (last commit: 2 days ago)
-Found: /Users/josh/projects/api-service    (last commit: today)
-Found: /Users/josh/projects/billing-app    (last commit: 1 week ago)
-```
-
-Get the last commit date with: `git -C <path> log -1 --format="%ar" 2>/dev/null`
-
-Ask: **"Are there any other directories I should scan? (Enter path or press Enter to skip)"**
-
-Wait for response. Scan any additional paths provided.
-
-### 3.2 Create Aliases
-
-For each found repo, ask:
-```
-What short name for /Users/josh/projects/dashboard-app?
-(suggestion: dashboard) >
-```
-
-Suggest an alias based on the directory name (strip common suffixes like `-app`, `-service`, `-api`). Accept the suggestion on Enter, or let the user type a custom name. Type "skip" to exclude a repo.
-
-Also ask: **"Any other projects to add manually? (Enter path or press Enter to finish)"**
-
-### 3.3 Set Default Project
+Write a minimal `.mx-mac-mini.json` to the slack-bot directory. Projects will be registered automatically after each build completes.
 
 ```
-Which project should be the default for bare Slack messages?
-(Used when no project name is specified, e.g., "@mx-bot fix the login bug")
-
-  1. dashboard  -> /Users/josh/projects/dashboard-app
-  2. api        -> /Users/josh/projects/api-service
-  3. billing    -> /Users/josh/projects/billing-app
-  4. None (always require a project name)
-
->
-```
-
-### 3.4 Set New Project Directory
-
-```
-Where should brand new projects be created?
+Where should new projects be created?
 (default: ~/builds) >
 ```
 
-### 3.5 Validate CLAUDE.md
-
-For each registered project, check if a `CLAUDE.md` exists at the project root.
-
-If missing:
-```
-[warn] dashboard is missing a CLAUDE.md
-  Without it, Claude won't know your project's stack and conventions.
-  Generate one now? (y/n) >
-```
-
-If yes, navigate to that project directory and run the same logic as `/mx:create-rules`.
-
-### 3.6 Detect GitHub Remote
-
-For each project, extract the GitHub repo:
 ```bash
-git -C <path> remote get-url origin 2>/dev/null
+mkdir -p ~/builds
 ```
-
-Parse `owner/repo` from the URL.
-
-### 3.7 Write Config
-
-Write `.mx-mac-mini.json` to the slack-bot directory:
 
 ```json
 {
   "version": "1.0",
-  "default_project": "dashboard",
   "new_project_dir": "/Users/josh/builds",
-  "projects": {
-    "dashboard": {
-      "path": "/Users/josh/projects/dashboard-app",
-      "repo": "joshtune/dashboard-app",
-      "has_claude_md": true
-    },
-    "api": {
-      "path": "/Users/josh/projects/api-service",
-      "repo": "joshtune/api-service",
-      "has_claude_md": true
-    }
-  }
+  "projects": {}
 }
 ```
 
 ---
 
-## Phase 4: Daemon Setup
+## Phase 3: Daemon Setup
 
 Set up the Slack bot to run automatically on boot and restart on crash.
 
-### 4.1 Configure launchd
+### 3.1 Configure launchd
 
 Update the plist with the actual username and paths:
 
@@ -610,7 +523,7 @@ Update the plist with the actual username and paths:
 sed -i '' "s/YOUR_USERNAME/$USER/g" <mx-workflow>/slack-bot/com.joshtune.mx-workflow-slack-bot.plist
 ```
 
-### 4.2 Create Wrapper Script
+### 3.2 Create Wrapper Script
 
 Ensure `slack-bot/start.sh` exists and is executable:
 
@@ -625,7 +538,7 @@ SCRIPT
 chmod +x <mx-workflow>/slack-bot/start.sh
 ```
 
-### 4.3 Install Daemon
+### 3.3 Install Daemon
 
 ```bash
 cp <mx-workflow>/slack-bot/com.joshtune.mx-workflow-slack-bot.plist ~/Library/LaunchAgents/
@@ -633,7 +546,7 @@ launchctl load ~/Library/LaunchAgents/com.joshtune.mx-workflow-slack-bot.plist
 launchctl start com.joshtune.mx-workflow-slack-bot
 ```
 
-### 4.4 Verify Daemon
+### 3.4 Verify Daemon
 
 ```bash
 launchctl list | grep mx-workflow
@@ -659,81 +572,45 @@ launchctl start com.joshtune.mx-workflow-slack-bot
 
 **Re-check.** Do not proceed until the daemon is running.
 
-### 4.5 Phase 4 Gate
+### 3.5 Phase 3 Gate
 
 ```
-PHASE 4 VERIFICATION
+PHASE 3 VERIFICATION
 =====================
 launchd plist:   INSTALLED
 start.sh:        EXECUTABLE
 Daemon:          RUNNING (PID <pid>)
 ────────────────────────────────
-Phase 4:         ALL CLEAR — proceeding to verification
+Phase 3:         ALL CLEAR — proceeding to verification
 ```
 
 ---
 
-## Phase 5: End-to-End Verification
+## Phase 4: End-to-End Verification + Summary
 
-Run a complete test to verify everything works together.
+**Do not show "setup complete" unless everything actually works.** Run every critical check.
 
-### 5.1 Dry-Run Project Resolution
+### 4.1 Slack Bot Health Check
 
-Test that the config routes correctly:
-
-```
-Testing: "dashboard: add dark mode"         -> routes to dashboard-app
-Testing: "api fix the webhook bug"          -> routes to api-service
-Testing: "add a login page"                 -> routes to dashboard-app (default)
-Testing: "--repo billing add export button" -> routes to billing-app
-Testing: "Build a new SaaS billing system"  -> new project in ~/builds
-```
-
-### 5.2 Slack Bot Health Check
-
-Verify the daemon is running and can reach Slack:
 ```bash
 launchctl list | grep mx-workflow
 curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/auth.test | grep ok
 ```
 
-### 5.3 Claude Code Readiness
+### 4.2 Claude Code Readiness
 
-Verify Claude Code can run a command headlessly:
 ```bash
 claude --print --dangerously-skip-permissions "echo 'Mac mini agent ready'" 2>&1
 ```
 
----
-
-## Phase 6: Final Verification and Summary
-
-**Do not show "setup complete" unless everything actually works.** Re-run every critical check one final time.
-
-### 6.1 Final Check
-
-Run ALL of these and collect results:
+### 4.3 Build Directory
 
 ```bash
-# System
-which brew && node --version && claude --version && git --version && which tmux && tailscale status
-
-# Auth
-ssh -T git@github.com 2>&1
-claude --print --dangerously-skip-permissions "echo ready" 2>&1
-
-# Slack
-source slack-bot/.env
-curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/auth.test
-
-# Daemon
-launchctl list | grep mx-workflow
-
-# Config
+ls ~/builds 2>/dev/null
 cat slack-bot/.mx-mac-mini.json
 ```
 
-### 6.2 Report
+### 4.4 Report
 
 If ALL checks pass:
 
@@ -755,28 +632,18 @@ Slack:
   #builds:      PASS — bot is a member
   Daemon:       PASS — running (PID <pid>, auto-restarts, starts on boot)
 
-Projects:
-  dashboard -> /Users/josh/projects/dashboard-app  (CLAUDE.md: yes)
-  api       -> /Users/josh/projects/api-service    (CLAUDE.md: yes)
-  billing   -> /Users/josh/projects/billing-app    (CLAUDE.md: no)
-  Default:     dashboard
-  New builds:  ~/builds
+Builds:
+  New projects:  ~/builds
+  Projects:      (none yet — projects register automatically after each build)
 
-Routing:
-  "dashboard: add dark mode"   -> dashboard-app     PASS
-  "api fix webhook bug"        -> api-service        PASS
-  "fix login bug"              -> dashboard (default) PASS
-  "--repo billing add export"  -> billing-app        PASS
-  "Build a new SaaS system"   -> ~/builds (new)      PASS
+Your Mac mini is ready. Chat with it in Slack:
 
-Your Mac mini is ready. Use it from Slack:
-
-  @mx-bot dashboard: add dark mode toggle
-  @mx-bot api fix the webhook bug
-  @mx-bot fix the login bug
-  @mx-bot --repo billing add export button
-  @mx-bot Build a new SaaS billing system
+  @mx-bot I want to build a task management app
+  @mx-bot let's add dark mode to task-manager
   /build <anything>
+
+Projects are named automatically after each build and can be
+referenced in future conversations (e.g., "task-manager: add export").
 
 Remote access:
   ssh <user>@<tailscale-hostname>
@@ -789,17 +656,15 @@ If ANY check fails:
 MAC MINI SETUP INCOMPLETE
 =========================
 
-PASSED: 14/16 checks
-FAILED: 2 checks
+PASSED: X/Y checks
+FAILED: Z checks
 
-  [FAIL] Tailscale: not connected — run 'tailscale up'
-  [FAIL] #builds channel: bot not a member — invite @mx-bot in Slack
+  [FAIL] <what failed> — <how to fix>
 
-Everything else is working. Fix the above and run /mx:setup-mac-mini again
-to re-verify.
+Fix the above and run /mx:setup-mac-mini again to re-verify.
 ```
 
-**Never say "complete" when something is broken.** If the final check finds failures, the setup is INCOMPLETE and the user must know exactly what to fix.
+**Never say "complete" when something is broken.**
 
 ---
 
@@ -811,11 +676,10 @@ If setup has been run before, detect existing state and offer targeted options:
 Mac mini is already configured. What would you like to do?
 
   1. Full setup (re-run everything)
-  2. Add/remove projects
-  3. Reconfigure Slack integration
-  4. Reinstall daemon
-  5. Run verification checks only
-  6. Exit
+  2. Reconfigure Slack integration
+  3. Reinstall daemon
+  4. Run verification checks only
+  5. Exit
 
 >
 ```

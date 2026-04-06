@@ -6,7 +6,7 @@
  */
 
 import { updateSession, completeSession, cancelSession, failSession, STATES } from "./session.js";
-import { spawnClaude } from "./runner.js";
+import { spawnClaude, registerProject } from "./runner.js";
 import {
   conversationSystemPrompt,
   buildConversationPrompt,
@@ -522,6 +522,20 @@ async function runBuildPhase({ session, client }) {
     updateSession(session.id, {
       build: { ...session.build, prUrl: parsed.prUrl, branch: parsed.branch },
     });
+
+    // Auto-register project so it can be referenced by name in future builds
+    try {
+      const alias = deriveProjectAlias(session);
+      if (alias) {
+        const repo = parsed.prUrl
+          ? parsed.prUrl.match(/github\.com\/([^/]+\/[^/]+)/)?.[1] || null
+          : null;
+        registerProject(alias, session.sessionDir, repo);
+      }
+    } catch {
+      // Non-fatal — don't fail the build over registration
+    }
+
     completeSession(session.id);
 
     const prLine = parsed.prUrl ? `\n*PR:* ${parsed.prUrl}` : "";
@@ -536,6 +550,48 @@ async function runBuildPhase({ session, client }) {
     failSession(session.id);
     await postToThread(client, session, `*Build failed*\n\`\`\`\n${err.message}\n\`\`\`\n\n_Session: \`${session.id}\`_`);
   }
+}
+
+// ── Project naming ───────────────────────────────────────────────────────────
+
+/**
+ * Derive a short, memorable alias for the project from available context.
+ * Priority: PRD file name > branch name > instruction kebab-case.
+ * Returns null if no reasonable name can be derived.
+ */
+function deriveProjectAlias(session) {
+  // 1. PRD file name is the best source — it's already kebab-cased and meaningful
+  //    e.g., ".agents/prds/task-manager.prd.md" → "task-manager"
+  if (session.prd?.path) {
+    const match = session.prd.path.match(/([^/]+)\.prd\.md$/);
+    if (match) return match[1];
+  }
+
+  // 2. Branch name (strip prefixes like feat/, fix/)
+  if (session.build?.branch) {
+    const branch = session.build.branch
+      .replace(/^(feat|fix|feature|chore|docs)\//, "")
+      .replace(/[^a-z0-9-]/gi, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .toLowerCase();
+    if (branch && branch.length >= 3 && branch.length <= 30) return branch;
+  }
+
+  // 3. First few meaningful words from the instruction
+  if (session.instruction) {
+    const alias = session.instruction
+      .toLowerCase()
+      .replace(/^(build|create|add|make|implement)\s+(a\s+|an\s+|the\s+)?/i, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .split(/\s+/)
+      .slice(0, 3)
+      .join("-");
+    if (alias && alias.length >= 3) return alias.slice(0, 30);
+  }
+
+  return null;
 }
 
 // ── Phase context builder ────────────────────────────────────────────────────
