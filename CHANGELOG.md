@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.1] - 2026-04-05
+
+### Fixed
+
+- New project directories now use readable names derived from the build instruction (e.g., `task-management-system/`) instead of opaque session hashes (`session-a3f1b2c4/`). Handles name collisions with numeric suffixes.
+
 ## [1.21.0] - 2026-04-05
 
 ### Added
@@ -301,7 +307,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.21.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.21.1...HEAD
+[1.21.1]: https://github.com/joshtune/mx-workflow/compare/v1.21.0...v1.21.1
 [1.21.0]: https://github.com/joshtune/mx-workflow/compare/v1.20.0...v1.21.0
 [1.20.0]: https://github.com/joshtune/mx-workflow/compare/v1.19.0...v1.20.0
 [1.19.0]: https://github.com/joshtune/mx-workflow/compare/v1.18.1...v1.19.0
