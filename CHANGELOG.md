@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-04-05
+
+### Added
+
+- Auto-project registration — projects register in `.mx-mac-mini.json` automatically after each build completes, with meaningful names derived from the PRD file name, branch, or instruction (e.g., `task-manager`, `settings-page`)
+- `registerProject()` export in `slack-bot/runner.js` for programmatic project registration
+- Build strategy section in Slack bot docs explaining automatic team vs single agent selection
+
+### Changed
+
+- `/mx:setup-mac-mini` simplified — removed Phase 3 (project scanning/registration), reduced to 5 phases. Projects grow organically as you build, no manual discovery needed.
+- Slack bot docs updated with auto-registration, project referencing patterns, and build strategy info
+
+### Removed
+
+- Manual project scanning and alias registration from setup-mac-mini
+- `--projects-only` flag from setup-mac-mini (no longer applicable)
+
 ## [1.20.0] - 2026-04-05
 
 ### Changed
@@ -283,7 +301,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.20.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.21.0...HEAD
+[1.21.0]: https://github.com/joshtune/mx-workflow/compare/v1.20.0...v1.21.0
 [1.20.0]: https://github.com/joshtune/mx-workflow/compare/v1.19.0...v1.20.0
 [1.19.0]: https://github.com/joshtune/mx-workflow/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/joshtune/mx-workflow/compare/v1.18.0...v1.18.1
