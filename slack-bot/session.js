@@ -14,6 +14,7 @@ const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 // ── Valid states ─────────────────────────────────────────────────────────────
 
 export const STATES = {
+  CONVERSATION: "CONVERSATION",
   DISCOVERY_RUNNING: "DISCOVERY_RUNNING",
   DISCOVERY_PENDING: "DISCOVERY_PENDING",
   PREFLIGHT_PENDING: "PREFLIGHT_PENDING",
@@ -29,6 +30,7 @@ export const STATES = {
 
 const TERMINAL_STATES = new Set([STATES.COMPLETE, STATES.CANCELLED, STATES.FAILED]);
 const AWAITING_STATES = new Set([
+  STATES.CONVERSATION,
   STATES.DISCOVERY_PENDING,
   STATES.PREFLIGHT_PENDING,
   STATES.PRD_REVIEW,
@@ -98,13 +100,14 @@ export function createSession({
     channel,
     threadTs,
     userId,
-    state: STATES.DISCOVERY_RUNNING,
+    state: STATES.CONVERSATION,
     instruction,
     projectPath,
     projectName,
     isNewProject: isNewProject || false,
     sessionDir,
     logMessageTs: null,
+    history: [], // { role: 'user'|'assistant', content: string }[]
     discovery: { questions: null, answers: null, discoveryContext: null },
     prd: { path: null, summary: null, feedbackHistory: [] },
     plan: { path: null, summary: null, strategy: null, feedbackHistory: [] },
@@ -208,6 +211,7 @@ export function loadActiveSessions() {
       if (TERMINAL_STATES.has(session.state)) continue;
 
       // Recover sessions that were mid-execution when bot died
+      // CONVERSATION state is safe to resume — no running process
       const runningStates = new Set([
         STATES.DISCOVERY_RUNNING,
         STATES.PRD_RUNNING,

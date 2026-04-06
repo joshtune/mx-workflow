@@ -1,13 +1,16 @@
 /**
  * interactive.js
- * Orchestrator for two-way interactive builds.
- * Drives sessions through phases, mediates Slack conversation at each gate.
+ * Conversation-driven build orchestrator.
+ * Every message goes through Claude — Claude decides intent via structured markers.
+ * Phase runners are triggered by markers, not regex classification.
  */
 
 import { updateSession, completeSession, cancelSession, failSession, STATES } from "./session.js";
 import { spawnClaude } from "./runner.js";
 import {
-  classifyReply,
+  conversationSystemPrompt,
+  buildConversationPrompt,
+  parseConversationResponse,
   discoveryPrompt,
   inferredContextPrompt,
   prdPrompt,
@@ -30,10 +33,6 @@ async function postToThread(client, session, text) {
   });
 }
 
-/**
- * Create a debounced log streamer that updates a single Slack message
- * with the latest output lines. Same pattern as the original bot.
- */
 function createLogStreamer(client, session) {
   let logBuffer = [];
   let logMsgTs = session.logMessageTs;
@@ -80,24 +79,181 @@ function createLogStreamer(client, session) {
     await flush();
   }
 
-  function reset() {
-    logBuffer = [];
-  }
+  return { ensureLogMessage, onOutput, stop };
+}
 
-  return { ensureLogMessage, onOutput, stop, reset };
+function addToHistory(session, role, content) {
+  const history = [...(session.history || []), { role, content }];
+  updateSession(session.id, { history });
+  // Update local reference too
+  session.history = history;
 }
 
 // ── Entry point ──────────────────────────────────────────────────────────────
 
 /**
- * Start a new interactive session — runs Phase 0 (discovery).
+ * Start a new conversation session. Sends the first message through the
+ * conversation handler — no build is triggered yet.
  */
-export async function startInteractive({ session, client }) {
-  await postToThread(
-    client,
-    session,
-    `*Interactive build started*\n> ${session.instruction}\n\n_Running discovery..._`
-  );
+export async function startConversation({ session, firstMessage, client }) {
+  await handleReply({ session, text: firstMessage, client });
+}
+
+// ── Unified conversation handler ─────────────────────────────────────────────
+
+/**
+ * Handle any user message in a session thread.
+ * Routes through Claude with state-appropriate context. Claude decides intent.
+ */
+export async function handleReply({ session, text, client }) {
+  // If a phase is currently running, just acknowledge
+  const runningStates = new Set([
+    STATES.DISCOVERY_RUNNING,
+    STATES.PRD_RUNNING,
+    STATES.PLAN_RUNNING,
+    STATES.BUILD_RUNNING,
+  ]);
+  if (runningStates.has(session.state)) {
+    await postToThread(client, session, `_Phase is still running — I'll let you know when it's ready for review._`);
+    return;
+  }
+
+  // Add user message to history
+  addToHistory(session, "user", text);
+
+  // Build phase context based on current state
+  const phaseContext = buildPhaseContext(session);
+
+  // Build the conversation prompt
+  const systemPrompt = conversationSystemPrompt(session.state, phaseContext);
+  const prompt = buildConversationPrompt(systemPrompt, session.history, text);
+
+  // Spawn Claude for the conversation turn
+  try {
+    const result = await spawnClaude({
+      prompt,
+      cwd: session.sessionDir,
+      sessionId: session.id,
+      projectName: session.projectName,
+      onOutput: () => {}, // no live streaming for conversation turns
+      logFile: session.build.logFile,
+    });
+
+    if (result.code !== 0) {
+      await postToThread(client, session, `_Something went wrong. Try again?_`);
+      return;
+    }
+
+    // Parse response for markers
+    const parsed = parseConversationResponse(result.stdout);
+
+    // Post the conversational response to Slack (markers stripped)
+    if (parsed.text) {
+      await postToThread(client, session, parsed.text);
+      addToHistory(session, "assistant", parsed.text);
+    }
+
+    // Act on markers
+    if (parsed.action) {
+      await handleAction({ session, action: parsed.action, parsed, client });
+    }
+  } catch (err) {
+    await postToThread(client, session, `_Error: ${err.message}_`);
+  }
+}
+
+// ── Action handler ───────────────────────────────────────────────────────────
+
+async function handleAction({ session, action, parsed, client }) {
+  switch (action) {
+    case "build_start": {
+      const instruction = parsed.buildInstruction || session.instruction;
+      updateSession(session.id, { instruction });
+      await runDiscoveryPhase({ session, client });
+      break;
+    }
+
+    case "advance":
+      await advanceToNextPhase({ session, client });
+      break;
+
+    case "revise":
+      await reviseCurrentPhase({ session, feedback: parsed.reviseFeedback, client });
+      break;
+
+    case "cancel":
+      cancelSession(session.id);
+      await postToThread(client, session, "*Build cancelled.*");
+      break;
+  }
+}
+
+async function advanceToNextPhase({ session, client }) {
+  switch (session.state) {
+    case STATES.DISCOVERY_PENDING:
+      // User answered discovery questions — run inferred context
+      await runPreflightPhase({ session, client });
+      break;
+
+    case STATES.PREFLIGHT_PENDING:
+      // User confirmed context — run PRD
+      await runPrdPhase({ session, client });
+      break;
+
+    case STATES.PRD_REVIEW:
+      // User approved PRD — run plan
+      await runPlanPhase({ session, client });
+      break;
+
+    case STATES.PLAN_REVIEW:
+      // User approved plan — run build
+      await runBuildPhase({ session, client });
+      break;
+
+    default:
+      await postToThread(client, session, `_Nothing to advance — current state: ${session.state}_`);
+  }
+}
+
+async function reviseCurrentPhase({ session, feedback, client }) {
+  switch (session.state) {
+    case STATES.PREFLIGHT_PENDING: {
+      const combinedAnswers = [
+        session.discovery.answers || "",
+        `\nCorrections: ${feedback}`,
+      ].join("\n");
+      updateSession(session.id, {
+        discovery: { ...session.discovery, answers: combinedAnswers },
+      });
+      await runPreflightPhase({ session, client });
+      break;
+    }
+
+    case STATES.PRD_REVIEW: {
+      const prd = { ...session.prd };
+      prd.feedbackHistory = [...prd.feedbackHistory, feedback];
+      updateSession(session.id, { prd });
+      await runPrdPhase({ session: { ...session, prd }, client });
+      break;
+    }
+
+    case STATES.PLAN_REVIEW: {
+      const plan = { ...session.plan };
+      plan.feedbackHistory = [...plan.feedbackHistory, feedback];
+      updateSession(session.id, { plan });
+      await runPlanPhase({ session: { ...session, plan }, client });
+      break;
+    }
+
+    default:
+      await postToThread(client, session, `_Nothing to revise in current state: ${session.state}_`);
+  }
+}
+
+// ── Phase runners ────────────────────────────────────────────────────────────
+
+async function runDiscoveryPhase({ session, client }) {
+  updateSession(session.id, { state: STATES.DISCOVERY_RUNNING });
 
   const streamer = createLogStreamer(client, session);
   await streamer.ensureLogMessage();
@@ -126,80 +282,29 @@ export async function startInteractive({ session, client }) {
       discovery: { ...session.discovery, questions: parsed.questions },
     });
 
-    await postToThread(
-      client,
-      session,
-      `*Phase 0: Discovery*\n\n${parsed.questions}\n\n_Reply with your answers to continue, or "cancel" to stop._`
-    );
+    const summaryMsg = `*Discovery Questions*\n\n${parsed.questions}`;
+    await postToThread(client, session, summaryMsg);
+    addToHistory(session, "assistant", summaryMsg);
   } catch (err) {
     failSession(session.id);
     await postToThread(client, session, `*Discovery failed*\n\`\`\`\n${err.message}\n\`\`\``);
   }
 }
 
-// ── Thread reply router ──────────────────────────────────────────────────────
+async function runPreflightPhase({ session, client }) {
+  // Gather the user's latest answers from conversation history
+  const recentUserMessages = (session.history || [])
+    .filter((m) => m.role === "user")
+    .slice(-5)
+    .map((m) => m.content)
+    .join("\n");
 
-/**
- * Handle a user's thread reply for an active session.
- * Routes to the correct handler based on session state.
- */
-export async function handleReply({ session, text, client }) {
-  const reply = classifyReply(text);
-
-  // Cancel works from any awaiting state
-  if (reply.type === "cancel") {
-    cancelSession(session.id);
-    await postToThread(client, session, "*Build cancelled.*");
-    return;
-  }
-
-  switch (session.state) {
-    case STATES.DISCOVERY_PENDING:
-      await handleDiscoveryReply({ session, reply, client });
-      break;
-
-    case STATES.PREFLIGHT_PENDING:
-      await handlePreflightReply({ session, reply, client });
-      break;
-
-    case STATES.PRD_REVIEW:
-      await handlePrdReply({ session, reply, client });
-      break;
-
-    case STATES.PLAN_REVIEW:
-      await handlePlanReply({ session, reply, client });
-      break;
-
-    case STATES.DISCOVERY_RUNNING:
-    case STATES.PRD_RUNNING:
-    case STATES.PLAN_RUNNING:
-    case STATES.BUILD_RUNNING:
-      await postToThread(
-        client,
-        session,
-        `_Phase is still running — I'll let you know when it's ready for review._`
-      );
-      break;
-
-    default:
-      await postToThread(
-        client,
-        session,
-        `_Session is in state \`${session.state}\` — no input expected._`
-      );
-  }
-}
-
-// ── Phase handlers ───────────────────────────────────────────────────────────
-
-async function handleDiscoveryReply({ session, reply, client }) {
-  // Store user's answers
-  const answers = reply.text;
+  const answers = session.discovery?.answers || recentUserMessages;
   updateSession(session.id, {
     discovery: { ...session.discovery, answers },
   });
 
-  await postToThread(client, session, "_Processing your answers..._");
+  await postToThread(client, session, "_Inferring technical context..._");
 
   const streamer = createLogStreamer(client, session);
 
@@ -227,120 +332,20 @@ async function handleDiscoveryReply({ session, reply, client }) {
       discovery: { ...session.discovery, discoveryContext: parsed.discoveryContext },
     });
 
-    // Show the inferred context and ask for confirmation
     const contextDisplay = parsed.discoveryContext || result.stdout.trim();
-    await postToThread(
-      client,
-      session,
-      [
-        `*Inferred Context*`,
-        "```",
-        contextDisplay.length > 1500 ? contextDisplay.slice(0, 1500) + "\n..." : contextDisplay,
-        "```",
-        "",
-        `_Reply "go" to proceed to PRD generation, give feedback to adjust, or "cancel" to stop._`,
-      ].join("\n")
-    );
+    const truncated = contextDisplay.length > 1500 ? contextDisplay.slice(0, 1500) + "\n..." : contextDisplay;
+    const summaryMsg = `*Inferred Context*\n\`\`\`\n${truncated}\n\`\`\``;
+    await postToThread(client, session, summaryMsg);
+    addToHistory(session, "assistant", summaryMsg);
   } catch (err) {
     failSession(session.id);
     await postToThread(client, session, `*Context inference failed*\n\`\`\`\n${err.message}\n\`\`\``);
   }
 }
 
-async function handlePreflightReply({ session, reply, client }) {
-  if (reply.type === "approve") {
-    await runPrdPhase({ session, client });
-  } else {
-    // User gave feedback — re-run discovery with their corrections
-    const combinedAnswers = [
-      session.discovery.answers || "",
-      `\nCorrections: ${reply.text}`,
-    ].join("\n");
-
-    updateSession(session.id, {
-      discovery: { ...session.discovery, answers: combinedAnswers },
-    });
-
-    await postToThread(client, session, "_Adjusting context..._");
-
-    const streamer = createLogStreamer(client, session);
-
-    try {
-      const prompt = inferredContextPrompt(session.instruction, combinedAnswers, session.sessionDir);
-      const result = await spawnClaude({
-        prompt,
-        cwd: session.sessionDir,
-        sessionId: session.id,
-        projectName: session.projectName,
-        onOutput: streamer.onOutput,
-        logFile: session.build.logFile,
-      });
-      await streamer.stop();
-
-      if (result.code !== 0) {
-        failSession(session.id);
-        await postToThread(client, session, `*Context update failed*\n\`\`\`\n${result.stderr.slice(-500)}\n\`\`\``);
-        return;
-      }
-
-      const parsed = parsePreflightOutput(result.stdout);
-      updateSession(session.id, {
-        discovery: { ...session.discovery, discoveryContext: parsed.discoveryContext },
-      });
-
-      const contextDisplay = parsed.discoveryContext || result.stdout.trim();
-      await postToThread(
-        client,
-        session,
-        [
-          `*Updated Context*`,
-          "```",
-          contextDisplay.length > 1500 ? contextDisplay.slice(0, 1500) + "\n..." : contextDisplay,
-          "```",
-          "",
-          `_Reply "go" to proceed to PRD generation, give feedback to adjust, or "cancel" to stop._`,
-        ].join("\n")
-      );
-    } catch (err) {
-      failSession(session.id);
-      await postToThread(client, session, `*Context update failed*\n\`\`\`\n${err.message}\n\`\`\``);
-    }
-  }
-}
-
-async function handlePrdReply({ session, reply, client }) {
-  if (reply.type === "approve") {
-    await runPlanPhase({ session, client });
-  } else {
-    // Feedback — re-run PRD with feedback incorporated
-    const prd = { ...session.prd };
-    prd.feedbackHistory = [...prd.feedbackHistory, reply.text];
-    updateSession(session.id, { prd });
-
-    await postToThread(client, session, `_Revising PRD with your feedback..._`);
-    await runPrdPhase({ session: { ...session, prd }, client });
-  }
-}
-
-async function handlePlanReply({ session, reply, client }) {
-  if (reply.type === "approve") {
-    await runBuildPhase({ session, client });
-  } else {
-    // Feedback — re-run plan with feedback incorporated
-    const plan = { ...session.plan };
-    plan.feedbackHistory = [...plan.feedbackHistory, reply.text];
-    updateSession(session.id, { plan });
-
-    await postToThread(client, session, `_Revising plan with your feedback..._`);
-    await runPlanPhase({ session: { ...session, plan }, client });
-  }
-}
-
-// ── Phase runners ────────────────────────────────────────────────────────────
-
 async function runPrdPhase({ session, client }) {
   updateSession(session.id, { state: STATES.PRD_RUNNING });
-  await postToThread(client, session, "*Phase 1: Generating PRD...*");
+  await postToThread(client, session, "*Generating PRD...*");
 
   const streamer = createLogStreamer(client, session);
   await streamer.ensureLogMessage();
@@ -377,33 +382,23 @@ async function runPrdPhase({ session, client }) {
 
     updateSession(session.id, {
       state: STATES.PRD_REVIEW,
-      prd: {
-        ...session.prd,
-        path: parsed.file,
-        summary: parsed,
-      },
+      prd: { ...session.prd, path: parsed.file, summary: parsed },
     });
 
-    const mustList = parsed.mustList
-      ? `\n\n*Must-haves:*\n${parsed.mustList}`
-      : "";
+    const mustList = parsed.mustList ? `\n\n*Must-haves:*\n${parsed.mustList}` : "";
+    const summaryMsg = [
+      `*PRD Generated*`,
+      parsed.file ? `> File: \`${parsed.file}\`` : "",
+      parsed.problem ? `> Problem: ${parsed.problem}` : "",
+      parsed.solution ? `> Solution: ${parsed.solution}` : "",
+      `> Scope: ${parsed.mustCount} must-haves, ${parsed.shouldCount} should-haves`,
+      mustList,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    await postToThread(
-      client,
-      session,
-      [
-        `*Phase 1 Complete — PRD Generated*`,
-        parsed.file ? `> File: \`${parsed.file}\`` : "",
-        parsed.problem ? `> Problem: ${parsed.problem}` : "",
-        parsed.solution ? `> Solution: ${parsed.solution}` : "",
-        `> Scope: ${parsed.mustCount} must-haves, ${parsed.shouldCount} should-haves`,
-        mustList,
-        "",
-        `_Reply "approved" to proceed to plan, give feedback to revise, or "cancel" to stop._`,
-      ]
-        .filter(Boolean)
-        .join("\n")
-    );
+    await postToThread(client, session, summaryMsg);
+    addToHistory(session, "assistant", summaryMsg);
   } catch (err) {
     failSession(session.id);
     await postToThread(client, session, `*PRD generation failed*\n\`\`\`\n${err.message}\n\`\`\``);
@@ -412,7 +407,7 @@ async function runPrdPhase({ session, client }) {
 
 async function runPlanPhase({ session, client }) {
   updateSession(session.id, { state: STATES.PLAN_RUNNING });
-  await postToThread(client, session, "*Phase 2: Generating implementation plan...*");
+  await postToThread(client, session, "*Generating implementation plan...*");
 
   const streamer = createLogStreamer(client, session);
   await streamer.ensureLogMessage();
@@ -423,7 +418,6 @@ async function runPlanPhase({ session, client }) {
       session.discovery?.answers ||
       session.instruction;
 
-    // Re-read session to get latest prd path
     const prdPath = session.prd?.path;
     if (!prdPath) {
       failSession(session.id);
@@ -458,32 +452,24 @@ async function runPlanPhase({ session, client }) {
 
     updateSession(session.id, {
       state: STATES.PLAN_REVIEW,
-      plan: {
-        ...session.plan,
-        path: parsed.file,
-        summary: parsed,
-        strategy: parsed.strategy,
-      },
+      plan: { ...session.plan, path: parsed.file, summary: parsed, strategy: parsed.strategy },
     });
 
-    await postToThread(
-      client,
-      session,
-      [
-        `*Phase 2 Complete — Plan Generated*`,
-        parsed.file ? `> File: \`${parsed.file}\`` : "",
-        parsed.summary ? `> Summary: ${parsed.summary}` : "",
-        parsed.changes ? `> Changes: ${parsed.changes}` : "",
-        parsed.newFiles ? `> New files: ${parsed.newFiles}` : "",
-        parsed.tests ? `> Tests: ${parsed.tests}` : "",
-        parsed.confidence ? `> Confidence: ${parsed.confidence}` : "",
-        parsed.strategy ? `> Strategy: ${parsed.strategy}` : "",
-        "",
-        `_Reply "approved" to start building, give feedback to revise, or "cancel" to stop._`,
-      ]
-        .filter(Boolean)
-        .join("\n")
-    );
+    const summaryMsg = [
+      `*Plan Generated*`,
+      parsed.file ? `> File: \`${parsed.file}\`` : "",
+      parsed.summary ? `> Summary: ${parsed.summary}` : "",
+      parsed.changes ? `> Changes: ${parsed.changes}` : "",
+      parsed.newFiles ? `> New files: ${parsed.newFiles}` : "",
+      parsed.tests ? `> Tests: ${parsed.tests}` : "",
+      parsed.confidence ? `> Confidence: ${parsed.confidence}` : "",
+      parsed.strategy ? `> Strategy: ${parsed.strategy}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    await postToThread(client, session, summaryMsg);
+    addToHistory(session, "assistant", summaryMsg);
   } catch (err) {
     failSession(session.id);
     await postToThread(client, session, `*Plan generation failed*\n\`\`\`\n${err.message}\n\`\`\``);
@@ -492,7 +478,7 @@ async function runPlanPhase({ session, client }) {
 
 async function runBuildPhase({ session, client }) {
   updateSession(session.id, { state: STATES.BUILD_RUNNING });
-  await postToThread(client, session, "*Phases 3-5: Building, running QA, and finalizing...*");
+  await postToThread(client, session, "*Building, running QA, and finalizing...*");
 
   const streamer = createLogStreamer(client, session);
   await streamer.ensureLogMessage();
@@ -550,4 +536,54 @@ async function runBuildPhase({ session, client }) {
     failSession(session.id);
     await postToThread(client, session, `*Build failed*\n\`\`\`\n${err.message}\n\`\`\`\n\n_Session: \`${session.id}\`_`);
   }
+}
+
+// ── Phase context builder ────────────────────────────────────────────────────
+
+function buildPhaseContext(session) {
+  const ctx = {
+    projectName: session.projectName,
+    projectPath: session.projectPath,
+  };
+
+  if (session.state === STATES.DISCOVERY_PENDING) {
+    ctx.questions = session.discovery?.questions;
+  }
+
+  if (session.state === STATES.PREFLIGHT_PENDING) {
+    ctx.discoveryContext = session.discovery?.discoveryContext;
+  }
+
+  if (session.state === STATES.PRD_REVIEW) {
+    const s = session.prd?.summary;
+    if (s) {
+      ctx.prdSummary = [
+        s.problem ? `Problem: ${s.problem}` : "",
+        s.solution ? `Solution: ${s.solution}` : "",
+        `Scope: ${s.mustCount} must-haves, ${s.shouldCount} should-haves`,
+        s.mustList ? `Must-haves:\n${s.mustList}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+    ctx.prdPath = session.prd?.path;
+  }
+
+  if (session.state === STATES.PLAN_REVIEW) {
+    const s = session.plan?.summary;
+    if (s) {
+      ctx.planSummary = [
+        s.summary ? `Summary: ${s.summary}` : "",
+        s.changes ? `Changes: ${s.changes}` : "",
+        s.tests ? `Tests: ${s.tests}` : "",
+        s.confidence ? `Confidence: ${s.confidence}` : "",
+        s.strategy ? `Strategy: ${s.strategy}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+    ctx.planPath = session.plan?.path;
+  }
+
+  return ctx;
 }

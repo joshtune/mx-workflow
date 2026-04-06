@@ -4,14 +4,14 @@
  * Listens for build instructions in Slack → runs Claude Code + mx-workflow
  *
  * Two modes:
- *   --auto: Fire-and-forget (original behavior)
- *   default: Interactive — phases run one at a time, user reviews at each gate
+ *   --auto: Fire-and-forget (runs full pipeline autonomously)
+ *   default: Conversational — chat naturally, build when ready, review phases interactively
  */
 
 import { App } from "@slack/bolt";
 import { runner, resolveProject } from "./runner.js";
 import { createSession, findSessionByThread, loadActiveSessions } from "./session.js";
-import { startInteractive, handleReply } from "./interactive.js";
+import { startConversation, handleReply } from "./interactive.js";
 import { config } from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -84,13 +84,12 @@ app.message(async ({ message, client, say }) => {
   if (/--auto\b/i.test(instruction)) {
     await handleAutoRequest({ instruction, message, client, say });
   } else {
-    await startNewInteractiveSession({
+    await startNewConversation({
       instruction,
       threadTs: message.ts,
       channel: message.channel,
       userId: message.user,
       client,
-      say,
     });
   }
 });
@@ -123,20 +122,19 @@ app.command("/build", async ({ command, ack, client, respond }) => {
       text: `*Build requested by <@${command.user_id}>*\n> ${instruction}`,
     });
 
-    await startNewInteractiveSession({
+    await startNewConversation({
       instruction,
       threadTs: initMsg.ts,
       channel: command.channel_id,
       userId: command.user_id,
       client,
-      say: respond,
     });
   }
 });
 
-// ── Interactive session creation ─────────────────────────────────────────────
+// ── Conversation session creation ────────────────────────────────────────────
 
-async function startNewInteractiveSession({ instruction, threadTs, channel, userId, client, say }) {
+async function startNewConversation({ instruction, threadTs, channel, userId, client }) {
   const resolved = resolveProject(instruction);
 
   if (resolved.error) {
@@ -179,7 +177,8 @@ async function startNewInteractiveSession({ instruction, threadTs, channel, user
     sessionDir,
   });
 
-  await startInteractive({ session, client });
+  // Send the first message through the conversation handler — no build triggered yet
+  await startConversation({ session, firstMessage: resolved.instruction, client });
 }
 
 // ── Auto mode (original fire-and-forget behavior) ───────────────────────────

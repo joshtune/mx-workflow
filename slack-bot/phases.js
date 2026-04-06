@@ -1,39 +1,190 @@
 /**
  * phases.js
- * Pure functions: prompt generators for each build phase, output parsers,
- * and reply classification (approve / cancel / feedback).
+ * Conversation prompt system, phase-specific prompt generators, output parsers,
+ * and marker-based action detection (Claude decides intent, not regex).
  */
 
-// ── Reply Classification ─────────────────────────────────────────────────────
+// ── Conversation System ──────────────────────────────────────────────────────
 
-const APPROVE_PATTERNS = [
-  /^(yes|y|yep|yup|yeah|ok|okay|lgtm|looks good|approve|approved|proceed|go|go ahead|ship it|continue|confirm)$/i,
-];
-
-const CANCEL_PATTERNS = [
-  /^(cancel|stop|abort|quit|nevermind|never mind|nvm)$/i,
-];
+const MAX_HISTORY_MESSAGES = 40;
 
 /**
- * Classify a user's thread reply.
- * @param {string} text
- * @returns {{ type: 'approve' | 'cancel' | 'feedback', text: string }}
+ * Format conversation history into a prompt-friendly string.
  */
-export function classifyReply(text) {
-  const cleaned = text.replace(/<@[A-Z0-9]+>/g, "").trim();
-
-  for (const pat of CANCEL_PATTERNS) {
-    if (pat.test(cleaned)) return { type: "cancel", text: cleaned };
-  }
-
-  for (const pat of APPROVE_PATTERNS) {
-    if (pat.test(cleaned)) return { type: "approve", text: cleaned };
-  }
-
-  return { type: "feedback", text: cleaned };
+export function formatHistory(history) {
+  const recent = history.slice(-MAX_HISTORY_MESSAGES);
+  if (recent.length === 0) return "(no prior messages)";
+  return recent
+    .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+    .join("\n\n");
 }
 
-// ── Prompt Generators ────────────────────────────────────────────────────────
+/**
+ * Build the system prompt portion based on the current session state.
+ * phaseContext provides state-specific details (PRD summary, plan summary, etc.)
+ */
+export function conversationSystemPrompt(state, phaseContext = {}) {
+  const base = [
+    `You are mx-bot, a helpful AI assistant for a dev team. You're chatting in a Slack thread.`,
+    `Keep responses concise and conversational — this is Slack, not a document.`,
+    ``,
+    `You have access to the mx-workflow build pipeline that can take ideas from concept to committed code.`,
+  ].join("\n");
+
+  const markerInstructions = {
+    CONVERSATION: [
+      ``,
+      `CURRENT STATE: Free conversation (no active build)`,
+      phaseContext.projectName
+        ? `Project context: ${phaseContext.projectName} at ${phaseContext.projectPath}`
+        : `No specific project selected.`,
+      ``,
+      `Help the user brainstorm, discuss ideas, answer questions — whatever they want to talk about.`,
+      ``,
+      `ACTION MARKERS — include at the END of your response ONLY when the user clearly wants to start building:`,
+      `- When the user says something like "let's build this", "build it", "start the build", "can you build that":`,
+      `  Include on its own line:`,
+      `  ---BUILD_START---`,
+      `  <one-line summary of what to build, incorporating everything discussed>`,
+      `  ---END_BUILD_START---`,
+      ``,
+      `Do NOT include this marker for general discussion, questions, or brainstorming.`,
+      `Do NOT ask the user if they want to build unless they bring it up.`,
+    ].join("\n"),
+
+    DISCOVERY_PENDING: [
+      ``,
+      `CURRENT STATE: Build pipeline — Discovery phase`,
+      `The user was asked discovery questions and is providing answers.`,
+      phaseContext.questions ? `\nDiscovery questions that were asked:\n${phaseContext.questions}` : ``,
+      ``,
+      `Help the user with any questions they have. When they have provided answers to the discovery questions:`,
+      `- Include ---ADVANCE--- on its own line at the end of your response`,
+      `- Before the marker, restate what you understood from their answers`,
+      ``,
+      `If they want to cancel: include ---CANCEL--- on its own line`,
+      `If they're just asking a question or chatting, respond naturally with no markers.`,
+    ].join("\n"),
+
+    PREFLIGHT_PENDING: [
+      ``,
+      `CURRENT STATE: Build pipeline — Context confirmation`,
+      `The inferred technical context was shown to the user.`,
+      phaseContext.discoveryContext ? `\nInferred context:\n${phaseContext.discoveryContext}` : ``,
+      ``,
+      `Help the user with any questions. When they confirm the context is correct:`,
+      `- Include ---ADVANCE--- on its own line at the end`,
+      ``,
+      `If they want changes to the inferred context:`,
+      `- Include ---REVISE--- on its own line, followed by the corrections on the next line`,
+      ``,
+      `If they want to cancel: include ---CANCEL---`,
+      `For questions or discussion, respond naturally with no markers.`,
+    ].join("\n"),
+
+    PRD_REVIEW: [
+      ``,
+      `CURRENT STATE: Build pipeline — PRD review`,
+      `A PRD was generated and the user is reviewing it.`,
+      phaseContext.prdSummary ? `\nPRD summary:\n${phaseContext.prdSummary}` : ``,
+      phaseContext.prdPath ? `PRD file: ${phaseContext.prdPath}` : ``,
+      ``,
+      `Help the user understand the PRD. Answer any questions naturally.`,
+      ``,
+      `When the user approves the PRD (e.g., "approved", "looks good", "go ahead"):`,
+      `- Include ---ADVANCE--- on its own line at the end`,
+      ``,
+      `When the user wants changes (e.g., "add X", "remove Y", "change Z"):`,
+      `- Include ---REVISE--- on its own line, followed by the specific changes on the next line`,
+      ``,
+      `If they want to cancel: include ---CANCEL---`,
+      `For questions or discussion, respond naturally with no markers.`,
+    ].join("\n"),
+
+    PLAN_REVIEW: [
+      ``,
+      `CURRENT STATE: Build pipeline — Plan review`,
+      `An implementation plan was generated and the user is reviewing it.`,
+      phaseContext.planSummary ? `\nPlan summary:\n${phaseContext.planSummary}` : ``,
+      phaseContext.planPath ? `Plan file: ${phaseContext.planPath}` : ``,
+      ``,
+      `Help the user understand the plan. Answer any questions naturally.`,
+      ``,
+      `When the user approves the plan (e.g., "approved", "looks good", "let's build"):`,
+      `- Include ---ADVANCE--- on its own line at the end`,
+      ``,
+      `When the user wants changes:`,
+      `- Include ---REVISE--- on its own line, followed by the specific changes on the next line`,
+      ``,
+      `If they want to cancel: include ---CANCEL---`,
+      `For questions or discussion, respond naturally with no markers.`,
+    ].join("\n"),
+  };
+
+  return base + (markerInstructions[state] || "");
+}
+
+/**
+ * Build the full prompt for a conversation turn.
+ */
+export function buildConversationPrompt(systemPrompt, history, currentMessage) {
+  return [
+    systemPrompt,
+    ``,
+    `--- Conversation so far ---`,
+    formatHistory(history),
+    `--- End conversation ---`,
+    ``,
+    `User: ${currentMessage}`,
+    ``,
+    `Respond naturally. Include action markers ONLY when the user's intent is clear.`,
+  ].join("\n");
+}
+
+/**
+ * Parse Claude's conversation response for action markers.
+ * Returns { text, action, buildInstruction?, reviseFeedback? }
+ */
+export function parseConversationResponse(stdout) {
+  let text = stdout.trim();
+  let action = null;
+  let buildInstruction = null;
+  let reviseFeedback = null;
+
+  // Check for BUILD_START
+  const buildMatch = text.match(/---BUILD_START---([\s\S]*?)---END_BUILD_START---/);
+  if (buildMatch) {
+    action = "build_start";
+    buildInstruction = buildMatch[1].trim();
+    text = text.replace(/---BUILD_START---[\s\S]*?---END_BUILD_START---/, "").trim();
+  }
+
+  // Check for ADVANCE
+  if (text.includes("---ADVANCE---")) {
+    action = "advance";
+    text = text.replace(/---ADVANCE---/g, "").trim();
+  }
+
+  // Check for REVISE
+  const reviseMatch = text.match(/---REVISE---\s*([\s\S]*?)$/);
+  if (reviseMatch) {
+    action = "revise";
+    reviseFeedback = reviseMatch[1].trim();
+    text = text.replace(/---REVISE---[\s\S]*$/, "").trim();
+  }
+
+  // Check for CANCEL
+  if (text.includes("---CANCEL---")) {
+    action = "cancel";
+    text = text.replace(/---CANCEL---/g, "").trim();
+  }
+
+  return { text, action, buildInstruction, reviseFeedback };
+}
+
+// ── Phase-Specific Prompt Generators ─────────────────────────────────────────
+// These run the actual build phases (discovery, PRD, plan, build).
+// They are NOT conversational — they produce structured output for the bot to parse.
 
 /**
  * Phase 0: Discovery — ask direction questions, don't generate anything yet.
@@ -196,24 +347,18 @@ export function buildPrompt(instruction, prdPath, planPath) {
   ].join("\n");
 }
 
-// ── Output Parsers ───────────────────────────────────────────────────────────
+// ── Phase Output Parsers ─────────────────────────────────────────────────────
 
 function extractField(block, name) {
   const match = block.match(new RegExp(`${name}:\\s*(.+)`));
   return match ? match[1].trim() : null;
 }
 
-/**
- * Extract multi-line field value (everything after "NAME:" until next "---" or "FIELDNAME:")
- */
 function extractMultilineField(block, name) {
   const match = block.match(new RegExp(`${name}:\\s*([\\s\\S]*?)(?=\\n[A-Z_]+:|---)`));
   return match ? match[1].trim() : null;
 }
 
-/**
- * Parse Phase 0 discovery output.
- */
 export function parseDiscoveryOutput(stdout) {
   const marker = "---DISCOVERY_QUESTIONS---";
   const idx = stdout.indexOf(marker);
@@ -223,9 +368,6 @@ export function parseDiscoveryOutput(stdout) {
   };
 }
 
-/**
- * Parse Phase 0.5 inferred context output.
- */
 export function parsePreflightOutput(stdout) {
   const match = stdout.match(
     /---DISCOVERY_CONTEXT---([\s\S]*?)---END_DISCOVERY_CONTEXT---/
@@ -236,9 +378,6 @@ export function parsePreflightOutput(stdout) {
   };
 }
 
-/**
- * Parse Phase 1 PRD output.
- */
 export function parsePrdOutput(stdout) {
   const match = stdout.match(/---PRD_SUMMARY---([\s\S]*?)---END_PRD_SUMMARY---/);
   if (!match) return { file: null, problem: null, solution: null, mustCount: 0, shouldCount: 0, mustList: null, raw: stdout };
@@ -255,9 +394,6 @@ export function parsePrdOutput(stdout) {
   };
 }
 
-/**
- * Parse Phase 2 plan output.
- */
 export function parsePlanOutput(stdout) {
   const match = stdout.match(/---PLAN_SUMMARY---([\s\S]*?)---END_PLAN_SUMMARY---/);
   if (!match) return { file: null, summary: null, changes: null, newFiles: null, tests: null, confidence: null, strategy: null, raw: stdout };
@@ -275,9 +411,6 @@ export function parsePlanOutput(stdout) {
   };
 }
 
-/**
- * Parse Phases 3-5 build output.
- */
 export function parseBuildOutput(stdout) {
   return {
     status: extractField(stdout, "STATUS"),
