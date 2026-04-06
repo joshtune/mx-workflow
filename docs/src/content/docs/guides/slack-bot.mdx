@@ -88,9 +88,9 @@ Add `--auto` to your message for the original fire-and-forget behavior:
 
 ## Session isolation
 
-Each build runs in its own directory under `$MX_WORK_DIR/session-<id>/`. This means:
+Each build runs in its own directory under `$MX_WORK_DIR/<project-name>/` (e.g., `~/builds/task-management-system/`). Directory names are derived from the build instruction automatically. This means:
 - Builds don't interfere with each other
-- Each session has its own git repo
+- Each project gets a readable, memorable directory name
 - Logs are stored per session in `$MX_LOG_DIR/<session-id>.log`
 
 ## Projects
@@ -146,6 +146,19 @@ ssh mac-mini "tail -f ~/builds/.logs/slack-bot.log"
 ssh mac-mini "tail -f ~/builds/.logs/<session-id>.log"
 ```
 
+## Updating
+
+To update the bot after pulling new mx-workflow changes:
+
+```bash
+cd ~/mx-workflow && git pull
+cd slack-bot && npm install
+launchctl stop com.joshtune.mx-workflow-slack-bot
+launchctl start com.joshtune.mx-workflow-slack-bot
+```
+
+No reconfiguration needed — `.env`, `.mx-mac-mini.json`, and the daemon plist are preserved.
+
 ## Requirements
 
 - macOS (Mac mini, headless)
@@ -154,3 +167,4 @@ ssh mac-mini "tail -f ~/builds/.logs/<session-id>.log"
 - mx-workflow plugin installed
 - GitHub SSH configured
 - Slack workspace with a bot app
+- `@slack/bolt` v4+ (installed automatically via `npm install`)
