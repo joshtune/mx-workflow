@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-04-05
+
+### Added
+
+- Two-way interactive Slack bot conversation — builds now run phase-by-phase by default, posting discovery questions, PRD summaries, and plan summaries to the thread and waiting for user approval or feedback before proceeding. Users can go back and forth at each gate until satisfied.
+- `slack-bot/session.js` — session state machine with in-memory lookup and JSON disk persistence, startup recovery for interrupted sessions, 24h expiry cleanup
+- `slack-bot/phases.js` — prompt generators for each build phase, structured output parsers, reply classifier (approve/cancel/feedback)
+- `slack-bot/interactive.js` — phase orchestrator driving sessions through discovery → preflight → PRD → plan → build with feedback loops at each gate
+- `spawnClaude()` export in `slack-bot/runner.js` — reusable Claude Code spawn primitive used by both auto and interactive runners
+
+### Changed
+
+- Slack bot default mode is now interactive (use `--auto` flag for original fire-and-forget behavior)
+- `slack-bot/index.js` — thread reply routing, `--auto` flag dispatch, user identity verification on session threads
+- `slack-bot/runner.js` — refactored to use `spawnClaude()` internally, exported `extractPrUrl`/`extractBranch` parsers
+
 ## [1.18.1] - 2026-04-04
 
 ### Fixed
@@ -256,7 +272,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.19.0...HEAD
+[1.19.0]: https://github.com/joshtune/mx-workflow/compare/v1.18.1...v1.19.0
+[1.18.1]: https://github.com/joshtune/mx-workflow/compare/v1.18.0...v1.18.1
+[1.18.0]: https://github.com/joshtune/mx-workflow/compare/v1.17.0...v1.18.0
+[1.17.0]: https://github.com/joshtune/mx-workflow/compare/v1.16.0...v1.17.0
+[1.16.0]: https://github.com/joshtune/mx-workflow/compare/v1.15.0...v1.16.0
+[1.15.0]: https://github.com/joshtune/mx-workflow/compare/v1.14.1...v1.15.0
+[1.14.1]: https://github.com/joshtune/mx-workflow/compare/v1.14.0...v1.14.1
+[1.14.0]: https://github.com/joshtune/mx-workflow/compare/v1.13.0...v1.14.0
+[1.13.0]: https://github.com/joshtune/mx-workflow/compare/v1.12.0...v1.13.0
+[1.12.0]: https://github.com/joshtune/mx-workflow/compare/v1.11.0...v1.12.0
+[1.11.0]: https://github.com/joshtune/mx-workflow/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/joshtune/mx-workflow/compare/v1.9.0...v1.10.0
+[1.9.0]: https://github.com/joshtune/mx-workflow/compare/v1.8.0...v1.9.0
+[1.8.0]: https://github.com/joshtune/mx-workflow/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/joshtune/mx-workflow/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/joshtune/mx-workflow/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/joshtune/mx-workflow/compare/v1.5.0...v1.6.0
