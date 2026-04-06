@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-04-05
+
+### Changed
+
+- Slack bot is now conversational by default — chat naturally, discuss ideas, and build when ready. Claude mediates all replies (no more regex classification), understanding questions vs approval vs feedback from context. Build pipeline only triggers when user explicitly asks to build.
+- Conversation history tracked per session and passed to Claude for full context across turns
+- `slack-bot/phases.js` — replaced `classifyReply()` with `conversationSystemPrompt()`, `buildConversationPrompt()`, and `parseConversationResponse()` for Claude-mediated intent detection via structured markers
+- `slack-bot/interactive.js` — rewritten from rigid state handlers to unified conversation handler with marker-triggered phase transitions
+- `slack-bot/session.js` — added `CONVERSATION` as initial state and `history[]` for conversation tracking
+- `slack-bot/index.js` — sessions start in conversation mode, first message goes through Claude instead of directly to discovery
+
 ## [1.19.0] - 2026-04-05
 
 ### Added
@@ -272,7 +283,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.19.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.20.0...HEAD
+[1.20.0]: https://github.com/joshtune/mx-workflow/compare/v1.19.0...v1.20.0
 [1.19.0]: https://github.com/joshtune/mx-workflow/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/joshtune/mx-workflow/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/joshtune/mx-workflow/compare/v1.17.0...v1.18.0

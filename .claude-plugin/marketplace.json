@@ -10,7 +10,7 @@
       "name": "mx",
       "description": "Development workflow plugin with 15+ commands for planning, implementation, testing, and code quality",
       "source": "./",
-      "version": "1.19.0"
+      "version": "1.20.0"
     }
   ]
 }

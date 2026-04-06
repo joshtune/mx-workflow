@@ -1,7 +1,7 @@
 {
   "name": "mx-workflow",
   "description": "Development workflow plugin with commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "author": {
     "name": "Josh Tune",
     "url": "https://github.com/joshtune"
