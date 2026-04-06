@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.2] - 2026-04-05
+
+### Fixed
+
+- Slack bot `@slack/bolt` upgraded from v3.22 to v4.6.0 for Node.js v25 ESM compatibility — fixes `Named export 'App' not found` crash and `Unhandled event 'server explicit disconnect'` socket-mode error
+- Slack bot data copy sync — installed copy was missing `interactive.js`, `phases.js`, `session.js` and had stale `index.js`/`runner.js` from pre-interactive era
+
 ## [1.21.1] - 2026-04-05
 
 ### Fixed
@@ -307,7 +314,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.21.1...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.21.2...HEAD
+[1.21.2]: https://github.com/joshtune/mx-workflow/compare/v1.21.1...v1.21.2
 [1.21.1]: https://github.com/joshtune/mx-workflow/compare/v1.21.0...v1.21.1
 [1.21.0]: https://github.com/joshtune/mx-workflow/compare/v1.20.0...v1.21.0
 [1.20.0]: https://github.com/joshtune/mx-workflow/compare/v1.19.0...v1.20.0
