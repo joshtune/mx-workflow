@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Repositioning** — mx-workflow now leads with its identity as "the review-grade quality layer for AI-generated code" rather than "a full dev-lifecycle plugin." Generation is table stakes; the differentiator is the refusal layer that interrogates AI-generated code for silent failures, hallucinated APIs, suppressed errors, and type rot. The full lifecycle toolkit stays — it's now framed as the foundation underneath the review agents. (Phase 1 of the reposition; see `ROADMAP.md`.)
+- `plugin.json` and marketplace descriptions rewritten to lead with the review framing.
+- `README.md` top section rewritten with the new positioning and a "Why mx-workflow" section naming the gap (peers generate; mx-workflow verifies).
+- Docs landing page (`docs/`) hero, tagline, cards, and a new "Why mx-workflow" section updated to match.
+- Agent docs (README + docs catalog) now group the **8 review-grade agents** first and the **4 build agents** at the bottom as "Optional build agents." Documented the five previously-undocumented agents (`mx-quality-keeper`, `mx-schema-builder`, `mx-feature-builder`, `mx-test-builder`, `mx-shipkit-builder`) — the catalog now covers all 12 agents instead of 7.
+
 ## [1.21.2] - 2026-04-05
 
 ### Fixed

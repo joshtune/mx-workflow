@@ -1,9 +1,9 @@
 ---
 title: mx-workflow
-description: Development workflow plugin with commands and agents for the full dev lifecycle.
+description: The review-grade quality layer for AI-generated code.
 template: splash
 hero:
-  tagline: Your entire dev lifecycle in slash commands — from ticket intake to PR. Planning, implementation, quality checks, conventional commits, and multi-agent team builds. All from your terminal.
+  tagline: The review-grade quality layer for AI-generated code. Eight specialized agents interrogate generated code — catching silent failures, hallucinated APIs, suppressed errors, and type rot — backed by a full dev-lifecycle toolkit. All from your terminal.
   actions:
     - text: Get Started
       link: /mx-workflow/getting-started/
@@ -18,20 +18,30 @@ hero:
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid>
-  <Card title="Plan to PR in minutes" icon="rocket">
-    Go from ticket to pull request with `/mx:plan`, `/mx:implement`, and `/mx:pr`.
-    Built-in validation loops and agent review catch issues before your teammates do.
+  <Card title="8 review-grade agents" icon="magnifier">
+    Code review, silent-failure hunting, hallucinated-API detection, type design,
+    test analysis, performance auditing, comment quality, and adversarial quality
+    keeping — each interrogating your code from a different angle.
   </Card>
-  <Card title="Idea to shipped code" icon="group">
-    Run `/mx:build "your idea"` — discovery questions, PRD, plan, build, QA, and
-    commit in one pipeline. Auto-selects single-agent or agent team based on complexity.
+  <Card title="Refuses, doesn't just generate" icon="error">
+    The scarce layer isn't writing more code — it's pushing back on the code an AI
+    already wrote. mx agents reject silent failures, suppressed errors, type rot,
+    and unjustified shortcuts before they reach your teammates.
   </Card>
-  <Card title="8 specialized AI agents" icon="magnifier">
-    Code review, silent failure hunting, test analysis, type design, performance
-    auditing, comment quality, code simplification, and quality keeping — all running automatically.
+  <Card title="Full lifecycle underneath" icon="rocket">
+    The same plugin ships your code too: `/mx:plan`, `/mx:implement`, `/mx:commit`,
+    `/mx:pr`, and `/mx:build` cover ticket intake to PR with validation loops built in.
   </Card>
   <Card title="Headless builds via Slack" icon="setting">
     Send a message in Slack, and a Mac mini runs the full build pipeline autonomously.
     Progress streams back in real-time, PR link posted on completion.
   </Card>
 </CardGrid>
+
+## Why mx-workflow
+
+Generation is now table stakes. Claude Code, Cursor, Aider, Cline, Codex, Copilot — every plugin in the marketplace races to *write* more code, faster. None of them are built to **refuse**.
+
+As more of your codebase comes from an AI that stays confident even when it's wrong, the scarce, valuable layer is the one that interrogates the output: Does this API actually exist? Is this error being swallowed? Did the types just get weaker? Is this fallback hiding a real failure?
+
+mx-workflow is that layer. Eight review-grade agents do the interrogating; a full dev-lifecycle toolkit sits underneath so the same plugin that verifies your code can also help you ship it.

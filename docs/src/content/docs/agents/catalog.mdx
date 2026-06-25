@@ -1,15 +1,21 @@
 ---
 title: Agent Catalog
-description: All 7 specialized AI agents — purpose, capabilities, triggers, and which commands invoke them.
+description: All 12 specialized AI agents — 8 review-grade interrogators plus 4 optional build agents.
 ---
 
-mx-workflow includes seven specialized agents that analyze your code from different angles. They run as sub-agents via the Task tool, either automatically during commands like `/mx:implement` or on-demand through the `/mx:agents` command.
+mx-workflow includes **12 specialized agents**. The eight **review-grade** agents are the heart of the plugin — each interrogates your code from a different angle and pushes back on what doesn't meet the bar. The four **build** agents are supporting cast: they generate code during `/mx:build` pipelines, which the review agents then interrogate.
+
+All agents run as sub-agents via the Task tool, either automatically during commands like `/mx:implement` or on-demand through the `/mx:agents` command.
 
 ## How agents work
 
 Each agent is a focused expert with a single responsibility. When invoked, it receives the relevant code (typically your unstaged changes from `git diff`) and produces a structured report with findings, severity ratings, and actionable recommendations.
 
-Agents are **advisory only** — they analyze and report but do not modify code directly (with the exception of `mx-code-simplifier`, which applies refinements).
+Review agents are **advisory by default** — they analyze and report rather than modify code (the exceptions: `mx-code-simplifier`, which applies refinements, and the build agents, which write code by design).
+
+## Review-grade agents
+
+The interrogation layer. These eight catch what a generator won't tell you: silent failures, hallucinated APIs, weakened types, missing tests, and unjustified shortcuts.
 
 ## mx-code-reviewer
 
@@ -237,17 +243,113 @@ Agents are **advisory only** — they analyze and report but do not modify code 
 
 ---
 
+## mx-quality-keeper
+
+**Purpose:** Adversarial quality gatekeeper — verifies completed work and rejects what doesn't meet the bar, without writing production code.
+
+| Property | Value |
+|---|---|
+| Model | Opus |
+| Mode | Advisory (verifies and rejects; never writes production code) |
+| Default scope | Unstaged changes from `git diff`, or specified scope |
+
+**What it does:**
+
+- Runs adversarial by design — its job is to find what's broken, not confirm what works. When in doubt, it fails the check and explains why.
+- Orchestrates existing mx quality commands (`/mx:validate`, `/mx:check-ignores`, `/mx:deps`) rather than reimplementing them.
+- Operates in two contexts:
+  - **Team build mode** — a mandatory QA teammate in `/mx:build-with-agent-team`; verifies every task before it can close, routes failures back to the owning agent, and escalates after repeated failures.
+  - **Standalone mode** — invoked via `/mx:qa` to run a comprehensive quality audit on current work.
+
+**Invoked by:**
+
+- `/mx:qa` — standalone quality audit
+- `/mx:build-with-agent-team` — mandatory QA gate for every task
+- Can be invoked directly via the Task tool at any time
+
+## Optional build agents
+
+Supporting cast for the `/mx:build` and `/mx:build-with-agent-team` pipelines. These agents **generate** code — schema, features, tests, launch integrations — which the review-grade agents above then interrogate. Invoke them through the build commands rather than directly.
+
+## mx-schema-builder
+
+**Purpose:** Build a database schema for a new project from a spec's data model section.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Active (writes migrations, types, and policies) |
+| Pipeline step | After scaffolding, before feature implementation |
+
+Creates Supabase (PostgreSQL) tables, indexes, RLS policies, TypeScript types, and migration files from the data model section of a product spec.
+
+---
+
+## mx-feature-builder
+
+**Purpose:** Implement a single product feature end-to-end from its spec.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Active (writes feature code) |
+| Pipeline step | Once per feature, after schema is in place |
+
+Takes one feature's spec (name, user action, expected result, implementation notes) plus project context (stack, data model, routes) and builds it end-to-end, following patterns established by prior features.
+
+---
+
+## mx-test-builder
+
+**Purpose:** Write Playwright end-to-end tests and run them until they pass.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Active (writes and runs tests) |
+| Pipeline step | After all features are implemented |
+
+Sets up Playwright if needed, writes comprehensive E2E tests from the feature list and test scenarios in the spec, and iterates until every test passes.
+
+---
+
+## mx-shipkit-builder
+
+**Purpose:** Integrate the Ship Kit into a built product so it's ready to launch.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Active (integrates launch components) |
+| Pipeline step | After features and tests pass, before quality review |
+
+Wires in the five Ship Kit components — analytics (Umami), SEO, Stripe payments, a feedback widget, and a contact footer — for production deployment.
+
+---
+
 ## Quick reference
+
+### Review-grade agents
 
 | Agent | Runs automatically in | On-demand |
 |---|---|---|
 | mx-code-reviewer | `/mx:implement` (always) | Yes |
-| mx-code-simplifier | `/mx:implement` (always, final pass) | Yes |
+| mx-silent-failure-hunter | `/mx:implement` (always) | Yes |
+| mx-type-design-analyzer | `/mx:implement` (if types changed) | Yes |
 | mx-comment-analyzer | `/mx:implement` (if comments changed) | Yes |
 | mx-mr-test-analyzer | `/mx:implement` (if tests changed) | Yes |
 | mx-performance-auditor | — | Yes |
-| mx-silent-failure-hunter | `/mx:implement` (always) | Yes |
-| mx-type-design-analyzer | `/mx:implement` (if types changed) | Yes |
+| mx-code-simplifier | `/mx:implement` (always, final pass) | Yes |
+| mx-quality-keeper | `/mx:qa`, `/mx:build-with-agent-team` (QA gate) | Yes |
+
+### Optional build agents
+
+| Agent | Runs in | On-demand |
+|---|---|---|
+| mx-schema-builder | `/mx:build` pipeline (after scaffolding) | Via build commands |
+| mx-feature-builder | `/mx:build` pipeline (per feature) | Via build commands |
+| mx-test-builder | `/mx:build` pipeline (after features) | Via build commands |
+| mx-shipkit-builder | `/mx:build` pipeline (before QA) | Via build commands |
 
 To see agents available in your current session, run:
 

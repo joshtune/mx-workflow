@@ -1,6 +1,14 @@
 # mx-workflow
 
-Development workflow plugin for [Claude Code](https://claude.com/claude-code) covering the full dev lifecycle: planning, implementation, quality checks, conventional commits, E2E testing, and multi-agent team builds.
+**The review-grade quality layer for AI-generated code.**
+
+[Claude Code](https://claude.com/claude-code) and its peers make *generating* code table stakes. What they don't do is push back on it. mx-workflow is the refusal layer: a team of specialized agents that interrogate AI-generated code and reject silent failures, hallucinated APIs, suppressed errors, type rot, and unjustified shortcuts — before that code reaches your teammates.
+
+Eight review-grade agents do the interrogating. Underneath sits a full dev-lifecycle toolkit — planning, implementation, conventional commits, E2E testing, PRs, and multi-agent team builds — so the same plugin that verifies your code can also help you ship it.
+
+## Why mx-workflow
+
+Every other plugin in the marketplace is generation-flavored — Cursor, Aider, Cline, Codex, Copilot, and Claude Code itself all race to *write* more code, faster. None of them are built to **refuse**. As more of your codebase comes from an AI that is confident even when it's wrong, the scarce, valuable layer is the one that interrogates the output: does this API actually exist? Is this error being swallowed? Did the types just get weaker? mx-workflow is that layer.
 
 ## Documentation
 
@@ -182,17 +190,31 @@ See `.env.example` for detailed documentation on each variable.
 
 ## Agents
 
-Seven specialized agents are included for targeted code analysis. They run automatically via commands like `/mx:implement`, or can be invoked directly via the Task tool.
+mx-workflow ships **12 specialized agents**. The eight review-grade agents are the heart of the plugin — they interrogate code from a different angle each. They run automatically via commands like `/mx:implement`, or can be invoked directly via the Task tool.
+
+### Review-grade agents
 
 | Agent | Purpose |
 |---|---|
 | `mx-code-reviewer` | Review code against CLAUDE.md guidelines and detect bugs |
-| `mx-code-simplifier` | Simplify code for clarity while preserving functionality |
-| `mx-silent-failure-hunter` | Find silent failures and inadequate error handling |
-| `mx-mr-test-analyzer` | Review test coverage quality and completeness |
-| `mx-comment-analyzer` | Analyze comment accuracy and long-term maintainability |
+| `mx-silent-failure-hunter` | Find silent failures, swallowed errors, and inadequate error handling |
 | `mx-type-design-analyzer` | Analyze type design for encapsulation and invariants |
+| `mx-comment-analyzer` | Analyze comment accuracy and long-term maintainability |
+| `mx-mr-test-analyzer` | Review test coverage quality and completeness |
 | `mx-performance-auditor` | Analyze code for performance bottlenecks and scalability risks |
+| `mx-code-simplifier` | Simplify code for clarity while preserving functionality |
+| `mx-quality-keeper` | Adversarial quality gatekeeper — verifies work and rejects what misses the bar |
+
+### Optional build agents
+
+Supporting cast for `/mx:build` and `/mx:build-with-agent-team` — they generate code, then the review agents above interrogate it.
+
+| Agent | Purpose |
+|---|---|
+| `mx-schema-builder` | Build Supabase schemas, RLS policies, types, and migrations from a spec |
+| `mx-feature-builder` | Implement a single product feature end-to-end from a spec |
+| `mx-test-builder` | Write Playwright E2E tests and run them until they pass |
+| `mx-shipkit-builder` | Integrate the Ship Kit (analytics, SEO, payments, feedback) into a built product |
 
 ## Which Path Should I Use?
 
