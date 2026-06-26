@@ -1,6 +1,6 @@
 {
   "name": "mx-workflow",
-  "description": "Development workflow plugin with commands and agents for the full dev lifecycle: ticket intake, planning, implementation, quality checks, conventional commits, MR creation, batch AI implementation, and multi-agent team builds.",
+  "description": "The review-grade quality layer for AI-generated code. 8 specialized agents interrogate generated code — catching silent failures, hallucinated APIs, suppressed errors, and type rot — backed by a full dev-lifecycle toolkit (planning, implementation, conventional commits, PRs, and multi-agent builds).",
   "version": "1.21.2",
   "author": {
     "name": "Josh Tune",
