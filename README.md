@@ -101,6 +101,7 @@ That is the core loop. For more complex workflows, see [Which Path Should I Use?
 Commands are invoked as `/mx:<command-name>`:
 
 ```
+/mx:review              # The headline: one verdict from all 8 review agents
 /mx:plan                # Create an implementation plan
 /mx:implement           # Execute plan with validation
 /mx:e2e                 # Browser-based E2E testing
@@ -219,6 +220,7 @@ Supporting cast for `/mx:build` and `/mx:build-with-agent-team` — they generat
 ## Which Path Should I Use?
 
 ```
+Review code (yours or AI) → /mx:review (one verdict from all 8 review agents)
 New session               → /mx:prime
 New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
 Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement

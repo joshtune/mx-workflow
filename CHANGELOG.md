@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`/mx:review`** — the headline review command (Phase 2 of the reposition). Bundles all 8 review-grade agents into a single verdict (`PASS` / `PASS WITH WARNINGS` / `REJECT`) with per-agent findings and a recommendation. Read-only — it interrogates and reports, never modifies code.
+  - **Default scope** reviews everything that differs from trunk (`main`/`master`) — committed branch work *and* uncommitted changes, including untracked new files (where AI-generated code most often hides). Computed via merge-base, so it also works on trunk with only uncommitted edits. Flags: `--staged`, `--commit <sha>`, `--branch <name>`, `--scope <path>`.
+  - **Three configurable verdict modes**, default **balanced**: `--strict` (REJECT on CRITICAL or HIGH), balanced (REJECT on CRITICAL), `--advisory` (never blocks). Always prints a recommendation with reasons.
+  - **Models** — each agent keeps its existing model assignment (routing optimization deferred to the Phase 2.5 spike).
+  - Documented in `docs/` (new "Review (start here)" page, top of the Commands sidebar) and surfaced as the primary entry point in `/mx:help` and the README.
+
 ### Changed
 
 - **Repositioning** — mx-workflow now leads with its identity as "the review-grade quality layer for AI-generated code" rather than "a full dev-lifecycle plugin." Generation is table stakes; the differentiator is the refusal layer that interrogates AI-generated code for silent failures, hallucinated APIs, suppressed errors, and type rot. The full lifecycle toolkit stays — it's now framed as the foundation underneath the review agents. (Phase 1 of the reposition; see `ROADMAP.md`.)
