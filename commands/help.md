@@ -11,6 +11,12 @@ MX-WORKFLOW COMMANDS
 
 All commands use the /mx: prefix (e.g., /mx:plan, /mx:commit).
 
+START HERE — REVIEW-GRADE QUALITY
+  /mx:review [--strict | --advisory] [--staged | --branch <name>]
+                                       Bundle the 8 review agents into ONE verdict
+                                       (Pass / Warnings / Reject) on your changes vs trunk.
+                                       The refusal layer — interrogates AI-generated code.
+
 SESSION START
   /mx:prime                            Warm up codebase context (reads key files, runs checks)
   /mx:context-prime <path> [--learn] [--recursive]
@@ -73,6 +79,7 @@ ANYTIME
   /mx:shipit [desc]                      Fix + check + commit + push in one step
 
 WHICH PATH SHOULD I USE?
+  Review code (yours or AI) → /mx:review (one verdict from all 8 review agents)
   New session               → /mx:status (check project readiness) → /mx:prime (warm up context)
   Idea to shipped code      → /mx:build "your idea" (asks questions, then does everything)
   New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement

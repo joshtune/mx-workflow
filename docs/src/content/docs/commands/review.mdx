@@ -1,0 +1,56 @@
+---
+title: Review
+description: The headline review command — bundles the 8 review-grade agents into one Pass / Warnings / Reject verdict.
+---
+
+`/mx:review` is the starter dose. Run it on any changes and it bundles all eight review-grade agents into a **single verdict** — `PASS`, `PASS WITH WARNINGS`, or `REJECT` — with per-agent findings and a recommendation you can act on.
+
+It's the refusal layer in one command: it interrogates code (yours or an AI's) and pushes back on silent failures, hallucinated APIs, suppressed errors, weak types, missing tests, and unjustified shortcuts. It is **read-only** — it reports and recommends, it never modifies your code.
+
+## /mx:review
+
+**Review-grade verdict on your changes**
+
+```
+/mx:review [--strict | --advisory] [--staged | --commit <sha> | --branch <name>] [--scope <path>]
+```
+
+By default it reviews **everything that differs from trunk** — both your committed branch work and your uncommitted changes (including brand-new untracked files, which is where AI-generated code most often hides). Because the scope is computed from the merge-base with `main`/`master`, it also does the right thing when you're sitting on trunk with just uncommitted edits.
+
+**When to use it:**
+
+- Before opening a PR — get a verdict on the whole branch
+- After Claude (or Cursor, Copilot, Claude Tag…) generates a chunk of code, to interrogate it
+- Any time you want a fast, opinionated quality read on your changes
+
+### The agents it runs
+
+Always: `mx-code-reviewer`, `mx-silent-failure-hunter`, `mx-performance-auditor`, `mx-quality-keeper` (structural checks). Conditionally: `mx-type-design-analyzer` (if types changed), `mx-mr-test-analyzer` (if tests changed), `mx-comment-analyzer` (if comments changed). Finally `mx-code-simplifier` runs in **report-only** mode — it surfaces simplification suggestions but never edits files here.
+
+### Verdict modes
+
+The verdict format is always Pass / Warnings / Reject plus per-agent findings. What flips it to REJECT is configurable:
+
+| Mode | Flag | REJECT when |
+|------|------|-------------|
+| Strict | `--strict` | any CRITICAL **or** HIGH finding |
+| **Balanced** *(default)* | *(none)* | any CRITICAL finding (HIGH → warning) |
+| Advisory | `--advisory` | never blocks — labels findings by severity |
+
+Whatever the mode, the report **always includes a recommendation with reasons** — and in advisory mode it still tells you what the verdict *would* be under balanced rules, so the signal is never lost.
+
+### Scope flags
+
+| Flag | Effect |
+|------|--------|
+| *(none)* | Committed branch work **and** uncommitted changes vs trunk |
+| `--staged` | Only staged changes |
+| `--commit <sha>` | A single commit's diff |
+| `--branch <name>` | Compare against an explicit base branch |
+| `--scope <path>` | Limit to a directory or file |
+
+### Output
+
+A terminal summary with the verdict, a per-agent findings table, and the top findings by severity. The full report is saved to `.agents/reports/review-{YYYY-MM-DD}.md`.
+
+> **`/mx:review` vs `/mx:qa`** — `/mx:review` is the headline interrogation: all eight review agents, one verdict, tuned for "is this code good enough to merge?" `/mx:qa` is the deeper structural + spec-conformance audit (suppressions, dependencies, contract and requirement verification) best run after a feature or team build. Reach for `/mx:review` constantly; reach for `/mx:qa --full` at milestones.

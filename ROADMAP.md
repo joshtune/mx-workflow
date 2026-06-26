@@ -44,13 +44,14 @@ mx-workflow already has 8 review-grade agents (out of 12). The pivot is mostly *
 
 The single command that bundles all 8 review-grade agents into one verdict report. The "starter dose" — install + `/mx:review` = _"oh, I see what this is for."_
 
-- [ ] Spec `commands/review.md` — what it does, what it loads, the verdict format
-- [ ] Decide the verdict format (Pass / Warnings / Reject + per-agent findings)
-- [ ] Decide what code it runs on by default (unstaged diff? last commit? branch vs trunk?)
-- [ ] Implement: orchestrate the 8 review agents, collect findings, render the verdict
-- [ ] Test on at least 3 real repos (lehi31, koi-transportation, ward-page)
-- [ ] Document in `docs/`
-- [ ] Update `commands/help.md` to surface `/mx:review` as the primary entry point
+- [x] Spec `commands/review.md` — what it does, what it loads, the verdict format
+- [x] Decide the verdict format (Pass / Warnings / Reject + per-agent findings) — 3 configurable modes, default **balanced** (REJECT on CRITICAL; `--strict` adds HIGH; `--advisory` never blocks); always prints a recommendation with reasons
+- [x] Decide what code it runs on by default — everything differing from trunk (committed branch work + uncommitted + untracked), via merge-base; flags `--staged`/`--commit`/`--branch`/`--scope`
+- [x] Implement: orchestrate the 8 review agents, collect findings, render the verdict
+- [~] Test on at least 3 real repos (lehi31, koi-transportation, ward-page) — scope detection validated against all 3 (trunk + merge-base resolution correct); full verdict runs pending (repos are clean — needs changes to interrogate, or run on a live branch)
+- [x] Document in `docs/`
+- [x] Update `commands/help.md` to surface `/mx:review` as the primary entry point
+- Models: keep existing per-agent assignments (routing → Phase 2.5)
 
 ## Phase 3 — Review-tier commands
 
@@ -92,6 +93,7 @@ The trend in the Brief content over the last 40 days: _"Claude Skills are quietl
 
 ## Reference
 
+- **Evidence trail for this pivot:** [references/repositioning-evidence.md](references/repositioning-evidence.md) — direct quotes from mx-brief content (May 15 → June 24, 2026), organized by claim, with notes on what would update each decision.
 - Thesis blog post: [_I Built the Wrong Half_](https://joshtune.com/posts/i-built-the-wrong-half) (draft on joshtune.com — to publish before Phase 2 ships)
 - Triggering market signal: [Claude Tag launch (June 23, 2026)](https://www.anthropic.com/news/introducing-claude-tag)
 - Adjacent trend: [Claude Code Dynamic Workflows GA (June 10, 2026)](https://claude.com/) — nested subagents, depth=5
