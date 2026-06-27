@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Standalone Skills tier** (Phase 5 of the reposition) — four of the sharpest reviewers are now published as self-contained [Claude Skills](https://claude.com/claude-code) under `skills/`, installable individually without the whole plugin: `silent-failure-hunter`, `type-design-analyzer`, `comment-analyzer` (derived from the agents) and `hallucination-check` (derived from the command). Each `SKILL.md` carries its full instructions and a comment pointing at its canonical plugin source; `skills/README.md` documents install + the sync discipline. Cross-linked from the docs agent catalog.
 - **Distribution & messaging** (Phase 4 of the reposition):
   - `keywords` added to `plugin.json` and `marketplace.json` (`code-review`, `ai-code-review`, `code-quality`, `static-analysis`, `hallucination-detection`, `ci-gate`, …) for marketplace discoverability.
   - Slack bot now answers an empty `@mention` or a greeting/help word with a welcome message that explains the review-grade framing and what it can do (build *and* review), instead of the bare "I need an instruction" prompt.

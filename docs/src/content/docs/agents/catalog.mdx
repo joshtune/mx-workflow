@@ -13,6 +13,10 @@ Each agent is a focused expert with a single responsibility. When invoked, it re
 
 Review agents are **advisory by default** — they analyze and report rather than modify code (the exceptions: `mx-code-simplifier`, which applies refinements, and the build agents, which write code by design).
 
+:::tip[Want just one agent?]
+Four of these reviewers are also published as **standalone Claude Skills** — install a single one without the whole plugin: `silent-failure-hunter`, `type-design-analyzer`, `comment-analyzer`, and `hallucination-check`. See [`skills/`](https://github.com/joshtune/mx-workflow/tree/main/skills) in the repo.
+:::
+
 ## Review-grade agents
 
 The interrogation layer. These eight catch what a generator won't tell you: silent failures, hallucinated APIs, weakened types, missing tests, and unjustified shortcuts.

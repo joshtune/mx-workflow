@@ -75,10 +75,10 @@ The deeper commands that earn the new banner. Each is review-grade, opinionated,
 
 The trend in the Brief content over the last 40 days: _"Claude Skills are quietly becoming a business model."_ Individual skills are a distinct distribution unit, smaller than plugins.
 
-- [ ] Identify the 3-4 mx agents that stand on their own as skills (silent-failure-hunter, type-design-analyzer, comment-analyzer are likely starting candidates)
-- [ ] Convert each to the Claude Skills format (separate from agent format)
-- [ ] Publish to the Skills marketplace as standalone
-- [ ] Cross-link from the mx-workflow docs ("Want just one agent? Install the standalone skill.")
+- [x] Identify the 3-4 mx agents that stand on their own as skills — chose silent-failure-hunter, type-design-analyzer, comment-analyzer + a hallucination-check skill (from the command)
+- [x] Convert each to the Claude Skills format (separate from agent format) — `skills/<name>/SKILL.md`, self-contained, with sync notes to the canonical plugin source; `skills/README.md` documents install + sync discipline
+- [~] Publish to the Skills marketplace as standalone — skills are built and ready under `skills/`; **the actual marketplace publish is a human/external step**
+- [x] Cross-link from the mx-workflow docs ("Want just one agent? Install the standalone skill.") — added a callout in the docs agent catalog
 
 ---
 
