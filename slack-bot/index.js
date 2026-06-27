@@ -29,6 +29,26 @@ const app = new App({
 
 const BUILDS_CHANNEL = process.env.SLACK_BUILDS_CHANNEL || "builds";
 
+// Welcome / help message — explains the review-grade framing
+const WELCOME = [
+  "*mx-workflow* — the review-grade quality layer for AI-generated code. :mag:",
+  "",
+  "Generating code is table stakes. What I do is *interrogate* it — pushing back on silent failures, hallucinated APIs, suppressed errors, and type rot before they ship.",
+  "",
+  "Here's what you can ask me:",
+  "• *Build something* — _Build a Stripe subscription API_ — I run the full pipeline, and every build is reviewed by the 8 review-grade agents before it's done.",
+  "• *Review work* — point me at a branch or PR and I'll run the review team on it (`/mx:review`, `/mx:second-look <PR>`).",
+  "• Add `--auto` to a build instruction to run fully autonomously.",
+  "",
+  "_Tag me with an instruction to get started._",
+].join("\n");
+
+// Greeting / help triggers that should surface the welcome instead of building
+const isGreeting = (text) =>
+  /^\s*(hi|hey|hello|yo|help|info|what can you do|who are you|what are you|\?)\b/i.test(
+    text
+  );
+
 // ── Load persisted sessions on startup ───────────────────────────────────────
 
 loadActiveSessions();
@@ -71,9 +91,9 @@ app.message(async ({ message, client, say }) => {
 
   const instruction = message.text.replace(/<@[A-Z0-9]+>/g, "").trim();
 
-  if (!instruction || instruction.length < 5) {
+  if (!instruction || instruction.length < 5 || isGreeting(instruction)) {
     await say({
-      text: "I need an instruction. Try: _Build a Stripe subscription API_",
+      text: WELCOME,
       thread_ts: message.ts,
     });
     return;
