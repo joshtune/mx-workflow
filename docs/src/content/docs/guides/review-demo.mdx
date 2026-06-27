@@ -1,0 +1,104 @@
+---
+title: 'Demo: catching a hallucinated API'
+description: A short, concrete walkthrough — an AI generates a plausible-looking change, and /mx:review rejects it for calling a method that doesn't exist.
+---
+
+The fastest way to understand mx-workflow is to watch it refuse a bad change. Here's the canonical demo: an AI assistant writes code that looks right, compiles in its head, and is confidently wrong — and `/mx:review` catches it.
+
+## The setup
+
+You ask an assistant to verify a Stripe webhook signature. It generates this:
+
+```ts
+// src/billing.ts
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+export async function handleWebhook(req: Request) {
+  const sig = req.headers.get('stripe-signature')!;
+  const body = await req.text();
+
+  // ⬇ looks plausible — but this method does not exist
+  const event = await stripe.webhooks.constructEventAsync(
+    body,
+    sig,
+    process.env.STRIPE_WEBHOOK_SECRET!,
+  );
+
+  try {
+    await processEvent(event);
+  } catch {
+    // ⬇ swallows every failure, returns 200 to Stripe regardless
+    return new Response('ok', { status: 200 });
+  }
+}
+```
+
+Two problems, both typical of generated code:
+
+1. **`stripe.webhooks.constructEventAsync` doesn't exist** on the installed `stripe` SDK. The real method is `constructEvent` (or `constructEventAsync` only on much newer majors). The name is *plausible* — which is exactly why it slips past a human skim.
+2. **The `catch` swallows everything** and returns `200 OK`, so a failed webhook looks successful to Stripe and is never retried.
+
+## Run the review
+
+```
+/mx:review
+```
+
+`/mx:review` resolves the diff (committed + uncommitted + the new untracked file), then runs the eight review agents in parallel. The verdict:
+
+```
+MX REVIEW
+=========
+Scope:   branch vs main — committed + uncommitted
+Mode:    balanced
+Files:   1 changed
+
+VERDICT: REJECT
+
+Recommendation:
+  Reject. billing.ts calls a Stripe method that isn't in the installed SDK
+  (constructEventAsync → use constructEvent), and the webhook handler swallows
+  all processing errors while returning 200, so failures are invisible and
+  never retried. Fix both before merging.
+
+AGENT FINDINGS
+──────────────
+mx-code-reviewer          1 finding: 1 high
+mx-silent-failure-hunter  1 finding: 1 critical
+mx-performance-auditor    PASS
+mx-quality-keeper         lint/types/tests: FAIL (type error on constructEventAsync)
+
+TOP FINDINGS
+────────────
+[CRITICAL] billing.ts:18 — catch returns 200 on any error; failed webhooks look
+                           successful and Stripe never retries (mx-silent-failure-hunter)
+[HIGH]     billing.ts:11 — `stripe.webhooks.constructEventAsync` not found on the
+                           installed stripe SDK; did you mean `constructEvent`? (mx-code-reviewer)
+```
+
+A CRITICAL finding flips the balanced verdict to **REJECT**. The hallucinated method is also caught structurally — `mx-quality-keeper`'s type-check fails on it.
+
+## Make it specific
+
+Want to isolate just the invented-API problem? Run the targeted check:
+
+```
+/mx:hallucination-check
+```
+
+```
+HALLUCINATION CHECK
+===================
+VERDICT: SUSPECT (1 likely)
+
+[HIGH] billing.ts:11 — `constructEventAsync` is not an export/method on the
+       installed `stripe` SDK (available: webhooks.constructEvent, …).
+```
+
+## The point
+
+The assistant generated code that read fine and would have passed a quick human review. The value isn't in *writing* that snippet faster — it's in the layer that **refuses** it. That's mx-workflow.
+
+> Reviewing a PR from another tool (Claude Tag, Cursor, Copilot)? Same verdict, one command: `/mx:second-look <PR number>`. Gating CI? `/mx:reject`.

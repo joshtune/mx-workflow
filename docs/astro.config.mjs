@@ -47,6 +47,7 @@ export default defineConfig({
         {
           label: 'Guides',
           items: [
+            { label: 'Demo: Catching a Hallucinated API', slug: 'guides/review-demo' },
             { label: 'Choosing a Workflow', slug: 'guides/choosing-a-workflow' },
             { label: 'First Session', slug: 'guides/first-session' },
             { label: 'Multi-Agent Team', slug: 'guides/multi-agent-team' },

@@ -2,6 +2,16 @@
   "name": "mx-workflow",
   "description": "The review-grade quality layer for AI-generated code. 8 specialized agents interrogate generated code — catching silent failures, hallucinated APIs, suppressed errors, and type rot — backed by a full dev-lifecycle toolkit (planning, implementation, conventional commits, PRs, and multi-agent builds).",
   "version": "1.21.2",
+  "keywords": [
+    "code-review",
+    "ai-code-review",
+    "code-quality",
+    "static-analysis",
+    "hallucination-detection",
+    "ci-gate",
+    "review-agents",
+    "claude-code"
+  ],
   "author": {
     "name": "Josh Tune",
     "url": "https://github.com/joshtune"

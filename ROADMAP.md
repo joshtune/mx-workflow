@@ -65,11 +65,11 @@ The deeper commands that earn the new banner. Each is review-grade, opinionated,
 
 ## Phase 4 — Distribution & messaging
 
-- [ ] Rewrite marketplace listing (description + tags) once Phase 2 ships
-- [ ] Update GitHub repo About line + topics
-- [ ] Re-record demo video / add a new short demo: `/mx:review` on a Claude-generated PR catching a hallucinated API
-- [ ] Cross-post the joshtune.com thesis blog ("I Built the Wrong Half" — draft in progress) to relevant communities
-- [ ] Slack-bot welcome message: explain the new framing
+- [x] Rewrite marketplace listing (description + tags) once Phase 2 ships — description (Phase 1) + `keywords` added to `plugin.json` and `marketplace.json`
+- [x] Update GitHub repo About line + topics — About rewritten to the review framing; topics `ai-code-review`, `code-review`, `code-quality`, `static-analysis` added (done live via `gh repo edit`)
+- [~] Re-record demo video / add a new short demo: `/mx:review` on a Claude-generated PR catching a hallucinated API — **written demo added** (`docs/guides/review-demo.mdx`, doubles as the recording script); the actual video re-record is a human task
+- [ ] Cross-post the joshtune.com thesis blog ("I Built the Wrong Half" — draft in progress) to relevant communities — **human task** (requires publishing the draft + posting to communities)
+- [x] Slack-bot welcome message: explain the new framing — `slack-bot/index.js` now responds to empty mentions / greetings with a review-framing welcome
 
 ## Phase 5 — Skills tier (publish individual agents as standalone)
 

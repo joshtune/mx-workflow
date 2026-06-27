@@ -10,7 +10,17 @@
       "name": "mx",
       "description": "Review-grade quality layer for AI-generated code: 8 review agents plus a full dev-lifecycle toolkit (planning, implementation, testing, commits, PRs)",
       "source": "./",
-      "version": "1.21.2"
+      "version": "1.21.2",
+      "keywords": [
+        "code-review",
+        "ai-code-review",
+        "code-quality",
+        "static-analysis",
+        "hallucination-detection",
+        "ci-gate",
+        "review-agents",
+        "claude-code"
+      ]
     }
   ]
 }
