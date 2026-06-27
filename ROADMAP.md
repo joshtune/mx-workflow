@@ -57,11 +57,11 @@ The single command that bundles all 8 review-grade agents into one verdict repor
 
 The deeper commands that earn the new banner. Each is review-grade, opinionated, and refuses-rather-than-generates.
 
-- [ ] `/mx:hallucination-check` — specifically catches invented APIs, fabricated function signatures, made-up library methods, and non-existent type imports. Cross-references against actual installed deps.
-- [ ] `/mx:second-look` — run the review team on output from _other_ agents (Claude Tag PRs, Cursor diffs, Copilot suggestions). The "review layer on top of whatever generated the code."
-- [ ] `/mx:reject` — formal "this work doesn't meet bar, here's why" output. Composable into CI as a gate. Exits non-zero on rejection.
-- [ ] `/mx:ratchet` — quality only goes up. Any change must meet or exceed prior bar on the dimensions you care about (test coverage, type safety, lint cleanliness).
-- [ ] `/mx:audit` — evolution of `/mx:qa`. Comprehensive quality audit, suitable for a weekly cron or manual run.
+- [x] `/mx:hallucination-check` — specifically catches invented APIs, fabricated function signatures, made-up library methods, and non-existent type imports. Cross-references against actual installed deps.
+- [x] `/mx:second-look` — run the review team on output from _other_ agents (Claude Tag PRs, Cursor diffs, Copilot suggestions). The "review layer on top of whatever generated the code." (PR number/URL primary via `gh`; `--diff`/range offline.)
+- [x] `/mx:reject` — formal "this work doesn't meet bar, here's why" output. Composable into CI as a gate. (Emits machine-readable `MX_VERDICT=` marker + documented `claude -p … | grep` headless recipe — slash commands can't set an exit code directly.)
+- [x] `/mx:ratchet` — quality only goes up. Any change must meet or exceed prior bar on the dimensions you care about (test coverage, type safety, lint cleanliness). (Baseline computed live from trunk in a throwaway worktree — no stored state.)
+- [x] `/mx:audit` — evolution of `/mx:qa`. Comprehensive quality audit, suitable for a weekly cron or manual run. (Wraps `/mx:qa --full` at whole-repo scope + trend tracking; `/mx:qa` unchanged.)
 
 ## Phase 4 — Distribution & messaging
 
