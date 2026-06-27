@@ -30,6 +30,7 @@ export default defineConfig({
           label: 'Commands',
           items: [
             { label: 'Review (start here)', slug: 'commands/review' },
+            { label: 'Review-tier', slug: 'commands/review-tier' },
             { label: 'Session & Discovery', slug: 'commands/session-discovery' },
             { label: 'Implementation', slug: 'commands/implementation' },
             { label: 'Multi-Agent', slug: 'commands/multi-agent' },
