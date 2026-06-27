@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-06-26
+
 ### Added
 
 - **Standalone Skills tier** (Phase 5 of the reposition) — four of the sharpest reviewers are now published as self-contained [Claude Skills](https://claude.com/claude-code) under `skills/`, installable individually without the whole plugin: `silent-failure-hunter`, `type-design-analyzer`, `comment-analyzer` (derived from the agents) and `hallucination-check` (derived from the command). Each `SKILL.md` carries its full instructions and a comment pointing at its canonical plugin source; `skills/README.md` documents install + the sync discipline. Cross-linked from the docs agent catalog.
