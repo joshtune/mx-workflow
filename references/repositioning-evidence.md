@@ -8,7 +8,7 @@ _Recorded so future-me (or anyone reading the ROADMAP) can audit the decision ra
 
 ## Methodology
 
-- **Source:** [mx-brief](https://joshtune.github.io/mx-brief) daily summaries, scraped from a curated set of YouTube channels, Anthropic/Claude release feeds, Boris Cherny's Twitter, OpenAI/Sam Altman, and a handful of AI-focused commentators.
+- **Source:** my personal research feed — a daily-digest pipeline I run against a curated set of YouTube channels, Anthropic/Claude release feeds, Boris Cherny's Twitter, OpenAI/Sam Altman, and a handful of AI-focused commentators.
 - **Sample:** 1,325 items indexed total. 468 from the last 40 days (since 2026-05-15). 216 of those are tagged dev/agent-relevant.
 - **Author bias to flag:** I (joshtune) curated the source list. So the data is biased toward _the AI-coding world I was already paying attention to_. Use the items as triangulation, not proof.
 
@@ -61,13 +61,13 @@ _Recorded so future-me (or anyone reading the ROADMAP) can audit the decision ra
 
 **Evidence:**
 
-- **2026-06-23 · mx-brief daily summary:** _"Claude Skills are quietly becoming a business model while Codie Sanchez hammers that decisiveness — not hustle — is what actually prints money."_
+- **2026-06-23 · my daily digest:** _"Claude Skills are quietly becoming a business model while Codie Sanchez hammers that decisiveness — not hustle — is what actually prints money."_
 - **2026-06-22 · Nate Herk (post):** _"Turn Claude skills into income as an AI consultant. — It reframes 'knowing Claude' as a fast-decaying asset and argues the durable, high-paying move is diagnosing what to build."_
 - **2026-06-18 · @claudeai (Artifacts launch references):** _"Artifacts draw on the full context of your session: codebase, plugins, skills, connected tools."_ — Skills are listed as a peer of plugins and tools in Anthropic's own framing.
 
 **What this supports in the ROADMAP (Phase 5):** publishing individual mx review agents as standalone Claude Skills is a real distribution play. Skills are smaller, more focused, individually installable — and the trend talk treats them as their own product tier.
 
-**Limitation to flag:** "becoming a business model" is one mx-brief summary's claim, not yet a market-scale signal. Treat Phase 5 as exploratory rather than load-bearing.
+**Limitation to flag:** "becoming a business model" is one digest summary's claim, not yet a market-scale signal. Treat Phase 5 as exploratory rather than load-bearing.
 
 ---
 
@@ -118,7 +118,7 @@ _Recorded so future-me (or anyone reading the ROADMAP) can audit the decision ra
 **Evidence:**
 
 - **2026-06-19 · Cole Medin (post):** _"Portable, encrypted AI memory shared across coding agents. — If you're juggling Claude Code, Codex, and other agents, this shows how to stop re-teaching each one your context by putting memory in a tool-agnostic MCP layer — directly relevant to how you'd architect mx-workflow's memory."_
-- **2026-06-20 · mx-brief daily summary:** _"Governments are banning AI models while the smart money quietly builds portable memory, deeper specialties, and side hustles to cash in when the dust settles."_
+- **2026-06-20 · my daily digest:** _"Governments are banning AI models while the smart money quietly builds portable memory, deeper specialties, and side hustles to cash in when the dust settles."_
 - **2026-06-23 · @bcherny on Claude Tag memory:** _"It has excellent memory and access to your data, so it can behave differently per channel."_
 
 **What this supports in the ROADMAP:** weak signal (only 2 substantive items). Worth tracking, not yet worth building toward. Captured as a Phase 5+ idea: expose mx-workflow's project context as an MCP server so future Claude Tag instances + Codex + other tools can read it without re-priming.
@@ -149,7 +149,7 @@ The pivot is robust to most surface changes (Claude Tag flopping, GLM losing mom
 - **The marketplace tilts toward refusal-style plugins (3+ per quarter).** The differentiation thins. Action: lean harder on integration/UX rather than the underlying claim.
 - **Generation stops getting cheaper.** Removes the cost pressure that makes verification economically interesting. Less likely, but worth flagging.
 
-mx-brief should catch any of these within days. The agreement with myself: revisit this doc quarterly, mark each claim as _"still holds"_ / _"weakened"_ / _"reversed"_ with evidence.
+My daily digest should catch any of these within days. The agreement with myself: revisit this doc quarterly, mark each claim as _"still holds"_ / _"weakened"_ / _"reversed"_ with evidence.
 
 ---
 
