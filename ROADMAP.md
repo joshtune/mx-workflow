@@ -93,8 +93,10 @@ The trend in the Brief content over the last 40 days: _"Claude Skills are quietl
 
 ## Reference
 
-- **Evidence trail for this pivot:** [references/repositioning-evidence.md](references/repositioning-evidence.md) — direct quotes from mx-brief content (May 15 → June 24, 2026), organized by claim, with notes on what would update each decision.
-- Thesis blog post: [_I Built the Wrong Half_](https://joshtune.com/posts/i-built-the-wrong-half) (draft on joshtune.com — to publish before Phase 2 ships)
+- **Evidence trail for this pivot:**
+  - Public reference: [_AI Generation Is Commoditizing_](https://joshtune.com/notes/ai-generation-is-commoditizing) on joshtune.com — claim-by-claim evidence with quotes, dates, and sources. Updated as the trend moves.
+  - Internal copy: [references/repositioning-evidence.md](references/repositioning-evidence.md) — same source data, scoped to this repo's repositioning decision (mentions ROADMAP phases, etc.).
+- Thesis blog post: [_Generation Is Free. Trust Isn't._](https://joshtune.com/posts/generation-is-free-trust-isnt) (draft on joshtune.com — to publish before Phase 2 ships)
 - Triggering market signal: [Claude Tag launch (June 23, 2026)](https://www.anthropic.com/news/introducing-claude-tag)
 - Adjacent trend: [Claude Code Dynamic Workflows GA (June 10, 2026)](https://claude.com/) — nested subagents, depth=5
 - Adjacent trend: [Claude Code Artifacts (June 18, 2026)](https://claude.com/blog/artifacts-in-claude-code) — refreshing dashboards from a session

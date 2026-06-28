@@ -156,6 +156,7 @@ mx-brief should catch any of these within days. The agreement with myself: revis
 ## Companion documents
 
 - [ROADMAP.md](../ROADMAP.md) — the actual phased work plan informed by this evidence
-- Public thesis post: [_I Built the Wrong Half_](https://joshtune.com/posts/i-built-the-wrong-half) — the personal-voice version of this case, written for the joshtune.com audience
+- Public version of the evidence (audience: blog readers, not project-internal): [_AI Generation Is Commoditizing_](https://joshtune.com/notes/ai-generation-is-commoditizing) on joshtune.com — same claims and quotes, framed as a standalone trend reference. Maintained as the canonical public copy; this internal file stays for repo-scoped context.
+- Public thesis post: [_Generation Is Free. Trust Isn't._](https://joshtune.com/posts/generation-is-free-trust-isnt) — the personal-voice version of this case, written for the joshtune.com audience
 
 _Doc created: 2026-06-25. Next review: 2026-09-25._
