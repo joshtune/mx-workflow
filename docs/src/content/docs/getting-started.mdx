@@ -1,9 +1,9 @@
 ---
 title: Getting Started
-description: Install and configure the mx-workflow plugin for Claude Code.
+description: Install mx-workflow — the review-grade quality layer for AI-generated code — for Claude Code.
 ---
 
-mx-workflow is a development workflow plugin for [Claude Code](https://claude.com/claude-code) that covers the full dev lifecycle: planning, implementation, quality checks, conventional commits, E2E testing, and multi-agent team builds.
+mx-workflow is **the review-grade quality layer for AI-generated code** for [Claude Code](https://claude.com/claude-code). Generating code is table stakes; mx-workflow is the layer that *interrogates* it — pushing back on hallucinated APIs, silent failures, suppressed errors, and type rot before they ship. Eight review-grade agents do the interrogating, backed by a full dev-lifecycle toolkit (planning, implementation, conventional commits, PRs, and multi-agent builds) underneath.
 
 ## Prerequisites
 
@@ -77,9 +77,19 @@ Test with:
 
 This displays the full command reference card.
 
-## Your first session
+## Try it first: `/mx:review`
 
-Here is a typical walkthrough for your first session with mx-workflow:
+The fastest way to understand what mx-workflow is for is to point it at some code. On any branch with changes — yours or an AI's — run:
+
+```
+/mx:review
+```
+
+It bundles all eight review-grade agents into a single verdict — **PASS**, **PASS WITH WARNINGS**, or **REJECT** — with per-agent findings and a recommendation. Reviewing a PR an AI generated (Claude, Cursor, Copilot)? Use `/mx:second-look <PR number>`. Suspect an invented API? `/mx:hallucination-check`. See the [Demo: catching a hallucinated API](/mx-workflow/guides/review-demo/) for a concrete walkthrough.
+
+## A full session
+
+mx-workflow also covers the lifecycle that produces the code it reviews. Here is a typical end-to-end walkthrough:
 
 ### 1. Load codebase context
 
@@ -147,6 +157,7 @@ Creates a pull request with an auto-generated summary. Use `/mx:pr --draft` if i
 
 ## What's next
 
+- Start with [`/mx:review`](/mx-workflow/commands/review/) and the deeper [review-tier commands](/mx-workflow/commands/review-tier/) — the heart of mx-workflow
 - Browse the [command reference](/mx-workflow/commands/session-discovery/) to see everything mx-workflow can do
 - Read the [Choosing a Workflow](/mx-workflow/guides/choosing-a-workflow/) guide for recommendations on which commands to use when
 - Check the [Configuration](/mx-workflow/reference/configuration/) page to customize behavior with environment variables

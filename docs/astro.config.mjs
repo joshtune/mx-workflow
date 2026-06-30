@@ -8,7 +8,7 @@ export default defineConfig({
     starlight({
       title: 'mx-workflow',
       description:
-        'Development workflow plugin with commands and agents for the full dev lifecycle.',
+        'The review-grade quality layer for AI-generated code — agents that interrogate generated code for hallucinated APIs, silent failures, suppressed errors, and type rot.',
       editLink: {
         baseUrl:
           'https://github.com/joshtune/mx-workflow/edit/main/docs/',

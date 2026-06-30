@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Docs: the Getting Started page and the site-wide meta description still led with the old "development workflow plugin / full dev lifecycle" framing — missed in the Phase 1 reposition (only the landing page was updated). Both now lead with the review-grade framing, and Getting Started opens with a "Try it first: `/mx:review`" section.
+
 ## [1.22.0] - 2026-06-26
 
 ### Added
