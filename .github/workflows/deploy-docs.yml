@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - 'docs/**'
+      # The docs changelog page is generated from the root CHANGELOG.md at
+      # build time, so a release-only commit must still redeploy the site.
+      - 'CHANGELOG.md'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 

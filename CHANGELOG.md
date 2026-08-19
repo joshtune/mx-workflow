@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The docs site changelog page is now **generated from the root `CHANGELOG.md`** at build time by `docs/scripts/sync-changelog.mjs`, instead of being maintained by hand. The hand-written page had drifted 22 versions behind — its newest entry was 1.1.1 and its "Unreleased" section described work shipped months earlier. Version headings are rewritten (`## [1.2.3] - date` → `## 1.2.3 — date`) so bracket characters don't leak into heading anchors, trailing link-reference definitions are stripped, and the table of contents is capped at version level. The generated file is gitignored and carries a do-not-edit banner, so the root changelog is the single source of truth and the page cannot drift again.
+- The docs deploy workflow now also triggers on changes to `CHANGELOG.md`. It previously watched only `docs/**`, so a release-only commit would have left the generated changelog page stale until some unrelated docs change happened to redeploy the site.
+
 ## [1.23.3] - 2026-08-19
 
 ### Changed
