@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-08-18
+
 ### Added
 
 - **`references/project-structure.md`** — a framework-agnostic file layout spec built on one invariant: a file lives at the lowest point in the tree that can see all of its consumers, so a file may import from its own subtree or an ancestor but never from a sibling's subtree. Covers hoist-on-second-consumer placement, folder-qualified filenames, constants at scope of use, uncapped nesting (with depth ≥4 as a QA advisory rather than a failure), pre-approved exceptions (framework paths, generated code, e2e, design-system primitives), a per-stack vocabulary table for React/Angular/Svelte/Vue/backend/CLI/mobile, and a `dependency-cruiser` CI encoding of the sibling-import rule. Existing layouts always win; conflicts are reported, never silently migrated.
