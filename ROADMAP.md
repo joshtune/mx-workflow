@@ -16,7 +16,7 @@ mx-workflow already has 8 review-grade agents (out of 12). The pivot is mostly *
 
 - All 12 agents (8 review-grade, 4 build-grade — build agents become supporting cast)
 - All 29 commands (lifecycle plumbing stays; build commands stay but get demoted from headline)
-- Plugin format, marketplace distribution, Slack bot daemon
+- Plugin format, marketplace distribution
 - Semver, CHANGELOG, release pipeline
 - Docs site at joshtune.github.io/mx-workflow
 
@@ -69,7 +69,7 @@ The deeper commands that earn the new banner. Each is review-grade, opinionated,
 - [x] Update GitHub repo About line + topics — About rewritten to the review framing; topics `ai-code-review`, `code-review`, `code-quality`, `static-analysis` added (done live via `gh repo edit`)
 - [~] Re-record demo video / add a new short demo: `/mx:review` on a Claude-generated PR catching a hallucinated API — **written demo added** (`docs/guides/review-demo.mdx`, doubles as the recording script); the actual video re-record is a human task
 - [ ] Cross-post the joshtune.com thesis blog ("I Built the Wrong Half" — draft in progress) to relevant communities — **human task** (requires publishing the draft + posting to communities)
-- [x] Slack-bot welcome message: explain the new framing — `slack-bot/index.js` now responds to empty mentions / greetings with a review-framing welcome
+- [x] ~~Slack-bot welcome message: explain the new framing~~ — _superseded 2026-08-19: the Slack bot and Mac mini setup were removed from the plugin, so this no longer applies_
 
 ## Phase 5 — Skills tier (publish individual agents as standalone)
 

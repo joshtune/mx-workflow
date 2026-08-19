@@ -30,7 +30,6 @@ SESSION START
                                        Analyze a directory and create local context notes
   /mx:context-clean [path | --all]     Remove local context files
   /mx:status                           Show project status and available tools
-  /mx:setup-mac-mini                   Full Mac mini setup (system, Slack, projects, daemon)
 
 IMPLEMENTATION (most common path)
   /mx:rca <error or symptom>           Deep root cause analysis (5 Whys + git history)
@@ -114,5 +113,4 @@ WHICH PATH SHOULD I USE?
   Cleaning up context files → /mx:context-clean --all (remove all local context)
   Check for plugin updates  → /mx:whatsnew (see what's new and how to update)
   New project setup         → /mx:create-rules (generate CLAUDE.md)
-  Mac mini day one          → /mx:setup-mac-mini (register projects for Slack bot)
 ```

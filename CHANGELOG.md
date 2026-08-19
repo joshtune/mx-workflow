@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Slack bot and Mac mini setup** removed from the plugin. Deleted the `slack-bot/` daemon (Bolt app, interactive/auto build runners, session store, launchd plist, setup docs), the `/mx:setup-mac-mini` command, and the `docs/` Slack Bot guide. Scrubbed references from `/mx:help`, the docs landing page (the "Headless builds via Slack" card) and sidebar, and the ROADMAP. The core plugin (review commands, agents, skills, and the rest of the lifecycle commands) is unaffected. **Breaking:** `/mx:setup-mac-mini` no longer exists and headless Slack-triggered builds are no longer supported.
+
 ## [1.23.4] - 2026-08-19
 
 ### Fixed
