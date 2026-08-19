@@ -96,4 +96,13 @@ Tag created: v{new_version}
 
 To publish:
   git push && git push --tags
+
+Then confirm the tag reached the remote:
+  git ls-remote --tags origin | grep "refs/tags/v{new_version}$"
 ```
+
+The verification step is not optional busywork. Use `git push --tags`, never
+`--follow-tags` — the latter pushes only *annotated* tags, so a lightweight tag
+(`git tag v1.2.3` without `-a`) is skipped silently and the local repo looks
+released while the remote has no tag at all. If the check comes back empty,
+push it explicitly with `git push origin v{new_version}`.

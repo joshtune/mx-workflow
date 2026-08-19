@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `/mx:release` and `/mx:version` now require verifying the tag actually reached the remote (`git ls-remote --tags origin`) after pushing, and both explicitly warn against `git push --follow-tags`. `--follow-tags` pushes only *annotated* tags, so a lightweight tag (`git tag v1.2.3`, no `-a`) is skipped with no warning — leaving the local repo looking released while the remote has no tag, and `gh release create` either failing or pointing at a tag nobody can resolve. Both commands already created annotated tags; the gap was that neither confirmed the push landed.
+
 ## [1.23.0] - 2026-08-18
 
 ### Added

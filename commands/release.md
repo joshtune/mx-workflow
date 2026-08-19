@@ -105,6 +105,16 @@ git tag -a "v{new_version}" -m "Release v{new_version}"
 git push && git push --tags
 ```
 
+**Verify the tag actually landed on the remote before continuing:**
+
+```bash
+git ls-remote --tags origin | grep -q "refs/tags/v{new_version}$" \
+  && echo "tag v{new_version} confirmed on remote" \
+  || { echo "ERROR: tag v{new_version} did NOT reach the remote"; exit 1; }
+```
+
+Do not skip this. A tag can fail to push silently — most commonly when `--follow-tags` is used instead of `--tags`, since it only pushes *annotated* tags and a lightweight tag (`git tag v1.2.3`, no `-a`) is skipped without a warning. `gh release create` will then either fail or create a release pointing at a tag nobody else can resolve. If the check fails, push it explicitly with `git push origin v{new_version}` and re-verify before creating the release.
+
 Then create the GitHub release using the changelog content from the `[Unreleased]` section (captured in Step 1) as the release notes:
 
 ```bash
