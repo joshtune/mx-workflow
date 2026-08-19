@@ -52,6 +52,17 @@ Map the codebase layout:
 - Configuration locations?
 - Documentation locations?
 
+Then determine the **layout convention** by comparing what you found against `references/project-structure.md`:
+
+- Is code grouped by feature/module, or by kind (`components/`, `utils/`, `hooks/`)?
+- Are tests co-located with source, or in a separate tree?
+- Are files qualified by their folder's name, or bare (`utils.ts`)?
+- Are there barrel files? Framework-idiomatic, or hand-written?
+- Do shared things sit at the lowest common ancestor of their consumers, or drift toward the root?
+- Is a structure gate configured (`.dependency-cruiser.js`, `import/no-restricted-paths`)?
+
+**Describe what the project actually does — don't prescribe.** The generated `CLAUDE.md` documents the codebase's real convention so future work matches it. Where the project's convention diverges from the reference, record the project's version; note the divergence in the Phase 4 report, not in `CLAUDE.md`.
+
 #### 2c: Code Patterns
 
 Study 5-10 representative source files to identify:
@@ -96,10 +107,16 @@ If a `CLAUDE.md` already exists, read it first and ask the user whether to overw
 ### Directory Structure
 {Key directories and what they contain}
 
+### File Layout Convention
+{How code is grouped (by feature or by kind), where shared code lives and how it gets there,
+ file naming within a folder, test placement, barrel policy, and any configured structure gate.
+ State it as a rule a new contributor can follow, with one real path from this repo as an example.}
+
 ## Development Guidelines
 
 ### Code Quality
-{Linting, formatting, type checking rules}
+{Linting, formatting, type checking rules. Include the TypeScript strictness level actually
+ configured and whether escape hatches like `any` / `@ts-ignore` are linted against.}
 
 ### Patterns and Conventions
 {Naming, structure, error handling, testing patterns}
@@ -140,6 +157,14 @@ If a `CLAUDE.md` already exists, read it first and ask the user whether to overw
 
 ### Sections Included
 {List of sections generated}
+
+### Layout Convention Detected
+{One-line summary of how this codebase organizes files}
+
+### Divergences from `references/project-structure.md`
+{Where the project's convention differs from the reference — or "none".
+ Informational only. The generated CLAUDE.md documents what the project does,
+ not what the reference recommends. Migrating is a separate, deliberate decision.}
 
 ### Next Steps
 1. Review the generated `CLAUDE.md`

@@ -106,9 +106,16 @@ Print what was inferred and proceed without pausing.
    - Detect from project files (`package.json` scripts, `Makefile`, `Cargo.toml`, `go.mod`, `pyproject.toml`)
    - Detect package manager from lock files
 
-2. **Check git status** — if dirty, warn but do not abort (this command creates new work)
+2. **Resolve conventions** — read `references/project-structure.md` and `references/code-style.md`, then determine which regime applies:
 
-3. **Print pipeline overview**:
+   - **Existing codebase** — read enough of the tree to infer the established layout, naming, and style. **The existing convention always wins.** Where it conflicts with the references, note the conflict for the overview and then follow the existing style. Never reorganize a codebase as a side effect of adding a feature.
+   - **Greenfield** — apply both references in full. Resolve the stack-specific row from the vocabulary table (grouping root, leaf casing, test suffix, styles) and record it as `STRUCTURE_PROFILE`.
+
+   Also detect whether structure enforcement already exists (`.dependency-cruiser.js`, `import/no-restricted-paths` zones) and whether `tsconfig.json` meets the strict baseline. Record gaps — don't fix them yet.
+
+3. **Check git status** — if dirty, warn but do not abort (this command creates new work)
+
+4. **Print pipeline overview**:
 
 ```
 BUILD PIPELINE
@@ -116,6 +123,8 @@ BUILD PIPELINE
 Idea:       <IDEA summary>
 Stack:      <detected or specified>
 Scope:      <MVP / full>
+Structure:  <greenfield: applying profile / existing: mirroring current layout>
+Conflicts:  <none | list where existing layout diverges from the reference>
 
 Pipeline:
   Phase 1: PRD Generation          <or SKIP — using existing PRD>
@@ -333,6 +342,40 @@ Detect what test infrastructure exists in the project (Playwright, vitest, jest,
 
 Each incremental commit includes the feature **and** its test together — never commit a feature without its test.
 
+### Structure & Style
+
+Apply the conventions resolved in Phase 0.5 — `STRUCTURE_PROFILE` for greenfield, the existing layout otherwise. The full specs are `references/project-structure.md` and `references/code-style.md`; the rules that matter most during a build:
+
+- Place each file at the lowest point in the tree that can see all of its consumers. Hoist on the **second** real consumer, never speculatively.
+- Never import from a sibling's subtree. That import means something belongs one level up.
+- Qualify every file with its folder's name, in the stack's own casing. No bare `utils.ts`.
+- Extract user-facing copy, error messages, route paths, and magic keys to a constants file at the scope of use.
+- Guard clauses over nesting; name compound conditions; no `any`, no `@ts-ignore`.
+- Don't build abstractions ahead of the third occurrence.
+
+On **greenfield only**, scaffold the enforcement alongside the first feature: the strict `tsconfig.json` baseline and a `.dependency-cruiser.js` (or `import/no-restricted-paths` zones) with the grouping root substituted from the vocabulary table. On existing projects, report gaps rather than enabling checks that would surface hundreds of pre-existing errors — that's the user's call to schedule.
+
+### Deviation Gate
+
+If following a convention would genuinely hurt readability, **deviating is allowed — silently deviating is not.** Pre-approved exceptions (framework-mandated paths, generated code, e2e, design-system primitives, framework-idiomatic barrels) need nothing; everything else stops here:
+
+```
+STRUCTURE DEVIATION — approval needed
+=====================================
+Path:        src/modules/checkout/…
+Rule:        <the rule being broken>
+Reason:      <why, concretely — what a reader loses if the rule is followed>
+Rejected:    <the compliant alternative you considered and why it's worse>
+
+Proceed with the deviation, or follow the rule?
+```
+
+Raise this **before** the code lands, not in the Phase 5 report — a deviation reported after the fact is a fait accompli, not a conversation. If `--auto` is set, apply the rule as written and log the tension in the final report instead of deviating unilaterally.
+
+Reasons that do not qualify: "simpler for now," "the path was getting long," "it matches the file I already wrote," "the file is small," or "this case is special" without saying what makes it so.
+
+Approved deviations leave a justified suppression comment at the site, which `/mx:ratchet` then counts and `/mx:check-ignores` later audits.
+
 ### If BUILD_STRATEGY = "single"
 
 Execute the plan sequentially with test-first cycles:
@@ -418,7 +461,8 @@ Run a full quality audit (same logic as `/mx:qa --full`):
 1. **Quality checks** — lint, typecheck, tests
 2. **Suppression audit** — scan for new `@ts-ignore`, `eslint-disable`, `# noqa`, etc.
 3. **Dependency audit** — security-only check for critical/high vulnerabilities
-4. **Contract conformance** (if team build) — verify implementation matches agreed contracts
+4. **Layout conformance** — run the structure gate if configured, then review what CI can't reach (see `/mx:qa` Step 3). Report sibling-subtree imports, unqualified filenames, un-extracted strings, and hand-written barrels as findings; report nesting ≥4 levels below a grouping root as an **advisory only**, never a failure.
+5. **Contract conformance** (if team build) — verify implementation matches agreed contracts
 
 ### 4.2 Spec Conformance (CRITICAL)
 
@@ -524,6 +568,11 @@ Quality:
   Tests:      PASS / FAIL
   QA Audit:   PASS / FAIL
 
+Structure:
+  Layout:     PASS / FAIL (<count> violations)
+  Deviations: <count> approved (<count> pending your review if --auto)
+  Advisories: <count> (deep nesting — informational)
+
 Spec Conformance:
   Roles:      <count> roles verified
   Must-haves: X/Y verified
@@ -571,6 +620,8 @@ All commits use: `Co-Authored-By: ${MX_CO_AUTHOR:-Claude <noreply@anthropic.com>
 - **Gates are not optional.** In default mode, pause after PRD and after plan for user review. Only `--auto` skips gates.
 - **Commit incrementally.** Each major phase produces a commit. The user should be able to see progression in `git log`.
 - **Context flows forward.** Each phase reads the output of the previous phase. Discovery → PRD → Plan → Build → QA.
+- **Existing conventions win.** On a codebase that already has a layout and style, mirror it. Conflicts with `references/project-structure.md` get reported, never silently migrated. Apply the references in full only when scaffolding new code.
+- **Deviate out loud.** Any departure from the structure or style references is raised at the Phase 3 gate before the code lands — never discovered in the final report.
 - **Strategy is data-driven.** Choose team vs. single-agent based on plan complexity, not assumptions. The user can override at the Phase 2 gate.
 - **Fix before committing.** If QA fails, attempt fixes. Do not commit broken code in the final state.
 - **Report everything.** Every phase outcome appears in the final report.

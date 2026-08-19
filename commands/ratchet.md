@@ -22,8 +22,11 @@ Default set (override with `--dimensions`):
 | `types` | Count of type-check errors | must not **increase** (target: 0) |
 | `lint` | Count of lint errors + warnings | must not **increase** |
 | `suppressions` | Count of suppression comments (`@ts-ignore`, `eslint-disable`, `# noqa`, `#[allow(`, `//nolint`, …) | must not **increase** |
+| `structure` | Count of layout violations — sibling-subtree imports, hand-written barrels (see `references/project-structure.md`) | must not **increase** |
 
 Only measure dimensions whose tooling actually exists (detect like `/mx:validate` / `/mx:qa` do). Skip — don't fail — a dimension with no tooling, and say it was skipped.
+
+`structure` is measured by running the project's configured gate (`.dependency-cruiser.js`, or `import/no-restricted-paths` zones) on both trunk and branch. **If no gate is configured, skip the dimension** — do not substitute a manual scan, since a hand-counted number isn't comparable across two checkouts and would produce phantom regressions. Nesting depth is deliberately excluded: it's a QA advisory, not a ratchet dimension.
 
 ## Step 1: Resolve Trunk & Base
 
@@ -76,4 +79,6 @@ To pass: remove the 2 new suppressions (or justify + raise the bar deliberately
 in a separate, reviewed change).
 ```
 
-For the `suppressions` (and where feasible, `lint`/`types`) regressions, **name the specific new offenders** with file:line by diffing the offending set, not just the counts — a bare "+2" isn't actionable.
+For the `suppressions` and `structure` (and where feasible, `lint`/`types`) regressions, **name the specific new offenders** with file:line by diffing the offending set, not just the counts — a bare "+2" isn't actionable.
+
+For `structure` offenders, name the fix rather than just the violation: a sibling-subtree import is resolved by hoisting the shared code to the lowest common ancestor of its consumers, not by adding a suppression.

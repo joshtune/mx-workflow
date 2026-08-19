@@ -44,7 +44,15 @@ A fully working implementation of the feature. The user must be able to perform 
 ## Rules
 
 - **Real data only** — No mocked APIs, no `setTimeout()` stubs, no hardcoded demo data
-- **Follow existing patterns** — Match code style, component patterns, naming conventions, and file organization already in the project. Read before writing.
+- **Existing patterns win** — Match the code style, component patterns, naming, and file organization already in the project. Read before writing. Where the project has an established convention, it overrides the references below.
+- **Where there's no precedent** — follow `references/project-structure.md` and `references/code-style.md`:
+  - Place each file at the lowest point in the tree that can see all of its consumers. Hoist on the **second** real consumer, never speculatively.
+  - Never import from a sibling's subtree — that import means the shared thing belongs one level up.
+  - Qualify every file with its folder's name, in the stack's own casing (`CartSummary/CartSummary.utils.ts`, `cart-summary/cart-summary.utils.ts`). No bare `utils.ts`. No hand-written barrel files.
+  - Extract user-facing copy, error messages, route paths, and magic keys to a constants file at the scope of use.
+  - Guard clauses over nesting (max depth 3). Name compound conditions. No `any`, no `!`, no `@ts-ignore`.
+  - Don't abstract ahead of the third occurrence. An interface with one implementation or a config option with one caller is cost without benefit.
+- **Deviate out loud** — Framework-mandated paths, generated code, and design-system primitives are pre-approved and need no comment. Any other departure from those references must be reported in your output with the rule, the reason, and the compliant alternative you rejected. Never deviate silently. "Simpler for now" and "the path was getting long" are not reasons.
 - **Minimal scope** — Only touch files related to this feature. Don't refactor unrelated code, don't add comments to existing code, don't reorganize imports in files you didn't change.
 - **Handle states** — Every data-fetching UI needs loading, empty, and error states
 - **No Ship Kit** — Don't add analytics tracking, SEO meta tags, payment flows, or feedback widgets. That's a separate agent's job.
@@ -56,4 +64,5 @@ When done, report:
 - Files created or modified (with one-line description each)
 - How the user exercises the feature (what to click/navigate/do)
 - Any decisions you made that weren't specified in the spec
+- **Any structure or style deviations** — rule broken, reason, rejected alternative. Say "none" if there were none.
 - Any issues or concerns

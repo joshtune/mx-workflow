@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`references/project-structure.md`** — a framework-agnostic file layout spec built on one invariant: a file lives at the lowest point in the tree that can see all of its consumers, so a file may import from its own subtree or an ancestor but never from a sibling's subtree. Covers hoist-on-second-consumer placement, folder-qualified filenames, constants at scope of use, uncapped nesting (with depth ≥4 as a QA advisory rather than a failure), pre-approved exceptions (framework paths, generated code, e2e, design-system primitives), a per-stack vocabulary table for React/Angular/Svelte/Vue/backend/CLI/mobile, and a `dependency-cruiser` CI encoding of the sibling-import rule. Existing layouts always win; conflicts are reported, never silently migrated.
+- **`references/code-style.md`** — the companion spec for what goes inside the files: strict TypeScript (plus the checks `strict` omits), banned escape hatches (`any`, `as`, `!`, `@ts-ignore`), simplicity rules (rule of three, no speculative abstraction, delete rather than comment out), control-flow limits (guard clauses, named conditions, `max-depth` 3, `complexity` 10, no nested ternaries), and naming rules (no single letters or invented abbreviations, name length scales with scope, predicate booleans). Each rule is mapped to CI gate or human review, with the un-lintable ones named as such.
+- Both references state readability as the explicit tiebreaker and share one deviation protocol: deviations are argued at the build gate before code lands, leave a justified suppression as the artifact, and are then tracked by the existing `/mx:ratchet` and `/mx:check-ignores` machinery.
+- New `structure` ratchet dimension — counts layout violations (sibling-subtree imports, hand-written barrels) on trunk vs branch via the project's configured gate, and blocks increases. Skipped when no gate is configured rather than falling back to a hand count, which wouldn't be comparable across checkouts. Nesting depth is deliberately excluded as an advisory, not a ratchet dimension.
+
+### Changed
+
+- **`/mx:build`** wired to both references: Phase 0.5 resolves greenfield-vs-existing and records a stack `STRUCTURE_PROFILE`, surfacing any conflict with the existing layout in the pipeline overview; Phase 3 gains a Structure & Style section plus a **deviation gate** that requires approval *before* non-pre-approved departures land (and under `--auto` applies the rule rather than deviating unilaterally); Phase 4.1 adds layout conformance; the final report gains a Structure block. Greenfield builds scaffold the strict `tsconfig.json` baseline and a `dependency-cruiser` config; existing projects get gaps reported instead.
+- **`/mx:qa`** gains a Structure & Style Conformance check under `--full`, covering what CI can't reach (deep sibling imports, unqualified filenames, hand-written barrels, inline user-facing strings, speculative hoisting, single-caller abstractions). Skipped on codebases with a pre-existing layout. Justified deviations are reported separately as accepted, not re-litigated as findings.
+- **`/mx:create-rules`** now detects and documents the project's real layout convention in a new "File Layout Convention" section of the generated `CLAUDE.md`, and reports divergences from the reference separately — it describes what the codebase does rather than prescribing what it should do.
+- **`mx-feature-builder`** replaces its vague "follow existing patterns" rule with explicit fallback conventions for code with no precedent, and must now report structure/style deviations in its output.
+
 ### Fixed
 
 - Docs: the Getting Started page and the site-wide meta description still led with the old "development workflow plugin / full dev lifecycle" framing — missed in the Phase 1 reposition (only the landing page was updated). Both now lead with the review-grade framing, and Getting Started opens with a "Try it first: `/mx:review`" section.

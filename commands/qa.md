@@ -92,6 +92,29 @@ Run a security-only dependency check for critical and high vulnerabilities:
 
 Report critical/high vulnerabilities. Moderate/low are warnings, not failures.
 
+### Structure & Style Conformance
+
+Covers what CI can't reach. Read `references/project-structure.md` and `references/code-style.md` first, then check the changed files.
+
+**Skip this check entirely on a codebase with an established layout that predates these references** — existing conventions win, and flagging a whole codebase for not matching a spec it never adopted is noise. Report that it was skipped and why.
+
+Run the project's structure gate if one is configured (`.dependency-cruiser.js`, `import/no-restricted-paths`); it already catches sibling-subtree imports at the grouping and leaf levels. Then review by hand what the gate can't see:
+
+| Check | Finding |
+|---|---|
+| Sibling-subtree imports nested deeper than the leaf level | FAIL — beyond the reach of backreference rules |
+| Bare filenames (`utils.ts`) not qualified by their folder | FAIL |
+| Hand-written barrel files (not framework-idiomatic) | FAIL — breaks tree shaking, hides the import graph |
+| User-facing copy, error messages, route paths, or magic keys inline | FAIL |
+| A file hoisted above the lowest common ancestor of its consumers | FAIL — speculative hoisting; junk-drawer risk |
+| A parent-level shared file now down to a single consumer | WARN — sink candidate |
+| Abstraction with one caller, interface with one implementation, config option with one consumer | WARN — see rule of three |
+| Nesting ≥4 levels below a grouping root | **ADVISORY only, never a failure** |
+
+The advisory asks a question rather than enforcing an answer: is the ancestor a god component that wants decomposing along different seams, or is the leaf more general than assumed and due for a higher home?
+
+Deviations carrying a justified suppression are **not** findings — report them separately as accepted deviations so they stay visible without being re-litigated every run. Deviations with no justification are findings.
+
 ## Step 4: Contract Conformance Check (if --contracts-only or --full)
 
 Look for contract definitions in:
