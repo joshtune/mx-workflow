@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.23.1] - 2026-08-19
+
 ### Fixed
 
 - `/mx:release` and `/mx:version` now require verifying the tag actually reached the remote (`git ls-remote --tags origin`) after pushing, and both explicitly warn against `git push --follow-tags`. `--follow-tags` pushes only *annotated* tags, so a lightweight tag (`git tag v1.2.3`, no `-a`) is skipped with no warning — leaving the local repo looking released while the remote has no tag, and `gh release create` either failing or pointing at a tag nobody can resolve. Both commands already created annotated tags; the gap was that neither confirmed the push landed.
@@ -369,7 +371,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.21.2...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.23.1...HEAD
+[1.23.1]: https://github.com/joshtune/mx-workflow/compare/v1.23.0...v1.23.1
+[1.23.0]: https://github.com/joshtune/mx-workflow/compare/v1.22.0...v1.23.0
+[1.22.0]: https://github.com/joshtune/mx-workflow/compare/v1.21.2...v1.22.0
 [1.21.2]: https://github.com/joshtune/mx-workflow/compare/v1.21.1...v1.21.2
 [1.21.1]: https://github.com/joshtune/mx-workflow/compare/v1.21.0...v1.21.1
 [1.21.0]: https://github.com/joshtune/mx-workflow/compare/v1.20.0...v1.21.0
