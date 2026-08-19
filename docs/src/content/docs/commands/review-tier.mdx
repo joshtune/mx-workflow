@@ -49,10 +49,10 @@ claude -p "/mx:reject --branch origin/main" 2>/dev/null | grep -q '^MX_VERDICT=P
 **Quality only goes up — block any regression vs trunk**
 
 ```
-/mx:ratchet [--branch <name>] [--dimensions coverage,types,lint,suppressions]
+/mx:ratchet [--branch <name>] [--dimensions coverage,types,lint,suppressions,structure]
 ```
 
-A one-way gate against slow erosion. It measures objective dimensions — test coverage, type-check errors, lint cleanliness, suppression count — on **trunk** and on your **branch**, then fails if any regressed. The bar is computed live from trunk every run (no stored baseline to drift), measured in a throwaway git worktree so your working tree is never touched. Regressions are named down to the file:line, not just a count.
+A one-way gate against slow erosion. It measures objective dimensions — test coverage, type-check errors, lint cleanliness, suppression count, and [layout violations](/mx-workflow/reference/project-structure/) — on **trunk** and on your **branch**, then fails if any regressed. The bar is computed live from trunk every run (no stored baseline to drift), measured in a throwaway git worktree so your working tree is never touched. Regressions are named down to the file:line, not just a count.
 
 ## /mx:audit
 

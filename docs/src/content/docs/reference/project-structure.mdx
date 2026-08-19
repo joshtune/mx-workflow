@@ -1,0 +1,184 @@
+---
+title: Project Structure
+description: How mx-workflow decides where files go — one invariant, enforced in CI.
+---
+
+When mx-workflow scaffolds new code, it needs an answer to "where does this file go?" that holds up across frameworks and doesn't drift as a project grows. This page describes that answer.
+
+The full spec lives at [`references/project-structure.md`](https://github.com/joshtune/mx-workflow/blob/main/references/project-structure.md). Its companion, [Code Style](/mx-workflow/reference/code-style/), covers what goes *inside* the files.
+
+:::note[Existing projects are safe]
+These rules apply when scaffolding new code. On a codebase that already has a layout, **the existing convention always wins** — mx-workflow mirrors what it finds and reports any conflict rather than reorganizing your repo as a side effect of adding a feature.
+:::
+
+## Why it exists
+
+AI-generated code has no value if a human can't read it. Generation is cheap now; comprehension isn't. These rules exist so you can guess where something lives and be right.
+
+That purpose is also the tiebreaker. Where a rule and readability genuinely conflict, readability wins — but the deviation gets [argued out loud](#deviating), never taken silently.
+
+## The one rule
+
+Everything else follows from a single invariant. Filesystem layout mirrors lexical scope:
+
+> **A file lives at the lowest point in the tree that can see all of its consumers.**
+
+Which gives the form a linter can check:
+
+> **A file may import from its own subtree or from an ancestor. Never from a sibling's subtree.**
+
+A sibling-subtree import isn't a style violation — it's the signal that something sits in the wrong place, with exactly one fix: hoist the shared code to the lowest common ancestor of its consumers, and no higher.
+
+## What it looks like
+
+```
+src/
+  constants.ts                      ← app-wide strings
+  modules/
+    checkout/
+      checkout.constants.ts         ← shared across checkout/
+      checkout.utils.ts
+      checkout.store.ts
+      CartSummary/
+        CartSummary.tsx
+        CartSummary.constants.ts    ← only CartSummary's strings
+        CartSummary.utils.ts
+        CartSummary.test.tsx
+        LineItem/                   ← nested: ONLY CartSummary uses it
+          LineItem.tsx
+          LineItem.test.tsx
+```
+
+`LineItem` sits inside `CartSummary` because that's its only consumer. When something else in `checkout/` needs it, it hoists to `checkout/` — and stops there.
+
+### Placing a new file
+
+1. List every consumer.
+2. One consumer? It lives in that consumer's folder.
+3. Two or more? Their lowest common ancestor.
+4. Never higher than step 3 allows, even if a higher home looks tidier.
+
+### Hoisting
+
+Hoist on the **second real consumer** — never speculatively. The failure mode this guards against is the junk drawer: everything drifts upward "in case it's needed" until a 40-export `utils.ts` sits three levels up and nobody can reason about it.
+
+The reverse move counts too. A shared file that's fallen back to one consumer should sink back down, and `/mx:qa` flags these as sink candidates.
+
+## Naming
+
+**The property:** every file is qualified by its folder's name. Never a bare `utils.ts`.
+
+**The spelling is the framework's, not ours.** `CartSummary.utils.ts` and `cart-summary.utils.ts` satisfy it equally — match whatever idiom the stack already uses, and never fight a code generator to do it.
+
+The repetition is deliberate. A dozen tabs named `utils.ts` make the editor and fuzzy-finder useless; a qualified name is unambiguous in tabs, `Cmd-P`, and `grep` no matter how deep it sits.
+
+### No barrel files
+
+No `index.ts` re-exporting a folder. Barrels:
+
+- **Break tree shaking.** Importing one symbol pulls the whole barrel into the module graph, and any re-exported module with a side effect defeats elimination entirely. The cost lands in your shipped bundle.
+- **Launder cross-subtree imports** through an index where the structure gate can't see them — quietly disabling the one rule everything else rests on.
+- Hide the import graph, defeat `grep`, and invite circular dependencies.
+
+Framework-idiomatic barrels (public API files, package entry points) are exempt. Don't hand-write new ones.
+
+## Strings
+
+User-facing copy and magic keys belong in a constants file **at the scope where they're used** — the same hoisting rule applies.
+
+| Extract | Leave inline |
+|---|---|
+| Display copy, labels, headings, empty states | One-off `className` values |
+| Error and validation messages | ARIA roles and framework vocabulary |
+| Route paths and URL fragments | Strings describing a test, inside that test |
+| Storage keys, query keys, cache keys, event names | |
+| Test IDs and selectors | |
+| Any literal appearing in more than one place | |
+
+If you add i18n later, copy migrates to locale files and the constants file keeps keys. Extracting now makes that migration mechanical.
+
+## Depth
+
+**Nesting is uncapped**, and that's a deliberate choice. A hard cap would break the invariant: forcing a single-consumer component up to the module root parks it beside genuinely shared code, so the tree stops describing the consumer graph — and the linter can no longer catch it, since a module-root file is legitimately importable by anything. A cap trades a real guarantee for cosmetics.
+
+Depth is instead a **diagnostic**. Four or more levels below a grouping root raises a `/mx:qa` advisory — never a failure — because deep nesting usually means one of two real things:
+
+- The ancestor is a god component that wants decomposing along different seams.
+- The leaf is more general than assumed and has a natural home higher up.
+
+The advisory asks the question. It doesn't enforce an answer.
+
+## Framework support
+
+The topology rules are universal; only the nouns and spelling change.
+
+| Stack | Grouping root | Leaf casing | Test suffix | Styles |
+|---|---|---|---|---|
+| React | `src/modules/` | `PascalCase` | `.test.tsx` | `.module.css` |
+| Angular | `src/app/` | `kebab-case` + type suffix | `.spec.ts` | `.scss` sibling |
+| Svelte / SvelteKit | `src/lib/`, `src/routes/` | `PascalCase` | `.test.ts` | in-file `<style>` |
+| Vue | `src/modules/` | `PascalCase` | `.spec.ts` | in-file `<style>` |
+| Backend service | `src/modules/` | stack idiom | stack idiom | n/a |
+| CLI | `src/commands/` | stack idiom | stack idiom | n/a |
+| Mobile | `src/features/` | `PascalCase` | `.test.tsx` | StyleSheet sibling |
+
+Three places where a framework's own structure meets these rules — in all three, the framework wins:
+
+- **Generators are authoritative.** Take `ng generate` or `create-next-app` output as-is. Renaming it is a permanent tax on every future generate.
+- **Route folders are grouping roots.** Where a router owns a directory tree (Next.js `app/`, SvelteKit `src/routes/`), that tree *is* the hierarchy. Don't build a parallel `components/` tree mirroring it — same information stored twice, and it will drift.
+- **Dependency injection should agree with the filesystem.** Angular's hierarchical injector is this rule at runtime: a service provided at a component is visible to that component's subtree and nowhere else. Provider scope and file location should match, and disagreement is a real signal.
+
+## Enforcement
+
+The sibling-import rule is a CI gate, not a review convention — it has to catch humans as readily as agents. `dependency-cruiser` is the recommended encoding, since backreferences express the rule generically instead of needing a hand-maintained zone per module:
+
+```js
+// .dependency-cruiser.js — substitute your stack's grouping root
+{
+  forbidden: [
+    {
+      name: 'no-cross-module-imports',
+      severity: 'error',
+      comment: 'Hoist the shared code to their lowest common ancestor.',
+      from: { path: '^src/modules/([^/]+)/' },
+      to:   { path: '^src/modules/(?!$1/)([^/]+)/' },
+    },
+    {
+      name: 'no-sibling-component-imports',
+      severity: 'error',
+      comment: 'Hoist to the module root.',
+      from: { path: '^src/modules/([^/]+)/([^/]+)/' },
+      to:   { path: '^src/modules/$1/(?!$2/)([^/]+)/' },
+    },
+  ],
+}
+```
+
+:::caution[Known limit]
+These rules cover the grouping and leaf levels, where essentially all real violations happen. Backreference rules don't generalize to arbitrary depth, so violations nested deeper than the leaf level fall to the `/mx:qa` review pass rather than CI. That's a real gap, stated rather than glossed.
+:::
+
+`/mx:ratchet` adds a `structure` dimension that counts violations on trunk versus your branch and blocks any increase. It's skipped when no gate is configured — a hand-counted number isn't comparable across two checkouts and would produce phantom regressions.
+
+## Deviating
+
+Deviation is allowed. Silent deviation is not.
+
+**Pre-approved** — no justification needed: framework-mandated paths, generated code, top-level `e2e/`, design-system primitives, framework-idiomatic barrels, and repo-root tooling config.
+
+**Everything else** follows the protocol:
+
+1. **Argue it before, not after.** `/mx:build` raises it at the Phase 3 gate — the rule, the reason, and the compliant alternative you rejected — while you can still say no. A deviation that first appears in the final report is a fait accompli.
+2. **Leave the artifact.** A justified suppression at the site.
+3. **Existing gates track it.** Because it's a suppression comment, `/mx:ratchet` already counts it against trunk and names new ones by `file:line`, and `/mx:check-ignores` revisits whether it was ever warranted.
+
+### What counts as a reason
+
+| Valid | Not valid |
+|---|---|
+| The framework or toolchain requires this location | "Simpler for now" |
+| The code is generated | "The path was getting long" |
+| Following the rule would misrepresent the consumer graph | "It matches the file I already wrote" |
+| A reader is measurably worse off, and you can say how | "This case is special" — without saying what makes it so |
+
+That last one matters most. *This case is special* is the easiest sentence in the world to generate and carries no information. If the specialness can't be named in a way that survives being read back next month, it isn't a deviation — it's a shortcut.

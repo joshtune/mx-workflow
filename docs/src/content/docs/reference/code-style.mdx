@@ -1,0 +1,161 @@
+---
+title: Code Style
+description: What goes inside the files — strict types, simple code, readable names.
+---
+
+The companion to [Project Structure](/mx-workflow/reference/project-structure/), which covers where files go. This page covers what goes inside them.
+
+The full spec lives at [`references/code-style.md`](https://github.com/joshtune/mx-workflow/blob/main/references/code-style.md).
+
+:::note[Existing projects are safe]
+As with layout, an established convention wins. mx-workflow reports gaps rather than flipping on checks that would surface hundreds of pre-existing errors — that's your call to schedule.
+:::
+
+## Why it exists
+
+Same reason as the structure rules: AI-generated code has no value if a human can't read it. Code is read far more often than written, and by people with less context than the author had.
+
+The same tiebreaker applies. Where a rule and readability conflict, readability wins — and the deviation gets argued at the build gate, not taken quietly. The [deviation protocol](/mx-workflow/reference/project-structure/#deviating) covers both references.
+
+## TypeScript
+
+### Strict, always
+
+`strict: true` is the floor, not the goal. These four aren't included in `strict`, and each catches a real class of bug:
+
+```jsonc
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,   // arr[0] is T | undefined — it really is
+    "exactOptionalPropertyTypes": true, // `{a?: string}` ≠ `{a: string | undefined}`
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
+```
+
+New projects get this in the initial `tsconfig.json`. Existing projects that don't have it get the gap reported, not silently flipped on.
+
+### Escape hatches
+
+| Construct | Rule |
+|---|---|
+| `any` | **Banned.** Use `unknown` and narrow. `any` doesn't disable one check — it disables all of them, silently, downstream |
+| `as` assertions | Avoid. A type guard *proves* the claim; an assertion only asserts it. Fine for `as const` and genuinely un-typable boundaries |
+| `!` non-null | Avoid. If it can't be null, the type should say so. If it can, handle it |
+| `@ts-ignore` | **Never** — use `@ts-expect-error`. It fails the build once the underlying issue is fixed, so it can't rot silently |
+
+Each of these is counted by `/mx:ratchet` as a suppression, so adding one shows up by `file:line` in the diff against trunk. That's the intended cost: possible, never free, never silent.
+
+## Simplicity
+
+The hardest rules to enforce and the most important. Overcomplicated code is the single biggest readability tax in AI-generated work — generating an abstraction is as cheap as generating the thing itself, so the friction that normally stops a human from over-building isn't there.
+
+**Don't build what isn't needed yet.** No configuration option with one caller. No interface with one implementation. No generic parameter with one concrete type. No factory that constructs one kind of thing. If the second case never arrives, the abstraction was pure cost.
+
+**Rule of three.** Wait for the third occurrence before extracting a shared abstraction. Two similar things are often coincidence; the third tells you the shape. Duplication is cheaper to fix than the wrong abstraction — one is a find-and-replace, the other is a refactor across every call site.
+
+**An abstraction with exactly one caller is a candidate for inlining.** Not automatically wrong — extracting for a name, or to make a long function scannable, is legitimate — but it should survive the question being asked.
+
+**Delete, don't comment out.** Dead code behind a comment is a question every future reader has to answer. Git remembers.
+
+**No cleverness.** If a line needs a comment explaining *how* it works, rewrite the line. Comments explain *why*.
+
+## Control flow
+
+**Guard clauses over nesting.** Handle exceptional cases first and return early, so the happy path stays at the left margin and reads top to bottom.
+
+```ts
+// Avoid — the actual work is buried three levels deep
+function processOrder(order: Order) {
+  if (order.items.length > 0) {
+    if (order.customer.isVerified) {
+      if (order.payment.status === 'authorized') {
+        return submitOrder(order)
+      }
+    }
+  }
+}
+
+// Prefer — every precondition stated once, then the work
+function processOrder(order: Order) {
+  if (order.items.length === 0) return
+  if (!order.customer.isVerified) return
+  if (order.payment.status !== 'authorized') return
+
+  return submitOrder(order)
+}
+```
+
+**Name your conditions.** A compound boolean is unreadable inline and self-documenting once it has a name.
+
+```ts
+// Avoid
+if (user.age >= 18 && user.country === 'US' && !user.restrictions.includes('trading')) { … }
+
+// Prefer
+const isEligibleTrader =
+  user.age >= 18 && user.country === 'US' && !user.restrictions.includes('trading')
+
+if (isEligibleTrader) { … }
+```
+
+| Rule | Limit | ESLint |
+|---|---|---|
+| Nesting depth | 3 | `max-depth` |
+| Cyclomatic complexity | 10 | `complexity` |
+| Nested ternaries | 0 | `no-nested-ternary` |
+
+A function that can't meet these is telling you it does more than one thing. **Split it — don't reformat it into compliance.**
+
+## Naming
+
+Names spell things out. No single letters, no invented abbreviations.
+
+| Avoid | Prefer |
+|---|---|
+| `const u = getUser()` | `const user = getUser()` |
+| `const usrCnt` | `const userCount` |
+| `const btnLbl` | `const buttonLabel` |
+| `const res`, `const resp` | `const response` |
+| `const tmp`, `const data`, `const info` | a name that says what it holds |
+| `function calc()` | `function calculateTotal()` |
+
+**The only accepted single letter is `_`** for an intentionally unused binding. If you want `i`, a `for...of` or `.map()` usually removes the need for an index entirely.
+
+**Established acronyms stay** — `id`, `url`, `api`, `http`, `css`, plus your domain's real vocabulary. The test is whether a new team member recognizes it on day one without asking. `sku` passes. `usrCnt` doesn't.
+
+**Name length scales with scope.** A binding used two lines later can be short. One exported from a module is read by people who can't see its definition and has to carry its meaning alone.
+
+| Kind | Shape | Example |
+|---|---|---|
+| Function | Verb phrase | `calculateTotal`, `fetchInvoice` |
+| Variable | Noun phrase | `invoiceTotal`, `pendingItems` |
+| Boolean | Predicate | `isVerified`, `hasPermission`, `canCheckout`, `shouldRetry` |
+| Collection | Plural | `orders` — not `orderList` or `orderArray` |
+| Handler | `handle` + event | `handleSubmit`, `handleRetryClick` |
+| Constant | `SCREAMING_SNAKE_CASE` | `MAX_RETRY_ATTEMPTS` |
+
+Avoid noise-word suffixes — `userData`, `orderInfo`, `configObject`, `itemManager`. If removing the suffix loses nothing, it was never carrying anything.
+
+## What's enforced where
+
+An honest split between what CI catches and what needs a reader.
+
+| Rule | Mechanism |
+|---|---|
+| Strict TypeScript | `tsconfig.json` — CI gate |
+| No `any` | `@typescript-eslint/no-explicit-any` — CI gate |
+| No non-null assertion | `@typescript-eslint/no-non-null-assertion` — CI gate |
+| `@ts-expect-error` over `@ts-ignore` | `@typescript-eslint/ban-ts-comment` — CI gate |
+| Nesting, complexity, nested ternaries | `max-depth`, `complexity`, `no-nested-ternary` — CI gate |
+| Unused code | `noUnusedLocals` / `noUnusedParameters` — CI gate |
+| Suppression count vs trunk | `/mx:ratchet` — CI gate |
+| Naming quality | Review — `mx-code-reviewer` |
+| Premature abstraction, rule of three | Review — `mx-code-simplifier` |
+| Guard clauses, named conditions | Review — `mx-code-simplifier` |
+
+The bottom three can't be linted, and pretending otherwise would be worse than admitting it. They're also the ones AI-generated code gets wrong most often, which is why they're surfaced at the build gate rather than left to chance.

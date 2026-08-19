@@ -59,6 +59,8 @@ export default defineConfig({
           label: 'Reference',
           items: [
             { label: 'Configuration', slug: 'reference/configuration' },
+            { label: 'Project Structure', slug: 'reference/project-structure' },
+            { label: 'Code Style', slug: 'reference/code-style' },
             { label: 'Scope Mappings', slug: 'reference/scope-mappings' },
             { label: 'Troubleshooting', slug: 'reference/troubleshooting' },
             { label: 'Changelog', slug: 'reference/changelog' },

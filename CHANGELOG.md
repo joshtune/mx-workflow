@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Docs site: **Project Structure** and **Code Style** reference pages, covering the layout invariant (a file lives at the lowest point in the tree that can see all of its consumers), naming and barrel policy, string extraction, the uncapped-nesting rationale, per-framework support (React/Angular/Svelte/Vue/backend/CLI/mobile), the `dependency-cruiser` enforcement encoding with its stated coverage limit, and the deviation protocol. Both added to the Reference sidebar.
+
+### Changed
+
+- Docs site: `/mx:ratchet` page now lists the `structure` dimension in its usage line and description, cross-linked to the new Project Structure page.
+
 ## [1.23.1] - 2026-08-19
 
 ### Fixed
