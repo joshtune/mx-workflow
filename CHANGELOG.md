@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Docs site: the command and agent pages now reflect the 1.23.x behavior changes, not just the new reference pages. `/mx:build` documents convention detection (greenfield vs existing) and the deviation gate; `/mx:qa` documents the Structure & Style conformance pass under `--full` and that it's skipped on codebases with a pre-existing layout; `/mx:create-rules` documents the File Layout Convention section and that it describes rather than prescribes; `/mx:version` gains a caution box on verifying the tag reached the remote and why `--follow-tags` is unsafe; `mx-feature-builder` in the agent catalog documents its no-precedent fallback rules and deviation reporting.
+
 ## [1.23.2] - 2026-08-19
 
 ### Added

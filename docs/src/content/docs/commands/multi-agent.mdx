@@ -27,8 +27,8 @@ Takes a product or feature idea and orchestrates the full mx pipeline end-to-end
 1. **Discovery** — Funnel-style: quick yes/no direction questions → inferred context confirmation → targeted details only where uncertain
 2. **PRD** — Problem-first product spec with User Roles & Expectations (each role gets a table of must-haves with unique IDs for QA traceability) (commit: `docs(prd): ...`)
 3. **Plan** — Codebase-aware implementation plan (commit: `docs(plan): ...`)
-4. **Build** — Test-first cycle (write test → confirm fails → implement → confirm passes) for every feature. Auto-selects agent team or single-agent by plan complexity. (commit: `feat: ...`)
-5. **QA** — Spec conformance per role (PASS/FAIL/MISS per expectation ID), test coverage verification, structural checks, and fix cycles (commit: `fix: ...` if needed)
+4. **Build** — Test-first cycle (write test → confirm fails → implement → confirm passes) for every feature, applying the [structure](/mx-workflow/reference/project-structure/) and [style](/mx-workflow/reference/code-style/) conventions. Auto-selects agent team or single-agent by plan complexity. (commit: `feat: ...`)
+5. **QA** — Spec conformance per role (PASS/FAIL/MISS per expectation ID), test coverage verification, structural and layout checks, and fix cycles (commit: `fix: ...` if needed)
 
 **Key features:**
 
@@ -36,6 +36,8 @@ Takes a product or feature idea and orchestrates the full mx pipeline end-to-end
 - **User Roles & Expectations** — the PRD defines what each role can do (e.g., "Admin can remove users", "Customer can checkout"). QA verifies every must-have was built, per role.
 - **Test-first** — every feature gets its test written before implementation. QA fails any feature that doesn't have a corresponding test.
 - **Auto strategy selection** — agent team for multi-component work (3+ independent components), single agent for focused changes.
+- **Convention-aware** — pre-flight detects whether the project is greenfield or has an established layout. On an existing codebase the current convention always wins and any conflict is reported; the [Project Structure](/mx-workflow/reference/project-structure/) and [Code Style](/mx-workflow/reference/code-style/) rules are applied in full only to new code.
+- **Deviation gate** — departures from those conventions (beyond pre-approved cases like framework paths and generated code) are raised for approval *before* the code lands, with the rule, the reason, and the rejected alternative. Under `--auto` the rule is applied rather than deviated from unilaterally.
 
 **When to use it:**
 - When you have an idea and want Claude to handle the entire journey
@@ -118,6 +120,8 @@ See the [Multi-Agent Team guide](/guides/multi-agent-team) for the full protocol
 ```
 
 Runs a quality audit using the `mx-quality-keeper` agent. It detects and runs all available quality checks (lint, type-check, tests), audits suppressions, and optionally verifies contract conformance. Produces a structured report saved to `.agents/reports/`.
+
+Under `--full` it also runs a **Structure & Style conformance** pass covering what CI can't reach — sibling-subtree imports nested past the leaf level, unqualified filenames, hand-written barrels, inline user-facing strings, speculative hoisting, and single-caller abstractions. Deep nesting is reported as an advisory, never a failure, and justified deviations are listed as accepted rather than re-flagged each run. The check is skipped entirely on a codebase with a pre-existing layout — see [Project Structure](/mx-workflow/reference/project-structure/).
 
 | Flag | Effect |
 |---|---|

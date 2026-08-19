@@ -301,6 +301,8 @@ Creates Supabase (PostgreSQL) tables, indexes, RLS policies, TypeScript types, a
 
 Takes one feature's spec (name, user action, expected result, implementation notes) plus project context (stack, data model, routes) and builds it end-to-end, following patterns established by prior features.
 
+Where the project has an established convention it follows that. Where there's no precedent, it falls back to the [Project Structure](/mx-workflow/reference/project-structure/) and [Code Style](/mx-workflow/reference/code-style/) rules — lowest-common-ancestor file placement, no sibling-subtree imports, folder-qualified filenames, strings extracted to constants, guard clauses over nesting, no speculative abstraction. Any deviation is reported in its output with the rule, the reason, and the rejected alternative.
+
 ---
 
 ## mx-test-builder

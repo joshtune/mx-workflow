@@ -27,7 +27,17 @@ Centralized version management that bumps the version across all manifest files,
 1. **`plugin.json`** — the `version` field
 2. **`.claude-plugin/marketplace.json`** — the `plugins[0].version` field
 3. **`CHANGELOG.md`** — moves content from the `[Unreleased]` section into a new version section with the current date
-4. **Git** — creates a commit and a `v{version}` tag
+4. **Git** — creates a commit and an annotated `v{version}` tag
+
+:::caution[Publishing: verify the tag landed]
+After `git push && git push --tags`, confirm the tag actually reached the remote:
+
+```bash
+git ls-remote --tags origin | grep "refs/tags/v{version}"
+```
+
+Use `git push --tags`, never `--follow-tags` — the latter pushes only *annotated* tags, so a lightweight tag (`git tag v1.2.3` without `-a`) is skipped with no warning. Your local repo then looks released while the remote has no tag, and `gh release create` either fails or points at a tag nobody can resolve. `/mx:release` runs this check automatically between the push and the release.
+:::
 
 ### Examples
 
