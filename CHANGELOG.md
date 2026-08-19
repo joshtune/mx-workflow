@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.23.4] - 2026-08-19
+
 ### Fixed
 
 - The docs site changelog page is now **generated from the root `CHANGELOG.md`** at build time by `docs/scripts/sync-changelog.mjs`, instead of being maintained by hand. The hand-written page had drifted 22 versions behind — its newest entry was 1.1.1 and its "Unreleased" section described work shipped months earlier. Version headings are rewritten (`## [1.2.3] - date` → `## 1.2.3 — date`) so bracket characters don't leak into heading anchors, trailing link-reference definitions are stripped, and the table of contents is capped at version level. The generated file is gitignored and carries a do-not-edit banner, so the root changelog is the single source of truth and the page cannot drift again.
@@ -392,7 +394,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.23.3...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.23.4...HEAD
+[1.23.4]: https://github.com/joshtune/mx-workflow/compare/v1.23.3...v1.23.4
 [1.23.3]: https://github.com/joshtune/mx-workflow/compare/v1.23.2...v1.23.3
 [1.23.2]: https://github.com/joshtune/mx-workflow/compare/v1.23.1...v1.23.2
 [1.23.1]: https://github.com/joshtune/mx-workflow/compare/v1.23.0...v1.23.1
