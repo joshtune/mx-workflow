@@ -1,0 +1,64 @@
+---
+title: "Workflow: Research, Build, Prove"
+description: A quality-first loop for tickets — research feasibility, implement, then hold the AI accountable with recorded browser evidence, coverage screenshots, and an independent review.
+---
+
+AI is a good helper. The job is to verify it and hold it accountable. This guide walks the loop mx-workflow supports for a single ticket, from "is this even doable?" to "here is the recording."
+
+## The loop
+
+```
+/mx:feasibility → /mx:plan → /mx:implement → /mx:verify → /mx:pr
+```
+
+| Stage | Question it answers | Output |
+|---|---|---|
+| `/mx:feasibility` | Can this be done here, and what gets in the way? | Verdict + risks in `.agents/feasibility/` |
+| `/mx:plan` | How do we build it, and how will we know it works? | Plan with numbered acceptance criteria |
+| `/mx:implement` | Does it build, lint, type-check, and pass tests? | Code + agent review pass |
+| `/mx:verify` | Does it actually do what the ticket says? | Video, screenshots, coverage, verdict in `.agents/evidence/` |
+| `/mx:pr` | Can a reviewer see the proof? | PR body with the verification summary |
+
+`/mx:implement` and `/mx:verify` both end by collecting lessons from the run. See [Lessons Learned](/mx-workflow/guides/lessons-learned/).
+
+## Why a separate reviewer
+
+The agent that wrote the code is the worst judge of it. It remembers what it meant to do, and it fills in the gaps. `mx-acceptance-reviewer` is given only three things: the diff, the acceptance criteria, and the evidence. Nothing about how the work was done.
+
+That is also why `/mx:verify` caps the fix loop at two rounds. If an independent reviewer still rejects the work after two attempts, the problem is usually the criteria, the design, or a missing decision, and more automated retries will not fix those.
+
+## Evidence you can trust
+
+Evidence only counts if it is real. The verification agents follow a few hard rules:
+
+- A screenshot is **viewed** before it is cited, not just saved.
+- Every file listed in a report is confirmed to exist on disk.
+- Assertions are never loosened, tests are never skipped, and coverage config is never edited to turn a failure into a pass.
+- A flaky check is reported as flaky, not retried until it happens to pass.
+- A rising coverage number is checked against the **changed lines** and whether the new tests make assertions.
+
+## Coverage, in a browser
+
+Percentages in a terminal are easy to skim past. `mx-coverage-verifier` runs your existing coverage tool on trunk and on your branch, compares the **changed files**, then opens the generated HTML report with Playwright and screenshots the summary and the per-file pages. The per-file page highlights uncovered lines, so you can see whether the new code is exercised.
+
+It does not add a coverage tool to your project. If there is none, that is reported as a finding with a one-line suggestion for your stack.
+
+## One-time setup
+
+```bash
+# Playwright, if the project does not have it
+pnpm add -D @playwright/test
+npx playwright install chromium
+```
+
+Make sure the project has a coverage script (for example `vitest run --coverage` or `pytest --cov --cov-report=html`) that writes an HTML report.
+
+## Mixing and matching
+
+| Situation | Use |
+|---|---|
+| Backend-only change | `/mx:verify --no-browser` |
+| Quick check that tests added actually moved coverage | `/mx:verify --no-browser` and read the coverage table |
+| Someone else's PR | [`/mx:second-look`](/mx-workflow/commands/review-tier/) for review; `/mx:verify` if it has acceptance criteria |
+| CI gate | `/mx:verify` ends with `MX_VERIFY=…`; combine with [`/mx:reject`](/mx-workflow/commands/review-tier/) |
+| Whole-app exploration | [`/mx:e2e`](/mx-workflow/guides/e2e-testing/) |

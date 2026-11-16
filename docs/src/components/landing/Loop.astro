@@ -1,0 +1,124 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const steps = [
+  { n: 1, name: 'Research', cmd: '/mx:feasibility', text: 'Can this be done here? Precedent, risks, and blockers, before any plan.' },
+  { n: 2, name: 'Plan', cmd: '/mx:plan', text: 'File-level steps and numbered acceptance criteria to check later.' },
+  { n: 3, name: 'Build', cmd: '/mx:implement', text: 'Lint, types, and tests after every change, then eight review agents.' },
+  { n: 4, name: 'Prove', cmd: '/mx:verify', text: 'Video, screenshots, coverage, and an independent review.' },
+  { n: 5, name: 'Ship', cmd: '/mx:pr', text: 'A pull request that carries the verdict and the evidence.' },
+  { n: 6, name: 'Learn', cmd: '/mx:lesson', text: 'Lessons are logged, then curated into rules your next session reads.' },
+];
+---
+
+<section class="loop" aria-labelledby="loop-title">
+  <p class="eyebrow">How it works</p>
+  <h2 id="loop-title">Six steps. One loop.</h2>
+  <p class="lead">
+    Each step hands the next one something it can check. Nothing relies on the AI's
+    word that the work is done.
+  </p>
+
+  <ol class="steps">
+    {
+      steps.map((s) => (
+        <li>
+          <span class="num" aria-hidden="true">{s.n}</span>
+          <h3>{s.name}</h3>
+          <code>{s.cmd}</code>
+          <p>{s.text}</p>
+        </li>
+      ))
+    }
+  </ol>
+
+  <svg class="return" viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="currentColor" />
+      </marker>
+    </defs>
+    <path d="M1100 2 V40 H100 V6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arrow)" vector-effect="non-scaling-stroke" />
+  </svg>
+  <p class="return-note">The next ticket starts with what this one learned.</p>
+
+  <p class="more">
+    Prefer one command? <a href={`${base}/commands/review/`}><code>/mx:review</code></a> gives a verdict on any
+    branch. <a href={`${base}/guides/choosing-a-workflow/`}>Choose a workflow →</a>
+  </p>
+</section>
+
+<style>
+  .loop { padding: clamp(2rem, 5vw, 3.5rem) 0; }
+  .eyebrow {
+    margin: 0 0 0.6rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent-high);
+  }
+  h2 {
+    margin: 0;
+    font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--sl-color-white);
+  }
+  .lead { margin: 0.8rem 0 0; max-width: 38rem; color: var(--sl-color-gray-2); font-size: var(--sl-text-base); line-height: 1.6; }
+
+  .steps {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .steps li {
+    position: relative;
+    padding: 1rem 0.95rem 1.1rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.8rem;
+    background: var(--sl-color-gray-6);
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .steps li:hover { border-color: var(--sl-color-accent); transform: translateY(-2px); }
+  .num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+    color: #fff;
+    background: var(--sl-color-accent);
+  }
+  h3 { margin: 0.7rem 0 0.35rem; font-size: var(--sl-text-lg); color: var(--sl-color-white); }
+  .steps code {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 0.1rem 0.4rem;
+    color: var(--sl-color-accent-high);
+    background: var(--sl-color-accent-low);
+    border: 0;
+    border-radius: 0.3rem;
+  }
+  .steps p { margin: 0.6rem 0 0; font-size: var(--sl-text-sm); line-height: 1.5; color: var(--sl-color-gray-2); }
+
+  .return { display: block; width: 100%; height: 3.5rem; margin-top: 0.2rem; color: var(--sl-color-gray-3); overflow: visible; }
+  .return-note { margin: 0; text-align: center; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+  .more { margin: 1.75rem 0 0; font-size: var(--sl-text-sm); color: var(--sl-color-gray-2); }
+  .more a { color: var(--sl-color-accent-high); text-decoration: none; font-weight: 600; }
+  .more a:hover { text-decoration: underline; }
+  .more code { font-size: 0.85em; }
+
+  @media (max-width: 70rem) {
+    .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .return { display: none; }
+    .return-note { margin-top: 1rem; }
+  }
+  @media (max-width: 40rem) {
+    .steps { grid-template-columns: 1fr; }
+  }
+</style>

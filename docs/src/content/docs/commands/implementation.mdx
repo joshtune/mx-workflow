@@ -37,6 +37,8 @@ Creates a detailed, step-by-step implementation plan based on a description or t
 - When you have a clear task or ticket and need to decide how to build it
 - After `/mx:prd` to turn a product spec into concrete code changes
 
+For non-trivial work it reuses a [`/mx:feasibility`](/mx-workflow/commands/verification/) report (or runs one first), and the plan includes numbered acceptance criteria that [`/mx:verify`](/mx-workflow/commands/verification/) checks later.
+
 ## /mx:implement
 
 **Execute implementation plan with validation loops**
@@ -47,7 +49,7 @@ Creates a detailed, step-by-step implementation plan based on a description or t
 
 Executes the current plan step by step. After each change, it runs validation (lint, type-check, tests) to catch problems early. It also invokes specialized agents (code reviewer, simplifier, test analyzer) to review the work. If validation fails, it fixes the issues before moving on.
 
-Pass `continue` to resume a previously interrupted implementation.
+Pass `continue` to resume a previously interrupted implementation. When the plan has acceptance criteria or the change is user-facing, it offers to run [`/mx:verify`](/mx-workflow/commands/verification/) at the end.
 
 **When to use it:**
 - After `/mx:plan` to execute the plan

@@ -3,7 +3,17 @@ title: Getting Started
 description: Install mx-workflow — the review-grade quality layer for AI-generated code — for Claude Code.
 ---
 
-mx-workflow is **the review-grade quality layer for AI-generated code** for [Claude Code](https://claude.com/claude-code). Generating code is table stakes; mx-workflow is the layer that *interrogates* it — pushing back on hallucinated APIs, silent failures, suppressed errors, and type rot before they ship. Eight review-grade agents do the interrogating, backed by a full dev-lifecycle toolkit (planning, implementation, conventional commits, PRs, and multi-agent builds) underneath.
+mx-workflow is **the review-grade quality layer for AI-generated code** for [Claude Code](https://claude.com/claude-code). Generating code is table stakes; mx-workflow is the layer that *interrogates* it — pushing back on hallucinated APIs, silent failures, suppressed errors, and type rot before they ship. Eight review-grade agents do the interrogating, four verification agents prove the work with recorded evidence, and a lessons system turns each ticket into rules for the next one. A full dev-lifecycle toolkit (planning, implementation, conventional commits, PRs, and multi-agent builds) sits underneath.
+
+## Quick start
+
+```
+/plugin marketplace add joshtune/mx-workflow
+/plugin install mx@joshtune-mx-workflow
+/mx:review
+```
+
+Two commands to install, then one to see what it does on your current branch. The rest of this page covers install options and a full session.
 
 ## Prerequisites
 

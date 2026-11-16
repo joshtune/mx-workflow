@@ -1,0 +1,84 @@
+---
+title: Lessons Learned
+description: Collect lessons from every ticket in an append-only log, count them with a script, and curate them weekly into general rules placed where they apply.
+---
+
+Every ticket may run in a fresh session, so nothing learned survives unless it is written down. The lessons system captures what each piece of work taught you and turns repeated patterns into rules that future sessions read automatically.
+
+All memory lives in files. Nothing depends on the session.
+
+## The loop
+
+```
+/mx:lesson  →  log.jsonl  →  count (script)  →  /mx:lessons-review  →  rules
+ (every ticket)  (append-only)   (no AI)         (weekly / on demand)   (CLAUDE.md, skills)
+```
+
+| Stage | Who does it | Cost |
+|---|---|---|
+| **Collect** | `/mx:lesson`, run at the end of `/mx:implement` and `/mx:verify` | A few tokens; no subagents |
+| **Tag** | Reuses a tag from `tags.json`; new tags need a stated meaning | Free |
+| **Count** | `scripts/lessons.mjs count`: groups unpromoted entries by tag, flags 3 or more | Free, no AI |
+| **Curate** | `/mx:lessons-review`, weekly or on demand, never during a ticket | Judgment, with confirmation |
+
+## What gets collected
+
+Each log entry has a date, ticket ID, ticket type (`bug` or `feature`), a tag, a one-line description, and the affected area or folder.
+
+A candidate is kept only if it is **general** (not about one ticket), **non-obvious** (a senior developer new to the codebase would not know it), and **actionable** (a do or don't). A run records at most three, and recording nothing is normal.
+
+```json
+{"kind":"lesson","id":"6dd90b1f","date":"2026-11-16","ticket":"EIT-31","type":"bug","tag":"error-handling","description":"Surface fetch failures to the caller instead of returning an empty list","area":"src/api"}
+```
+
+## Consistent tags
+
+`.claude/lessons/tags.json` lists the existing categories. The script rejects an unknown tag, so the agent has to reuse one when it fits and can only create a new one by stating what it means. This keeps counting meaningful: `error-handling` and `exception-handling` would otherwise split a pattern into two clusters that never reach the threshold.
+
+## Counting without AI
+
+```bash
+node scripts/lessons.mjs count
+```
+
+```
+unpromoted entries: 4 (threshold 3)
+FLAG  error-handling                 3  src/api, src/web
+      null-checks                    1  src/web
+```
+
+The log is never rewritten. Promotions and tag merges are appended as events and replayed to derive the current state, so the history stays auditable.
+
+## Curating with `/mx:lessons-review`
+
+Run it weekly or when `/mx:lesson` mentions a flagged tag. It:
+
+1. **Merges similar tags** (and re-counts, since merging can push a cluster over the threshold)
+2. **Turns flagged clusters into general rules**, never ticket-specific notes. If the entries don't add up to a rule, it holds the cluster back for more evidence
+3. **Places each rule where it applies**
+4. **Marks the source entries promoted**
+5. **Prunes** duplicates, outdated rules, and anything a senior developer new to the codebase wouldn't need
+
+| Where a rule goes | When |
+|---|---|
+| Nested `CLAUDE.md` in the relevant folder | The rule applies to one area. The default |
+| A skill in `.claude/skills/` | A specialized playbook, such as a bug-fix or feature checklist |
+| Root `CLAUDE.md` | Only a truly global rule |
+
+It shows every proposed rule, destination, and removal, and waits for your confirmation before writing or deleting. `--dry-run` shows the proposal and writes nothing.
+
+## Keeping the root file short
+
+Treat the root `CLAUDE.md` as a short rule list, not a history log. `/mx:lessons-review` runs a size check and flags the file when it grows past about 100 lines, then proposes moving rules down into nested files or a skill.
+
+## Files
+
+```
+.claude/lessons/
+  log.jsonl     append-only lessons, promotions, tag merges
+  tags.json     the tag vocabulary
+```
+
+Commit this directory. It is shared team memory.
+
+The script is `scripts/lessons.mjs` in the plugin: Node, no dependencies. Set `MX_LESSONS_DIR` to store the data somewhere else.

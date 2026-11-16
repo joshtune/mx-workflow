@@ -1,0 +1,246 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const installLines = [
+  '/plugin marketplace add joshtune/mx-workflow',
+  '/plugin install mx@joshtune-mx-workflow',
+];
+---
+
+<section class="hero">
+  <div class="copy">
+    <p class="eyebrow">A plugin for Claude Code</p>
+    <h1>Ship AI-written code you can <em>trust</em>.</h1>
+    <p class="sub">
+      mx-workflow researches the task, reviews the code, and proves it works with
+      video, screenshots, and a verdict, before it reaches your team.
+    </p>
+
+    <div class="install" role="group" aria-label="Install commands">
+      {
+        installLines.map((line) => (
+          <div class="line">
+            <span class="prompt" aria-hidden="true">›</span>
+            <code>{line}</code>
+            <button type="button" class="copy-btn" data-copy={line} aria-label={`Copy: ${line}`}>
+              <span class="idle">Copy</span>
+              <span class="done" aria-hidden="true">Copied</span>
+            </button>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="actions">
+      <a class="btn primary" href={`${base}/getting-started/`}>Get started</a>
+      <a class="btn" href={`${base}/guides/review-demo/`}>See it catch a bug</a>
+      <a class="btn ghost" href="https://github.com/joshtune/mx-workflow">GitHub</a>
+    </div>
+  </div>
+
+  <figure class="terminal" aria-label="Example output of the /mx:review command">
+    <div class="chrome" aria-hidden="true">
+      <i></i><i></i><i></i>
+      <span>Example output</span>
+    </div>
+<pre><code><span class="dim">❯</span> <span class="b">/mx:review</span>
+
+<span class="b">MX REVIEW</span>
+<span class="dim">Scope</span>   branch vs main · 1 file changed
+<span class="dim">Mode</span>    balanced
+
+<span class="b">VERDICT</span>  <span class="chip red">REJECT</span>
+
+<span class="red">CRITICAL</span>  billing.ts:18
+          catch returns 200 on any error, so
+          Stripe never retries the webhook
+<span class="amber">HIGH</span>      billing.ts:11
+          stripe.webhooks.constructEventAsync
+          does not exist. Use constructEvent
+
+<span class="dim">mx-code-reviewer</span>          1 high
+<span class="dim">mx-silent-failure-hunter</span>  1 critical
+<span class="dim">mx-quality-keeper</span>         types <span class="red">FAIL</span></code></pre>
+  </figure>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+        btn.dataset.state = 'copied';
+        setTimeout(() => delete btn.dataset.state, 1600);
+      } catch {
+        /* clipboard unavailable: the command stays selectable */
+      }
+    });
+  });
+</script>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    padding: clamp(1rem, 4vw, 3rem) 0 clamp(2.5rem, 6vw, 4.5rem);
+  }
+  .copy { min-width: 0; }
+  .eyebrow {
+    margin: 0 0 1rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent-high);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(2.4rem, 5.2vw, 3.8rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    font-weight: 750;
+    color: var(--sl-color-white);
+    text-wrap: balance;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(100deg, var(--sl-color-accent-high), var(--sl-color-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sub {
+    margin: 1.25rem 0 0;
+    max-width: 34rem;
+    font-size: var(--sl-text-lg);
+    line-height: 1.55;
+    color: var(--sl-color-gray-2);
+  }
+
+  .install {
+    margin-top: 1.75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    max-width: 100%;
+  }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.9rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.6rem;
+    background: var(--sl-color-gray-6);
+  }
+  .prompt {
+    color: var(--sl-color-accent-high);
+    font-weight: 700;
+  }
+  .line code {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    color: var(--sl-color-white);
+    background: none;
+    border: 0;
+    padding: 0;
+    scrollbar-width: none;
+  }
+  .line code::-webkit-scrollbar { display: none; }
+  .copy-btn {
+    flex: none;
+    min-width: 4.25rem;
+    padding: 0.3rem 0.65rem;
+    font: inherit;
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+    background: transparent;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .copy-btn:hover { color: var(--sl-color-white); border-color: var(--sl-color-gray-3); }
+  .copy-btn:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 2px; }
+  .copy-btn .done { display: none; }
+  .copy-btn[data-state='copied'] { color: #16a34a; border-color: currentColor; }
+  .copy-btn[data-state='copied'] .idle { display: none; }
+  .copy-btn[data-state='copied'] .done { display: inline; }
+
+  .actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 1.15rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--sl-color-white);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.6rem;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+  .btn:hover { border-color: var(--sl-color-gray-3); background: var(--sl-color-gray-6); }
+  .btn.primary { background: var(--sl-color-accent); border-color: var(--sl-color-accent); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.1); background: var(--sl-color-accent); }
+  .btn.ghost { border-color: transparent; color: var(--sl-color-gray-2); }
+  .btn:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 2px; }
+
+  /* The terminal is always dark so the verdict colors stay legible in either theme. */
+  .terminal {
+    margin: 0;
+    border-radius: 0.9rem;
+    overflow: hidden;
+    background: #0d1020;
+    border: 1px solid #262b45;
+    box-shadow: 0 24px 60px -24px rgba(79, 70, 229, 0.45), 0 2px 0 rgba(255, 255, 255, 0.03) inset;
+    color: #d8dcf0;
+  }
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 0.9rem;
+    background: #141833;
+    border-bottom: 1px solid #262b45;
+  }
+  .chrome i { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: #343a5e; }
+  .chrome span { margin-left: auto; font-size: var(--sl-text-xs); color: #8a90b5; }
+  pre {
+    margin: 0;
+    padding: 1.1rem 1.2rem 1.3rem;
+    overflow-x: auto;
+    background: none;
+    border: 0;
+  }
+  pre code {
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: inherit;
+    background: none;
+  }
+  .dim { color: #7c83ad; }
+  .b { color: #fff; font-weight: 700; }
+  .red { color: #ff6b81; font-weight: 700; }
+  .amber { color: #ffb454; font-weight: 700; }
+  .chip.red {
+    padding: 0.05rem 0.5rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 107, 129, 0.16);
+    border: 1px solid rgba(255, 107, 129, 0.45);
+  }
+
+  @media (max-width: 62rem) {
+    .hero { grid-template-columns: 1fr; }
+    .terminal { max-width: 38rem; }
+  }
+  @media (max-width: 30rem) {
+    pre code { font-size: 0.66rem; }
+    .line code { white-space: normal; overflow-wrap: anywhere; font-size: 0.75rem; }
+  }
+</style>

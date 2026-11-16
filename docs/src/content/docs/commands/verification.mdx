@@ -1,0 +1,87 @@
+---
+title: Verification
+description: Research feasibility before planning, then prove the work with Playwright video, screenshots, a coverage report, and an independent acceptance review.
+---
+
+AI is a good helper. It is not a witness for its own work. These two commands put a check on each end of a task: **research** whether it can be done before you plan, and **prove** that it was done before you open the PR.
+
+Both keep the orchestrating session lean. The agents read code, drive the browser, and measure coverage, then return short structured summaries.
+
+## /mx:feasibility
+
+**Research whether a ticket, bug, or feature is feasible before planning**
+
+```
+/mx:feasibility [ticket id | description | --file <path>]
+```
+
+Delegates the code reading to [`mx-feasibility-researcher`](/mx-workflow/agents/catalog/#mx-feasibility-researcher), which finds the closest existing precedent, maps the blast radius, looks for blockers, and decides how the finished work could be proven. You get one of four verdicts:
+
+| Verdict | Meaning |
+|---|---|
+| FEASIBLE | Clear precedent, contained blast radius, verifiable |
+| FEASIBLE WITH RISKS | Doable; each risk comes with a mitigation |
+| NOT FEASIBLE | A blocker makes it impossible or wrong as specified |
+| NEEDS CLARIFICATION | The answer depends on a decision only you can make |
+
+The report is saved to `.agents/feasibility/<slug>.md`, and `/mx:plan` reuses it — precedent, risks, and verification route flow straight into the plan.
+
+**When to use it:**
+- A ticket in an unfamiliar part of the codebase
+- A bug where you only have the symptom, not the failing path
+- Before committing to an estimate
+
+## /mx:verify
+
+**Playwright video and screenshots, a coverage report, and an independent acceptance review**
+
+```
+/mx:verify [--criteria <file|text>] [--ticket <id>] [--url <url>] [--max-rounds <n>] [--no-coverage] [--no-browser]
+```
+
+Run it after implementation. It resolves the ticket's acceptance criteria (`AC1…ACn`), then:
+
+1. **Gathers evidence in parallel**
+   - [`mx-playwright-validator`](/mx-workflow/agents/catalog/#mx-playwright-validator) drives the real app, records **video and screenshots** for each criterion, and checks the console for errors.
+   - [`mx-coverage-verifier`](/mx-workflow/agents/catalog/#mx-coverage-verifier) measures coverage of the **changed files** on trunk and on your branch, then opens the project's own HTML coverage report in a browser and **screenshots** it.
+2. **Reviews independently.** [`mx-acceptance-reviewer`](/mx-workflow/agents/catalog/#mx-acceptance-reviewer) starts with a fresh context. It receives only the diff, the criteria, and the evidence — never the plan or the implementer's reasoning.
+3. **Closes the loop.** Failures go back to a fix agent as self-contained instructions, then only the affected checks re-run. After **2 rounds** (configurable with `--max-rounds`) it stops and flags you rather than looping forever.
+
+### Verdicts
+
+| Verdict | When |
+|---|---|
+| VERIFIED | Reviewer accepts, no browser failures, coverage not regressed |
+| VERIFIED WITH GAPS | Criteria met, but gaps remain (for example, uncovered new lines) |
+| NOT VERIFIED | A criterion is not met, a browser check fails, or coverage regressed |
+
+The last line of output is a machine-readable marker, `MX_VERIFY=verified|verified-with-gaps|not-verified`, in the same style as [`/mx:reject`](/mx-workflow/commands/review-tier/).
+
+### Where the evidence goes
+
+```
+.agents/evidence/<slug>/
+  report.md
+  videos/AC1-<name>.webm
+  screenshots/AC1-01-<step>.png
+  coverage/summary.png
+  coverage/<file>.png
+  traces/            (failures only)
+```
+
+`.agents/` is git-ignored, so evidence is local. `/mx:pr` lists the verdict, counts, and file paths in the PR body; attach the video and screenshots to the PR or ticket yourself.
+
+### Requirements
+
+- **Playwright** installed in the project. If it is missing, `/mx:verify` says so and continues with the remaining evidence rather than installing it for you.
+- **Coverage tooling** already configured (Vitest, Jest, c8/nyc, pytest-cov, Go, or cargo-llvm-cov). If none is found it reports that as a finding.
+- A browser-accessible frontend for the Playwright step. Backend-only changes skip it automatically.
+
+:::note[verify vs e2e]
+[`/mx:e2e`](/mx-workflow/commands/implementation/#mxe2e) is a broad sweep: it explores the whole app and fixes what it finds. `/mx:verify` is targeted: it proves one change against its acceptance criteria and keeps the recording.
+:::
+
+**When to use it:**
+- After `/mx:implement`, before `/mx:pr`
+- When a reviewer will ask "how do I know this works?"
+- When you want a second opinion that did not watch the code being written
