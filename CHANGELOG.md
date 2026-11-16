@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-15
+
 ### Added
 
 - **`/mx:verify`** — holds the work accountable after implementation. Resolves the ticket's acceptance criteria, gathers evidence in parallel (Playwright video and screenshots; coverage before/after on changed files with a browser screenshot of the HTML report), then runs an independent fresh-context acceptance review. Failures go back to a fix agent as self-contained instructions, capped at 2 rounds (`--max-rounds`), then it stops and flags you. Writes to `.agents/evidence/{slug}/` and ends with a machine-readable `MX_VERIFY=` marker.
@@ -422,7 +424,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v1.23.4...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/joshtune/mx-workflow/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/joshtune/mx-workflow/compare/v1.23.4...v2.0.0
 [1.23.4]: https://github.com/joshtune/mx-workflow/compare/v1.23.3...v1.23.4
 [1.23.3]: https://github.com/joshtune/mx-workflow/compare/v1.23.2...v1.23.3
 [1.23.2]: https://github.com/joshtune/mx-workflow/compare/v1.23.1...v1.23.2

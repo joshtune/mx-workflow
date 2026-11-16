@@ -1,7 +1,7 @@
 {
   "name": "mx-workflow",
   "description": "The review-grade quality layer for AI-generated code. 16 specialized agents interrogate generated code — catching silent failures, hallucinated APIs, suppressed errors, and type rot — then prove the work with Playwright video, screenshots, coverage evidence, and an independent acceptance review. Lessons from every ticket become rules. Backed by a full dev-lifecycle toolkit.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "keywords": [
     "code-review",
     "ai-code-review",
