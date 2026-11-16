@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- Source for public/og.png (1200x630). Render with Playwright: set viewport 1200x630 and screenshot this file. -->
+<html lang="en">
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #fff;
+    background:
+      radial-gradient(70% 90% at 85% 10%, rgba(79,70,229,.45), transparent 60%),
+      radial-gradient(50% 70% at 0% 100%, rgba(99,102,241,.22), transparent 60%),
+      #0b0e1c;
+    display: grid; grid-template-columns: 1fr 470px; gap: 48px; align-items: center; padding: 0 72px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; color: #c7d2fe; letter-spacing: -.01em; }
+  .bolt { width: 34px; height: 34px; border-radius: 9px; background: #4f46e5; display: grid; place-items: center; }
+  .bolt svg { width: 20px; height: 20px; }
+  h1 { margin-top: 36px; font-size: 76px; line-height: 1.03; letter-spacing: -.035em; font-weight: 800; }
+  h1 em { font-style: normal; background: linear-gradient(100deg,#c7d2fe,#6366f1); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  p { margin-top: 26px; font-size: 28px; line-height: 1.4; color: #a5abd1; max-width: 560px; }
+  .steps { margin-top: 34px; display: flex; gap: 10px; font-size: 19px; font-weight: 600; color: #c7d2fe; }
+  .steps span { padding: 7px 14px; border: 1px solid #343a68; border-radius: 999px; background: rgba(79,70,229,.14); }
+  .term { border-radius: 16px; background: #0d1020; border: 1px solid #2c3260; box-shadow: 0 30px 80px -20px rgba(79,70,229,.6); overflow: hidden; }
+  .bar { display: flex; gap: 8px; padding: 14px 16px; background: #141833; border-bottom: 1px solid #2c3260; }
+  .bar i { width: 11px; height: 11px; border-radius: 50%; background: #343a5e; display: block; }
+  pre { padding: 20px 22px 24px; font: 17px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: #d8dcf0; white-space: pre; }
+  .d { color: #7c83ad; } .b { color: #fff; font-weight: 700; } .r { color: #ff6b81; font-weight: 700; } .a { color: #ffb454; font-weight: 700; }
+  .chip { padding: 1px 9px; border-radius: 5px; background: rgba(255,107,129,.16); border: 1px solid rgba(255,107,129,.45); }
+</style>
+<body>
+  <main>
+    <div class="brand"><div class="bolt"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>mx-workflow</div>
+    <h1>Ship AI-written code you can <em>trust</em>.</h1>
+    <p>A Claude Code plugin that researches the task, reviews the code, and proves it works.</p>
+    <div class="steps"><span>Research</span><span>Review</span><span>Prove</span><span>Learn</span></div>
+  </main>
+  <div class="term">
+    <div class="bar"><i></i><i></i><i></i></div>
+<pre><span class="d">❯</span> <span class="b">/mx:review</span>
+
+<span class="b">VERDICT</span>  <span class="r chip">REJECT</span>
+
+<span class="r">CRITICAL</span>  billing.ts:18
+          catch returns 200 on any
+          error; Stripe never retries
+<span class="a">HIGH</span>      billing.ts:11
+          constructEventAsync does
+          not exist on installed SDK</pre>
+  </div>
+</body>
+</html>

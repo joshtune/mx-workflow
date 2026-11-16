@@ -61,7 +61,8 @@ IMPLEMENTATION (most common path)
                                        --branch-per-ticket: separate branch + auto-PR per ticket
 
 FULL PIPELINE (idea to shipped code)
-  /mx:build [idea] [--auto]            Full pipeline: questions → PRD → plan → build → QA → commit
+  /mx:build [idea | --ticket <id>]     One command: feasibility → plan → build → QA → verify (video, coverage,
+                                       independent review, fix loop) → lessons → PR
   /mx:prd                              Define the problem, scope, and spec first
   /mx:build-with-agent-team            Spawn agent team (contract-first, tmux or in-process)
 
@@ -103,6 +104,7 @@ WHICH PATH SHOULD I USE?
   Stop quality slipping     → /mx:ratchet (block regressions vs trunk)
   Weekly health check       → /mx:audit (whole-repo audit + trend)
   New session               → /mx:status (check project readiness) → /mx:prime (warm up context)
+  Ticket, hands-off         → /mx:build --ticket <id> (research, build, prove, document in one command)
   Idea to shipped code      → /mx:build "your idea" (asks questions, then does everything)
   New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
   Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement

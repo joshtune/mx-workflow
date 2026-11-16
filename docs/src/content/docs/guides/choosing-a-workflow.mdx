@@ -43,6 +43,14 @@ Skip the PRD when requirements are already clear. Start by creating a branch wit
 
 Research whether the task is feasible before planning, then prove the result with recorded Playwright evidence, a coverage report, and an independent acceptance review. See [Research, Build, Prove](/mx-workflow/guides/verification-evidence/).
 
+**Want all of that in one command?**
+
+```
+/mx:build --ticket EIT-42
+```
+
+It runs the whole loop for you: feasibility, plan, build, QA, recorded verification, a fix loop capped at two rounds, lessons, and a PR offer. Use the individual commands when you want control over each step.
+
 **Bug fix:**
 
 ```

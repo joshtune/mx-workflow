@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`/mx:build --ticket <id|path>`** — ticket mode for the one-command pipeline. The ticket's acceptance criteria are the spec, so discovery questions and the PRD are skipped. Ticket text is fetched from Linear (MCP), `gh issue view`, or a file path.
+- **Feasibility phase** in `/mx:build` (all modes): `mx-feasibility-researcher` runs before any spec or plan. NOT FEASIBLE stops the build even under `--auto`; NEEDS CLARIFICATION asks, or stops under `--auto`.
+- **Recorded verification phase** in `/mx:build`: runs `/mx:verify` (Playwright video and screenshots, coverage comparison, independent acceptance review) with failures looped back for up to `--max-rounds` (default 2). `--no-verify` skips it. A build is not complete until verification passes or the user accepts the gaps.
+- `/mx:build` collects lessons at the end and offers `/mx:pr` in ticket mode (`--auto` opens a draft).
+- Docs: social preview image and Open Graph / Twitter card metadata, so shared links show a picture.
+
+### Changed
+
+- `/mx:build` is now documented as the one-command orchestrator. The docs landing page, workflow guide, help, and README point to `/mx:build --ticket` for the hands-off path.
+
 ## [2.1.0] - 2026-11-15
 
 ### Added
