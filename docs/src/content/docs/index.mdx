@@ -1,43 +1,23 @@
 ---
 title: mx-workflow
-description: The review-grade quality layer for AI-generated code.
+description: A Claude Code plugin that researches the task, reviews the code, and proves it works before it reaches your team.
 template: splash
-hero:
-  tagline: The review-grade quality layer for AI-generated code. Eight specialized agents interrogate generated code — catching silent failures, hallucinated APIs, suppressed errors, and type rot — backed by a full dev-lifecycle toolkit. All from your terminal.
-  actions:
-    - text: Get Started
-      link: /mx-workflow/getting-started/
-      icon: right-arrow
-      variant: primary
-    - text: View on GitHub
-      link: https://github.com/joshtune/mx-workflow
-      icon: external
-      variant: minimal
+tableOfContents: false
+editUrl: false
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import Hero from '../../components/landing/Hero.astro';
+import Loop from '../../components/landing/Loop.astro';
+import Problems from '../../components/landing/Problems.astro';
+import Proof from '../../components/landing/Proof.astro';
+import Paths from '../../components/landing/Paths.astro';
+import Closing from '../../components/landing/Closing.astro';
 
-<CardGrid>
-  <Card title="8 review-grade agents" icon="magnifier">
-    Code review, silent-failure hunting, hallucinated-API detection, type design,
-    test analysis, performance auditing, comment quality, and adversarial quality
-    keeping — each interrogating your code from a different angle.
-  </Card>
-  <Card title="Refuses, doesn't just generate" icon="error">
-    The scarce layer isn't writing more code — it's pushing back on the code an AI
-    already wrote. mx agents reject silent failures, suppressed errors, type rot,
-    and unjustified shortcuts before they reach your teammates.
-  </Card>
-  <Card title="Full lifecycle underneath" icon="rocket">
-    The same plugin ships your code too: `/mx:plan`, `/mx:implement`, `/mx:commit`,
-    `/mx:pr`, and `/mx:build` cover ticket intake to PR with validation loops built in.
-  </Card>
-</CardGrid>
-
-## Why mx-workflow
-
-Generation is now table stakes. Claude Code, Cursor, Aider, Cline, Codex, Copilot — every plugin in the marketplace races to *write* more code, faster. None of them are built to **refuse**.
-
-As more of your codebase comes from an AI that stays confident even when it's wrong, the scarce, valuable layer is the one that interrogates the output: Does this API actually exist? Is this error being swallowed? Did the types just get weaker? Is this fallback hiding a real failure?
-
-mx-workflow is that layer. Eight review-grade agents do the interrogating; a full dev-lifecycle toolkit sits underneath so the same plugin that verifies your code can also help you ship it.
+<div class="mx-landing not-content">
+  <Hero />
+  <Loop />
+  <Problems />
+  <Proof />
+  <Paths />
+  <Closing />
+</div>

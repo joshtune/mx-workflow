@@ -1,0 +1,112 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<section class="proof" aria-labelledby="proof-title">
+  <div class="copy">
+    <p class="eyebrow">Evidence</p>
+    <h2 id="proof-title">Proof you can open.</h2>
+    <p class="lead">
+      <code>/mx:verify</code> checks the work against the ticket's acceptance criteria and
+      keeps the receipts, so a reviewer never has to take your word for it.
+    </p>
+    <ul>
+      <li><strong>Recorded runs.</strong> Playwright video and screenshots for every criterion.</li>
+      <li><strong>Coverage you can see.</strong> Your own HTML report, screenshotted before and after.</li>
+      <li><strong>A reviewer with fresh eyes.</strong> It sees the diff, the criteria, and the evidence. Nothing else.</li>
+      <li><strong>A cap on retries.</strong> Two fix rounds, then it stops and tells you.</li>
+    </ul>
+    <a class="link" href={`${base}/guides/verification-evidence/`}>How the loop works →</a>
+  </div>
+
+  <div class="panel" role="img" aria-label="Example verification result and the evidence folder it produces">
+    <div class="verdict">
+      <span class="label">MX VERIFY</span>
+      <span class="chip">VERIFIED</span>
+    </div>
+    <dl>
+      <div><dt>Criteria</dt><dd>4 of 4 met</dd></div>
+      <div><dt>Browser</dt><dd>4 pass · 4 videos · 11 screenshots</dd></div>
+      <div><dt>Coverage</dt><dd>Improved, 71% → 88% on changed files</dd></div>
+      <div><dt>Fix rounds</dt><dd>1 of 2</dd></div>
+    </dl>
+    <pre><code>.agents/evidence/EIT-42/
+├─ report.md
+├─ videos/
+│  └─ AC1-add-member.webm
+├─ screenshots/
+│  └─ AC1-02-saved.png
+└─ coverage/
+   └─ summary.png</code></pre>
+  </div>
+</section>
+
+<style>
+  .proof {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    padding: clamp(2rem, 5vw, 3.5rem) 0;
+  }
+  .eyebrow {
+    margin: 0 0 0.6rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent-high);
+  }
+  h2 { margin: 0; font-size: clamp(1.7rem, 3.4vw, 2.4rem); letter-spacing: -0.02em; line-height: 1.15; color: var(--sl-color-white); }
+  .lead { margin: 0.8rem 0 0; color: var(--sl-color-gray-2); line-height: 1.6; }
+  .lead code { font-size: 0.85em; }
+  ul { margin: 1.25rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.7rem; }
+  li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: var(--sl-text-sm);
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+  li::before {
+    content: '';
+    position: absolute;
+    left: 0.15rem;
+    top: 0.4rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--sl-color-accent);
+  }
+  li strong { color: var(--sl-color-white); }
+  .link { display: inline-block; margin-top: 1.4rem; font-weight: 600; font-size: var(--sl-text-sm); color: var(--sl-color-accent-high); text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+
+  .panel {
+    padding: 1.2rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.9rem;
+    background: var(--sl-color-gray-6);
+  }
+  .verdict { display: flex; align-items: center; justify-content: space-between; }
+  .label { font-size: var(--sl-text-xs); font-weight: 700; letter-spacing: 0.1em; color: var(--sl-color-gray-3); }
+  .chip {
+    padding: 0.2rem 0.65rem;
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #15803d;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    border-radius: 0.4rem;
+  }
+  :global(:root[data-theme='dark']) .chip { color: #4ade80; }
+  dl { margin: 1rem 0 0; display: grid; gap: 0; }
+  dl div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-top: 1px solid var(--sl-color-hairline); }
+  dt { font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+  dd { margin: 0; font-size: var(--sl-text-sm); text-align: right; color: var(--sl-color-white); }
+  pre { margin: 1rem 0 0; padding: 0.9rem 1rem; overflow-x: auto; border-radius: 0.6rem; background: var(--sl-color-bg); border: 1px solid var(--sl-color-hairline); }
+  pre code { font-size: 0.76rem; line-height: 1.6; color: var(--sl-color-gray-2); background: none; border: 0; padding: 0; }
+
+  @media (max-width: 62rem) { .proof { grid-template-columns: 1fr; } }
+</style>

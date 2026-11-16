@@ -1,0 +1,103 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const items = [
+  {
+    problem: 'It invents APIs',
+    detail: 'Methods that read fine and were never in the library.',
+    fix: '/mx:hallucination-check',
+    result: 'Checks every reference against what is actually installed.',
+    href: '/commands/review-tier/',
+  },
+  {
+    problem: 'It swallows errors',
+    detail: 'Empty catches and fallbacks that return 200 on failure.',
+    fix: '/mx:review',
+    result: 'Eight agents, one verdict: pass, warnings, or reject.',
+    href: '/commands/review/',
+  },
+  {
+    problem: 'It says it is done',
+    detail: 'A confident summary with nothing to back it up.',
+    fix: '/mx:verify',
+    result: 'Recorded browser runs and an independent reviewer.',
+    href: '/commands/verification/',
+  },
+  {
+    problem: 'It forgets',
+    detail: 'Every session starts from zero and repeats old mistakes.',
+    fix: '/mx:lessons-review',
+    result: 'Lessons become rules, placed where they apply.',
+    href: '/guides/lessons-learned/',
+  },
+];
+---
+
+<section class="problems" aria-labelledby="problems-title">
+  <p class="eyebrow">Why use it</p>
+  <h2 id="problems-title">AI is a good helper. Hold it accountable.</h2>
+  <p class="lead">Four ways generated code goes wrong, and the command that stops each one.</p>
+
+  <div class="grid">
+    {
+      items.map((i) => (
+        <a class="card" href={`${base}${i.href}`}>
+          <p class="problem">{i.problem}</p>
+          <p class="detail">{i.detail}</p>
+          <div class="fix">
+            <code>{i.fix}</code>
+            <p>{i.result}</p>
+          </div>
+          <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .problems { padding: clamp(2rem, 5vw, 3.5rem) 0; }
+  .eyebrow {
+    margin: 0 0 0.6rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent-high);
+  }
+  h2 { margin: 0; font-size: clamp(1.7rem, 3.4vw, 2.4rem); letter-spacing: -0.02em; line-height: 1.15; color: var(--sl-color-white); }
+  .lead { margin: 0.8rem 0 0; max-width: 38rem; color: var(--sl-color-gray-2); line-height: 1.6; }
+
+  .grid { margin-top: 2rem; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.85rem; }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.2rem 1.1rem 1.1rem;
+    text-decoration: none;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.9rem;
+    background: var(--sl-color-gray-6);
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .card:hover { border-color: var(--sl-color-accent); transform: translateY(-2px); }
+  .card:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 2px; }
+  .problem { margin: 0; font-size: var(--sl-text-lg); font-weight: 700; color: var(--sl-color-white); line-height: 1.25; }
+  .detail { margin: 0.45rem 0 0; font-size: var(--sl-text-sm); line-height: 1.5; color: var(--sl-color-gray-2); }
+  .fix { margin-top: auto; padding-top: 1.1rem; }
+  .fix::before { content: ''; display: block; height: 1px; margin-bottom: 0.9rem; background: var(--sl-color-hairline); }
+  .fix code {
+    display: inline-block;
+    font-size: 0.74rem;
+    padding: 0.12rem 0.45rem;
+    color: var(--sl-color-accent-high);
+    background: var(--sl-color-accent-low);
+    border: 0;
+    border-radius: 0.3rem;
+  }
+  .fix p { margin: 0.5rem 0 0; font-size: var(--sl-text-sm); line-height: 1.45; color: var(--sl-color-gray-2); }
+  .arrow { position: absolute; top: 1rem; right: 1rem; color: var(--sl-color-gray-3); transition: color 0.15s, transform 0.15s; }
+  .card:hover .arrow { color: var(--sl-color-accent-high); transform: translateX(3px); }
+
+  @media (max-width: 70rem) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 40rem) { .grid { grid-template-columns: 1fr; } }
+</style>

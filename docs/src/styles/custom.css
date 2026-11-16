@@ -9,3 +9,18 @@
   --sl-color-accent: #4f46e5;
   --sl-color-accent-high: #1a1f36;
 }
+
+/* Home page: the landing hero supplies its own h1, so hide the default page title. */
+main:has(.mx-landing) .content-panel:first-child {
+  display: none;
+}
+main:has(.mx-landing) {
+  --sl-content-width: 72rem;
+}
+.mx-landing {
+  /* Keep Starlight's markdown flow from adding gaps between landing sections. */
+  --mx-flow: 0;
+}
+.mx-landing > * + * {
+  margin-top: 0;
+}
