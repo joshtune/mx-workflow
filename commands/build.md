@@ -1,12 +1,15 @@
 ---
-description: "Full pipeline: discovery questions, PRD, plan, build, QA, commit & ship"
-argument-hint: "[product/feature idea] [--auto] [--skip-prd <path>] [--skip-plan <path>] [--stack <stack>]"
+description: "One-command pipeline: feasibility, plan, build, QA, recorded verification with independent review, lessons, and ship. Takes an idea or a ticket"
+argument-hint: "[idea | --ticket <id|path>] [--auto] [--max-rounds <n>] [--no-verify] [--skip-prd <path>] [--skip-plan <path>] [--stack <stack>]"
 allowed-tools: ["Bash", "Glob", "Grep", "Read", "Write", "Edit", "Agent"]
 ---
 
 # Build — Full Pipeline Orchestrator
 
-Take a product or feature idea from concept to committed code. By default, starts with discovery questions before doing anything.
+Take a product or feature idea, or a ticket, from concept to committed and verified code. The one-command path: it checks feasibility, plans, builds, audits, proves the result with recorded evidence and an independent review, loops failures back to be fixed, and records what it learned.
+
+- **Idea mode** (default): starts with discovery questions, then writes a PRD.
+- **Ticket mode** (`--ticket`): the ticket is the spec. No discovery questions and no PRD. Use it for a bug or a well-defined task.
 
 **Input:** $ARGUMENTS
 
@@ -17,17 +20,28 @@ Parse `$ARGUMENTS` for flags (strip them before treating the remainder as `IDEA`
 | Flag | Default | Behavior |
 |------|---------|----------|
 | `--auto` | off | Skip all gates and discovery questions, run fully autonomous |
+| `--ticket <id\|path>` | off | Ticket mode: fetch the ticket (Linear via MCP, `gh issue view`, or a file path) and use its acceptance criteria as the spec. Skips discovery and the PRD |
+| `--max-rounds <n>` | `2` | Fix rounds for recorded verification (Phase 4.6) before it stops and asks you |
+| `--no-verify` | off | Skip recorded verification and independent review (Phase 4.6) |
 | `--skip-prd <path>` | off | Skip PRD generation, use the PRD at the given path |
 | `--skip-plan <path>` | off | Skip plan generation, use the plan at the given path |
 | `--stack <stack>` | none | Pre-specify the tech stack (e.g., "sveltekit+supabase") |
 
-After stripping flags, the remaining text is `IDEA`.
+After stripping flags, the remaining text is `IDEA`. In ticket mode, `TICKET` is the `--ticket` value and `IDEA` is the ticket's title.
+
+### Ticket mode
+
+When `--ticket` is set:
+
+1. Fetch the ticket. If no tracker tooling is available and the value is not a file path, ask the user to paste the text.
+2. Extract acceptance criteria and number them `AC1…ACn`. If the ticket has none, derive candidates from its description, show them, and confirm before continuing (even with `--auto`, record them as derived in the final report).
+3. Set `SPEC = ticket`. Phases 0 (discovery) and 1 (PRD) are skipped. Everything downstream that reads the PRD reads the acceptance criteria instead.
 
 ---
 
 ## Phase 0: Discovery
 
-**CRITICAL: This phase runs by default.** Do NOT skip directly to PRD generation unless `--auto` is set.
+**CRITICAL: This phase runs by default in idea mode.** Do NOT skip directly to PRD generation unless `--auto` is set. **Skip this phase entirely in ticket mode** — the ticket is the spec.
 
 ### 0.1 If no IDEA provided
 
@@ -127,11 +141,12 @@ Structure:  <greenfield: applying profile / existing: mirroring current layout>
 Conflicts:  <none | list where existing layout diverges from the reference>
 
 Pipeline:
-  Phase 1: PRD Generation          <or SKIP — using existing PRD>
+  Phase 0.7: Feasibility
+  Phase 1: PRD Generation          <or SKIP — ticket mode / existing PRD>
   Phase 2: Implementation Plan     <or SKIP — using existing plan>
   Phase 3: Build                   <team / single — TBD after plan>
-  Phase 4: QA Audit
-  Phase 5: Final Commit
+  Phase 4: QA Audit + Verification <recorded evidence + independent review, max <n> fix rounds>
+  Phase 5: Final Report + Lessons
 
 Quality:    <lint cmd> | <typecheck cmd> | <test cmd>
 
@@ -142,9 +157,24 @@ If `--auto`, skip the confirmation.
 
 ---
 
+## Phase 0.7: Feasibility
+
+Before spending effort on a spec or a plan, find out whether the work can be done here. Run `/mx:feasibility` logic: launch `mx-feasibility-researcher` via the Agent tool with the idea (or ticket text and acceptance criteria) and the project directory, and save its report to `.agents/feasibility/{slug}.md`.
+
+| Verdict | Action |
+|---|---|
+| FEASIBLE | Continue |
+| FEASIBLE WITH RISKS | Continue; carry the risks into the plan and the final report |
+| NEEDS CLARIFICATION | Ask the open questions now. With `--auto`, stop and report them |
+| NOT FEASIBLE | Stop and show the blocker. Never continue past it, even with `--auto` |
+
+The researcher's precedent and verification route feed Phase 2.
+
+---
+
 ## Phase 1: PRD Generation
 
-**Skip if `--skip-prd <path>` was provided** — set `PRD_PATH` to the provided path and proceed to Phase 2.
+**Skip in ticket mode, and if `--skip-prd <path>` was provided.** With `--skip-prd`, set `PRD_PATH` to the provided path. In ticket mode there is no PRD: set `PRD_PATH` to none, treat the ticket's acceptance criteria as the spec, and proceed to Phase 2.
 
 ### 1.1 Codebase Context
 
@@ -234,9 +264,9 @@ Wait for user approval. If user suggests changes, apply them to the PRD file, am
 
 **Skip if `--skip-plan <path>` was provided** — set `PLAN_PATH` to the provided path and proceed to Phase 3.
 
-### 2.1 Read PRD
+### 2.1 Read the Spec
 
-Read the PRD at `PRD_PATH`. Extract:
+In ticket mode, read the ticket and its acceptance criteria instead of a PRD. Otherwise read the PRD at `PRD_PATH`. Also read the feasibility report from Phase 0.7 and mirror the precedent it found. Extract:
 - What components are needed
 - How they interact
 - What the dependencies are between components
@@ -466,7 +496,7 @@ Run a full quality audit (same logic as `/mx:qa --full`):
 
 ### 4.2 Spec Conformance (CRITICAL)
 
-This is the most important check. Read the PRD at `PRD_PATH` and verify **every must-have was actually built**:
+This is the most important check. Read the PRD at `PRD_PATH` and verify **every must-have was actually built**. In ticket mode, the must-haves are the ticket's acceptance criteria (`AC1…ACn`) and there are no roles to group by; grade each criterion PASS / FAIL / MISS the same way.
 
 1. Extract every role and every "Must" expectation from the PRD's "User Roles & Expectations" section, using the unique IDs (A1, C2, etc.)
 2. For each must-have, grouped by role, verify:
@@ -521,11 +551,25 @@ Summary: 2/3 implemented features have tests (1 missing)
 - **FAIL** here means the feature works but has no test → the fix cycle should write the test
 - **SKIP** means the feature itself is MISS/FAIL → can't test what doesn't work yet
 
-### 4.4 Save Report
+### 4.4 Recorded Verification and Independent Review
 
-Save report to `.agents/reports/build-qa-{YYYY-MM-DD}.md`.
+**Skip if `--no-verify` is set.** Otherwise run `/mx:verify`, passing the acceptance criteria (ticket mode) or the PRD's "Must" expectations as the criteria, with `--max-rounds` from this command's flags.
 
-### 4.5 If QA Fails
+It gathers Playwright video and screenshots, compares coverage on the changed files (including a screenshot of the HTML report), and has `mx-acceptance-reviewer` check the result with a fresh context that sees only the diff, the criteria, and the evidence. Failures go back to be fixed and re-checked, capped at `--max-rounds` (default 2). `/mx:verify` owns that loop, so do not wrap it in another one.
+
+| `/mx:verify` verdict | Action |
+|---|---|
+| VERIFIED | Continue |
+| VERIFIED WITH GAPS | Continue; list the gaps in the final report |
+| NOT VERIFIED after the cap | Stop. Do not commit as complete. Report what remains with evidence paths and ask the user how to proceed. With `--auto`, stop and report |
+
+Evidence is written to `.agents/evidence/{slug}/` and is not committed.
+
+### 4.5 Save Report
+
+Save report to `.agents/reports/build-qa-{YYYY-MM-DD}.md`, and link the `/mx:verify` report if one was produced.
+
+### 4.6 If QA Fails
 
 1. Attempt to fix issues (up to 3 fix-then-revalidate cycles)
    - For spec **FAIL** items: fix the incomplete implementation
@@ -586,6 +630,16 @@ Test Coverage:
   Features with tests: X/Y
   Missing tests:       <count>
 
+Feasibility:
+  Verdict:    <FEASIBLE / FEASIBLE WITH RISKS>  (.agents/feasibility/{slug}.md)
+
+Verification:
+  Verdict:    <VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED / SKIPPED>
+  Criteria:   <met>/<total>
+  Coverage:   <IMPROVED / MAINTAINED / REGRESSED / no tooling>
+  Rounds:     <used> of <max>
+  Evidence:   .agents/evidence/{slug}/
+
 Git:
   Commits:    <count> commits created
   Branch:     <branch>
@@ -594,6 +648,14 @@ Overall:      SUCCESS / PARTIAL / FAILED
 ```
 
 If `PARTIAL` or `FAILED`, list what failed and what remains to be done.
+
+### 5.1 Collect Lessons
+
+Run `/mx:lesson` with the ticket ID (or the build name). Fix rounds and QA findings from this run are the best source of lessons. Recording nothing is fine. If anything was recorded, commit it: `chore(lessons): record lessons from {name}`.
+
+### 5.2 Ship
+
+In ticket mode, finish by offering `/mx:pr` so the pull request carries the verification verdict and evidence list. With `--auto`, run `/mx:pr --draft`. Skip if the overall result is `FAILED`.
 
 ---
 
@@ -607,6 +669,7 @@ Incremental commits give the user visibility into progression:
 | Phase 2 | Plan generated | `docs(plan): add implementation plan for {name}` |
 | Phase 3 | Implementation complete | `feat(<scope>): implement {name}` |
 | Phase 4 | QA fixes (if any) | `fix(<scope>): address QA findings for {name}` |
+| Phase 5 | Lessons (if any recorded) | `chore(lessons): record lessons from {name}` |
 
 In team builds, agents may create additional intermediate commits during Phase 3.
 
@@ -616,10 +679,12 @@ All commits use: `Co-Authored-By: ${MX_CO_AUTHOR:-Claude <noreply@anthropic.com>
 
 ## Rules
 
-- **Discovery first.** Always ask questions before building unless `--auto` is set. Never skip to PRD generation without understanding the user's intent.
+- **Discovery first (idea mode).** Always ask questions before building unless `--auto` is set. Never skip to PRD generation without understanding the user's intent. In ticket mode the ticket replaces discovery.
+- **Feasibility before effort.** Never plan or build past a NOT FEASIBLE verdict.
+- **Proof before done.** A build is not complete until verification passes or the user accepts the gaps. After the fix-round cap, stop and ask; never loosen a criterion or a test to finish.
 - **Gates are not optional.** In default mode, pause after PRD and after plan for user review. Only `--auto` skips gates.
 - **Commit incrementally.** Each major phase produces a commit. The user should be able to see progression in `git log`.
-- **Context flows forward.** Each phase reads the output of the previous phase. Discovery → PRD → Plan → Build → QA.
+- **Context flows forward.** Each phase reads the output of the previous phase. Discovery → Feasibility → PRD → Plan → Build → QA → Verify → Lessons. In ticket mode: Ticket → Feasibility → Plan → Build → QA → Verify → Lessons.
 - **Existing conventions win.** On a codebase that already has a layout and style, mirror it. Conflicts with `references/project-structure.md` get reported, never silently migrated. Apply the references in full only when scaffolding new code.
 - **Deviate out loud.** Any departure from the structure or style references is raised at the Phase 3 gate before the code lands — never discovered in the final report.
 - **Strategy is data-driven.** Choose team vs. single-agent based on plan complexity, not assumptions. The user can override at the Phase 2 gate.

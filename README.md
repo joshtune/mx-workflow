@@ -182,6 +182,7 @@ See `.env.example` for detailed documentation on each variable.
 
 | Command | Description |
 |---|---|
+| `/mx:build [idea \| --ticket <id>]` | The one-command pipeline: feasibility, plan, build, QA, recorded verification with independent review (fix loop capped at 2 rounds), lessons, and a PR offer |
 | `/mx:prd [idea]` | Problem-first PRD generator |
 | `/mx:build-with-agent-team` | Spawn agent team in tmux (contract-first protocol) |
 

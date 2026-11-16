@@ -11,6 +11,8 @@ AI is a good helper. The job is to verify it and hold it accountable. This guide
 /mx:feasibility → /mx:plan → /mx:implement → /mx:verify → /mx:pr
 ```
 
+You can run these one at a time, or let [`/mx:build --ticket <id>`](/mx-workflow/commands/multi-agent/#mxbuild) run the whole loop for you, including the fix rounds.
+
 | Stage | Question it answers | Output |
 |---|---|---|
 | `/mx:feasibility` | Can this be done here, and what gets in the way? | Verdict + risks in `.agents/feasibility/` |

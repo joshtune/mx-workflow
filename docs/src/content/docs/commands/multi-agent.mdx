@@ -7,31 +7,43 @@ These commands handle the full build lifecycle — from a product idea through P
 
 ## /mx:build
 
-**Full pipeline — discovery questions, PRD, plan, build, QA, commit & ship**
+**The one-command pipeline — feasibility, plan, build, QA, recorded verification, lessons, and ship**
 
 ```
-/mx:build [product/feature idea] [--auto] [--skip-prd <path>] [--skip-plan <path>] [--stack <stack>]
+/mx:build [idea | --ticket <id|path>] [--auto] [--max-rounds <n>] [--no-verify] [--skip-prd <path>] [--skip-plan <path>] [--stack <stack>]
 ```
 
-Takes a product or feature idea and orchestrates the full mx pipeline end-to-end. Makes incremental commits at each phase so you can track progression in `git log`.
+Takes an idea or a ticket and orchestrates everything: it checks feasibility, plans, builds, audits, proves the result with recorded evidence and an independent review, sends failures back to be fixed, and records what it learned. Makes incremental commits at each phase so you can track progression in `git log`.
+
+```
+/mx:build --ticket EIT-42
+```
 
 | Flag | Effect |
 |---|---|
-| (none) | Ask discovery questions, then proceed through all phases with approval gates |
+| (none) | Idea mode: ask discovery questions, then proceed through all phases with approval gates |
+| `--ticket <id\|path>` | Ticket mode: the ticket's acceptance criteria are the spec. No discovery questions and no PRD |
+| `--max-rounds <n>` | Fix rounds for recorded verification before it stops and asks you (default `2`) |
+| `--no-verify` | Skip recorded verification and independent review |
 | `--auto` | Skip questions and gates, run fully autonomous |
 | `--skip-prd <path>` | Skip PRD generation, use an existing PRD |
 | `--skip-plan <path>` | Skip plan generation, use an existing plan |
 | `--stack <stack>` | Pre-specify the tech stack |
 
 **Pipeline phases:**
-1. **Discovery** — Funnel-style: quick yes/no direction questions → inferred context confirmation → targeted details only where uncertain
-2. **PRD** — Problem-first product spec with User Roles & Expectations (each role gets a table of must-haves with unique IDs for QA traceability) (commit: `docs(prd): ...`)
+0. **Feasibility** — [`mx-feasibility-researcher`](/mx-workflow/agents/catalog/#mx-feasibility-researcher) finds the precedent, risks, and blockers. A NOT FEASIBLE verdict stops the build, even under `--auto`
+1. **Discovery** *(idea mode)* — Funnel-style: quick yes/no direction questions → inferred context confirmation → targeted details only where uncertain
+2. **PRD** *(idea mode)* — Problem-first product spec with User Roles & Expectations (each role gets a table of must-haves with unique IDs for QA traceability) (commit: `docs(prd): ...`)
 3. **Plan** — Codebase-aware implementation plan (commit: `docs(plan): ...`)
 4. **Build** — Test-first cycle (write test → confirm fails → implement → confirm passes) for every feature, applying the [structure](/mx-workflow/reference/project-structure/) and [style](/mx-workflow/reference/code-style/) conventions. Auto-selects agent team or single-agent by plan complexity. (commit: `feat: ...`)
 5. **QA** — Spec conformance per role (PASS/FAIL/MISS per expectation ID), test coverage verification, structural and layout checks, and fix cycles (commit: `fix: ...` if needed)
+6. **Verification** — [`/mx:verify`](/mx-workflow/commands/verification/): Playwright video and screenshots, a coverage comparison with a screenshot of the HTML report, and an independent acceptance review. Failures loop back for up to `--max-rounds`, then it stops and asks you
+7. **Lessons and ship** — [`/mx:lesson`](/mx-workflow/guides/lessons-learned/) records what the run taught, and in ticket mode it offers a PR carrying the verdict and evidence
 
 **Key features:**
 
+- **Ticket mode** — for a bug or a well-defined task, the ticket is the spec. Acceptance criteria drive QA, verification, and the final report in place of a PRD.
+- **Proof before done** — a build is not complete until verification passes or you accept the gaps. After the fix-round cap it stops rather than loosening a criterion or a test.
 - **Funnel discovery** — starts with fast yes/no questions (Web or mobile? Auth needed? Multi-user?) to narrow decisions, then infers stack and scope. Only asks open-ended questions for things it can't figure out.
 - **User Roles & Expectations** — the PRD defines what each role can do (e.g., "Admin can remove users", "Customer can checkout"). QA verifies every must-have was built, per role.
 - **Test-first** — every feature gets its test written before implementation. QA fails any feature that doesn't have a corresponding test.
@@ -40,6 +52,7 @@ Takes a product or feature idea and orchestrates the full mx pipeline end-to-end
 - **Deviation gate** — departures from those conventions (beyond pre-approved cases like framework paths and generated code) are raised for approval *before* the code lands, with the rule, the reason, and the rejected alternative. Under `--auto` the rule is applied rather than deviated from unilaterally.
 
 **When to use it:**
+- When you have a ticket and want it researched, built, proved, and documented in one command
 - When you have an idea and want Claude to handle the entire journey
 - When you want guided discovery questions before building
 - When you'd otherwise run `/mx:prd` → `/mx:plan` → `/mx:implement` → `/mx:qa` → `/mx:commit` manually

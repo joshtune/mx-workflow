@@ -11,11 +11,11 @@ const paths = [
   },
   {
     title: 'Run a ticket end to end',
-    time: 'One session',
-    text: 'Research, plan, build, prove, and ship with evidence attached.',
-    cmd: '/mx:feasibility',
-    href: '/guides/verification-evidence/',
-    cta: 'Follow the loop',
+    time: 'One command',
+    text: 'Research, plan, build, prove, and ship, with failures sent back to be fixed.',
+    cmd: '/mx:build --ticket',
+    href: '/commands/multi-agent/',
+    cta: 'See the pipeline',
   },
   {
     title: 'Gate your CI',
@@ -34,7 +34,7 @@ const jobs = [
   ['Find the cause of a bug', '/mx:rca', '/commands/implementation/'],
   ['Stop quality from slipping', '/mx:ratchet', '/commands/review-tier/'],
   ['Capture what we learned', '/mx:lesson', '/guides/lessons-learned/'],
-  ['Go from idea to shipped code', '/mx:build', '/commands/planning-design/'],
+  ['Take a ticket from research to PR', '/mx:build --ticket', '/commands/multi-agent/'],
 ];
 ---
 
