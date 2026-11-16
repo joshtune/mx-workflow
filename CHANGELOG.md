@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-11-15
+
 ### Added
 
 - **`/mx:build --ticket <id|path>`** — ticket mode for the one-command pipeline. The ticket's acceptance criteria are the spec, so discovery questions and the PRD are skipped. Ticket text is fetched from Linear (MCP), `gh issue view`, or a file path.
@@ -436,7 +438,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLAUDE.md with project development guidelines
 - Scope mappings and agent browser references
 
-[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/joshtune/mx-workflow/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/joshtune/mx-workflow/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/joshtune/mx-workflow/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/joshtune/mx-workflow/compare/v1.23.4...v2.0.0
 [1.23.4]: https://github.com/joshtune/mx-workflow/compare/v1.23.3...v1.23.4
