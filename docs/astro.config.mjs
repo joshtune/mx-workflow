@@ -20,6 +20,20 @@ export default defineConfig({
           href: 'https://github.com/joshtune/mx-workflow',
         },
       ],
+      head: [
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://joshtune.github.io/mx-workflow/og.png' } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:image:alt',
+            content: 'mx-workflow: ship AI-written code you can trust. A /mx:review verdict rejecting a webhook handler.',
+          },
+        },
+        { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://joshtune.github.io/mx-workflow/og.png' } },
+      ],
       customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
