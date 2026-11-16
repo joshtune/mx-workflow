@@ -31,6 +31,7 @@ export default defineConfig({
           items: [
             { label: 'Review (start here)', slug: 'commands/review' },
             { label: 'Review-tier', slug: 'commands/review-tier' },
+            { label: 'Verification', slug: 'commands/verification' },
             { label: 'Session & Discovery', slug: 'commands/session-discovery' },
             { label: 'Implementation', slug: 'commands/implementation' },
             { label: 'Multi-Agent', slug: 'commands/multi-agent' },
@@ -48,6 +49,8 @@ export default defineConfig({
           label: 'Guides',
           items: [
             { label: 'Demo: Catching a Hallucinated API', slug: 'guides/review-demo' },
+            { label: 'Research, Build, Prove', slug: 'guides/verification-evidence' },
+            { label: 'Lessons Learned', slug: 'guides/lessons-learned' },
             { label: 'Choosing a Workflow', slug: 'guides/choosing-a-workflow' },
             { label: 'First Session', slug: 'guides/first-session' },
             { label: 'Multi-Agent Team', slug: 'guides/multi-agent-team' },

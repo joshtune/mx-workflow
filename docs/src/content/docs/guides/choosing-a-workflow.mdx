@@ -35,6 +35,14 @@ Use `/mx:prd` when you have a rough idea but need to think through requirements,
 
 Skip the PRD when requirements are already clear. Start by creating a branch with the ticket ID encoded in the name, then plan and implement.
 
+**Quality-first ticket (research, build, prove):**
+
+```
+/mx:feasibility → /mx:plan → /mx:implement → /mx:verify → /mx:pr
+```
+
+Research whether the task is feasible before planning, then prove the result with recorded Playwright evidence, a coverage report, and an independent acceptance review. See [Research, Build, Prove](/mx-workflow/guides/verification-evidence/).
+
 **Bug fix:**
 
 ```

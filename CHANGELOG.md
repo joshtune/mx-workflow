@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`/mx:verify`** — holds the work accountable after implementation. Resolves the ticket's acceptance criteria, gathers evidence in parallel (Playwright video and screenshots; coverage before/after on changed files with a browser screenshot of the HTML report), then runs an independent fresh-context acceptance review. Failures go back to a fix agent as self-contained instructions, capped at 2 rounds (`--max-rounds`), then it stops and flags you. Writes to `.agents/evidence/{slug}/` and ends with a machine-readable `MX_VERIFY=` marker.
+- **`/mx:feasibility`** — researches whether a ticket, bug, or feature is feasible before planning, via `mx-feasibility-researcher`. Verdicts: FEASIBLE, FEASIBLE WITH RISKS, NOT FEASIBLE, NEEDS CLARIFICATION. Saves to `.agents/feasibility/{slug}.md`.
+- Four agents: `mx-feasibility-researcher`, `mx-playwright-validator`, `mx-coverage-verifier`, and `mx-acceptance-reviewer` (given only the diff, the criteria, and the evidence).
+- Docs: Verification command page, Verification agents section in the agent catalog, and the "Research, Build, Prove" guide.
+
+- **Lessons-learned system** so each ticket makes the next one better. Memory lives in files, never in the session.
+  - `/mx:lesson` collects up to 3 general, non-obvious, actionable lessons per run into the append-only `.claude/lessons/log.jsonl` (date, ticket, bug/feature, tag, one-line description, affected area). Tags come from a controlled vocabulary in `.claude/lessons/tags.json`; a new tag requires a stated meaning.
+  - `scripts/lessons.mjs` does the bookkeeping with no AI and no dependencies: `add`, `tags`, `count` (groups unpromoted entries by tag and flags 3 or more), `promote`, `merge-tags`, and `check-claude-md`. Promotions and tag merges are appended as events, so the log is never rewritten.
+  - `/mx:lessons-review` curates on demand or weekly, never during a ticket run: merges similar tags, turns flagged clusters into general rules, places each in a nested `CLAUDE.md`, a skill, or the root `CLAUDE.md` only for truly global rules, marks sources promoted, and prunes duplicates, outdated rules, and anything a senior developer new to the codebase would not need. It flags a root `CLAUDE.md` over about 100 lines and asks before writing or deleting.
+- Docs: Lessons Learned guide and command reference.
+
+### Changed
+
+- **Docs landing page redesigned** around direction instead of a card list: a hero with copy-to-clipboard install commands and a real `/mx:review` verdict, the six-step loop (research, plan, build, prove, ship, learn), four common AI failure modes mapped to the command that stops each, an evidence preview, a "start where you are" router with a find-by-job command table, and a closing install call to action. Built as themed Astro components that follow the light and dark modes and reflow for mobile. Getting Started gains a three-line quick start.
+- Plugin and marketplace descriptions, README intro, and agent counts (16 agents) now describe the verification agents and the lessons system.
+- `/mx:implement` and `/mx:verify` end by collecting lessons.
+- `/mx:plan` reuses or runs a feasibility check for non-trivial work, and plans now include numbered acceptance criteria.
+- `/mx:implement` offers `/mx:verify` when the plan has acceptance criteria or the change is user-facing, and reports the result.
+- `/mx:pr` includes a Verification Evidence section from `.agents/evidence/` when present, and warns on a NOT VERIFIED result. Videos and screenshots stay local; the PR body lists their paths.
+
 ## [2.0.0] - 2026-08-26
 
 ### Removed

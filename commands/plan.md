@@ -19,6 +19,12 @@ From the arguments or context:
 - Explore relevant codebase areas
 - Identify existing patterns to follow
 
+### Step 1b: Feasibility
+
+- If `.agents/feasibility/` holds a report for this task, read it and carry its precedent, risks, and verification route into the plan.
+- If not, and the task is non-trivial (new feature, unfamiliar area, or a bug without a located failing path), run `/mx:feasibility` first.
+- A `NOT FEASIBLE` or `NEEDS CLARIFICATION` verdict stops planning until the user resolves it.
+
 ### Step 2: Analyze Existing Patterns
 
 For each file that needs changing:
@@ -79,6 +85,13 @@ Output a structured plan:
 
 ### New Files (if any)
 - `path/to/new-file.ext` - <purpose>
+
+### Acceptance Criteria
+
+> Observable outcomes `/mx:verify` will check with Playwright evidence and an independent review.
+
+- AC1: <observable outcome>
+- AC2: <observable outcome>
 
 ### Tests
 - [ ] <test scenario 1> - in `<test-file>`

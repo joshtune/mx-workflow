@@ -24,6 +24,17 @@ REVIEW-TIER (deeper, opinionated, refuses-rather-than-generates)
   /mx:ratchet [--dimensions …]         Quality only goes up — block regressions vs trunk
   /mx:audit [--since <date>]           Whole-repo audit with trend tracking (cron-friendly)
 
+VERIFICATION (hold the work accountable)
+  /mx:feasibility <ticket | text>      Research feasibility before planning (precedent, risks, blockers)
+  /mx:verify [--criteria …] [--max-rounds 2]
+                                       Playwright video + screenshots, coverage report, independent
+                                       acceptance review; failures loop back, capped at 2 rounds
+
+LESSONS (learn from what we build)
+  /mx:lesson [ticket] [text]           Collect candidate lessons into .claude/lessons/log.jsonl
+  /mx:lessons-review [--dry-run]       Merge tags, promote flagged clusters to general rules,
+                                       place them (nested CLAUDE.md / skill / root), prune
+
 SESSION START
   /mx:prime                            Warm up codebase context (reads key files, runs checks)
   /mx:context-prime <path> [--learn] [--recursive]
@@ -95,7 +106,9 @@ WHICH PATH SHOULD I USE?
   Idea to shipped code      → /mx:build "your idea" (asks questions, then does everything)
   New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
   Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
-  After implementing        → /mx:e2e (verify it works in the browser)
+  Capture / curate lessons  → /mx:lesson (end of a ticket) → /mx:lessons-review (weekly)
+  Unsure it's doable        → /mx:feasibility <ticket> (research before planning)
+  After implementing        → /mx:verify (recorded proof + independent review) or /mx:e2e (broad browser sweep)
   Complex multi-component   → /mx:prd → /mx:build-with-agent-team
   After a team build        → /mx:qa --full (verify everything passes before shipping)
   Ready to open a PR        → /mx:rebase → /mx:pr (or /mx:pr --draft for work-in-progress)

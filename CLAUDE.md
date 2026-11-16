@@ -1,5 +1,14 @@
 # mx-workflow Plugin Development Guidelines
 
+## Orchestration
+
+- **No dev server, no ports, no database.** This is a Claude Code plugin repo — commands and agents as Markdown files.
+- **Ship / publish**: `/mx:version <patch|minor|major>` bumps `plugin.json` + `marketplace.json` + `CHANGELOG.md` and tags. Then `gh release create v{version}` publishes the release.
+- Single public repo (`joshtune/mx-workflow`).
+
+---
+
+
 ## Philosophy
 
 The mx-workflow plugin empowers developers to move faster through automation, guidance, and multi-agent collaboration. Every command should save time, reduce cognitive load, or improve code quality.
@@ -87,6 +96,10 @@ Commands that generate artifacts write to `.agents/` using **all-lowercase-hyphe
 - `.agents/prds/` — PRD documents
 - `.agents/rca-reports/` — Root cause analysis reports
 - `.agents/reports/` — General reports (suppression audits, etc.)
+- `.agents/feasibility/` — Feasibility reports from `/mx:feasibility`
+- `.agents/evidence/<slug>/` — Verification evidence from `/mx:verify` (videos, screenshots, coverage, `report.md`)
+
+Lessons are the exception: `/mx:lesson` writes to `.claude/lessons/` in the *target* project and is meant to be committed (shared team memory), unlike `.agents/` artifacts.
 
 Never use capitalized directory names (e.g., `.agents/PRDs/` is wrong).
 

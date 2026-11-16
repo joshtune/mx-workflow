@@ -93,6 +93,12 @@ After all checks pass, run review agents using the Task tool to catch issues bef
 - **mx-code-simplifier** — Polish pass on changed code (preserves functionality, improves clarity)
 - Re-run quality checks after simplification
 
+### Step 5b: Verify With Evidence
+
+If the plan lists acceptance criteria, or the change has user-facing behavior, offer to run `/mx:verify`: Playwright video and screenshots, a coverage comparison, and an independent acceptance review. Pass the plan's acceptance criteria with `--criteria`.
+
+Skip for changes with no observable behavior (refactors covered by existing tests, docs, config). Say that you skipped it and why.
+
 ### Step 6: Implementation Report
 
 Output a summary:
@@ -116,9 +122,16 @@ Output a summary:
 - mx-silent-failure-hunter: PASS (X issues found, X fixed)
 - mx-code-simplifier: X refinements applied
 
+### Verification
+- /mx:verify: <VERIFIED | VERIFIED WITH GAPS | NOT VERIFIED | not run — reason>
+
 ### Ready for
 - `/commit` - Create conventional commit
 ```
+
+### Step 7: Collect Lessons
+
+After the report, run `/mx:lesson` with the ticket ID. Review findings that had to be fixed and validation failures that took more than one attempt are the best candidates. Recording nothing is fine. Do not turn lessons into rules here; that is `/mx:lessons-review`.
 
 ## Rules
 

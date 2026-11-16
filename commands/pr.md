@@ -73,6 +73,10 @@ If `.agents/` exists, scan for recent reports:
 
 For each report found, read it and extract a brief summary (1-2 lines) of key findings. Include only reports that are relevant to the current changes (check if they reference files in the diff).
 
+Also check `.agents/evidence/` for a `/mx:verify` report matching this branch (`.agents/evidence/{slug}/report.md`). If one exists, extract its verdict, criteria counts, coverage change, and the list of video and screenshot files. Videos and screenshots are local files — list their paths in the body and tell the user to attach them to the PR; do not claim they are embedded.
+
+If the verdict is `NOT VERIFIED`, warn the user before Step 9 and recommend fixing or marking the PR as a draft.
+
 If no `.agents/` directory or no relevant reports, skip this section.
 
 ### Step 7: Check Test Status
@@ -93,6 +97,9 @@ Construct the PR body using this template:
 
 ## Agent Review Findings
 <findings from Step 6, or "No agent reports found." if none>
+
+## Verification Evidence
+<verdict, criteria met/total, coverage before → after, and evidence file list from Step 6, or omit this section if /mx:verify was not run>
 
 ## Test Status
 <pass/fail result from Step 7, or "No automated tests detected.">

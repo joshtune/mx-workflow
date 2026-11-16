@@ -4,7 +4,14 @@
 
 [Claude Code](https://claude.com/claude-code) and its peers make *generating* code table stakes. What they don't do is push back on it. mx-workflow is the refusal layer: a team of specialized agents that interrogate AI-generated code and reject silent failures, hallucinated APIs, suppressed errors, type rot, and unjustified shortcuts — before that code reaches your teammates.
 
-Eight review-grade agents do the interrogating. Underneath sits a full dev-lifecycle toolkit — planning, implementation, conventional commits, E2E testing, PRs, and multi-agent team builds — so the same plugin that verifies your code can also help you ship it.
+Eight review-grade agents do the interrogating. Four verification agents research a task before it is planned and prove it afterward with recorded Playwright video and screenshots, coverage evidence, and an independent acceptance review. A lessons system turns what each ticket taught you into rules your next session reads. Underneath sits a full dev-lifecycle toolkit — planning, implementation, conventional commits, PRs, and multi-agent team builds.
+
+```
+/mx:feasibility → /mx:plan → /mx:implement → /mx:verify → /mx:pr → /mx:lesson
+   research          plan          build           prove       ship      learn
+```
+
+**Quick start:** `/plugin marketplace add joshtune/mx-workflow`, then `/plugin install mx@joshtune-mx-workflow`, then `/mx:review` on any branch.
 
 ## Why mx-workflow
 
@@ -135,6 +142,20 @@ See `.env.example` for detailed documentation on each variable.
 
 ## Commands
 
+### Verification (research, then prove)
+
+| Command | Description |
+|---|---|
+| `/mx:feasibility <ticket \| text>` | Research feasibility before planning (precedent, risks, blockers) |
+| `/mx:verify [--max-rounds 2]` | Playwright video and screenshots, coverage report screenshots, and an independent acceptance review; failures loop back, capped at 2 rounds |
+
+### Lessons (learn from what we build)
+
+| Command | Description |
+|---|---|
+| `/mx:lesson [ticket] [text]` | Collect candidate lessons into the append-only `.claude/lessons/log.jsonl` (runs at the end of `/mx:implement` and `/mx:verify`) |
+| `/mx:lessons-review [--dry-run]` | Weekly curation: merge tags, promote flagged clusters to general rules, place each where it applies, prune |
+
 ### Session Start
 
 | Command | Description |
@@ -191,7 +212,7 @@ See `.env.example` for detailed documentation on each variable.
 
 ## Agents
 
-mx-workflow ships **12 specialized agents**. The eight review-grade agents are the heart of the plugin — they interrogate code from a different angle each. They run automatically via commands like `/mx:implement`, or can be invoked directly via the Task tool.
+mx-workflow ships **16 specialized agents**. The eight review-grade agents are the heart of the plugin — they interrogate code from a different angle each. Four verification agents research a task and prove the result with recorded evidence. They run automatically via commands like `/mx:implement`, or can be invoked directly via the Task tool.
 
 ### Review-grade agents
 
@@ -205,6 +226,15 @@ mx-workflow ships **12 specialized agents**. The eight review-grade agents are t
 | `mx-performance-auditor` | Analyze code for performance bottlenecks and scalability risks |
 | `mx-code-simplifier` | Simplify code for clarity while preserving functionality |
 | `mx-quality-keeper` | Adversarial quality gatekeeper — verifies work and rejects what misses the bar |
+
+### Verification agents
+
+| Agent | Purpose |
+|---|---|
+| `mx-feasibility-researcher` | Research whether a task is feasible before planning |
+| `mx-playwright-validator` | Prove acceptance criteria in a browser with video and screenshots |
+| `mx-coverage-verifier` | Compare coverage before and after, and screenshot the HTML report |
+| `mx-acceptance-reviewer` | Independent, fresh-context check against the ticket's acceptance criteria |
 
 ### Optional build agents
 
@@ -224,7 +254,8 @@ Review code (yours or AI) → /mx:review (one verdict from all 8 review agents)
 New session               → /mx:prime
 New feature (needs spec)  → /mx:prd → /mx:plan → /mx:implement
 Bug fix or small feature  → /mx:rca (if needed) → /mx:plan → /mx:implement
-After implementing        → /mx:e2e (verify it works in the browser)
+Unsure it's doable        → /mx:feasibility <ticket>
+After implementing        → /mx:verify (recorded proof + independent review) or /mx:e2e
 Complex multi-component   → /mx:prd → /mx:build-with-agent-team
 Ready to open a PR        → /mx:pr (or /mx:pr --draft)
 Starting a ticket         → /mx:branch <ticket> <desc> → /mx:plan → /mx:implement

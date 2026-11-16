@@ -1,9 +1,9 @@
 ---
 title: Agent Catalog
-description: All 12 specialized AI agents — 8 review-grade interrogators plus 4 optional build agents.
+description: All 16 specialized AI agents — 8 review-grade interrogators, 4 verification agents, and 4 optional build agents.
 ---
 
-mx-workflow includes **12 specialized agents**. The eight **review-grade** agents are the heart of the plugin — each interrogates your code from a different angle and pushes back on what doesn't meet the bar. The four **build** agents are supporting cast: they generate code during `/mx:build` pipelines, which the review agents then interrogate.
+mx-workflow includes **16 specialized agents**. The eight **review-grade** agents are the heart of the plugin — each interrogates your code from a different angle and pushes back on what doesn't meet the bar. The four **verification** agents research a task before it is planned and prove it afterward with recorded evidence. The four **build** agents are supporting cast: they generate code during `/mx:build` pipelines, which the review agents then interrogate.
 
 All agents run as sub-agents via the Task tool, either automatically during commands like `/mx:implement` or on-demand through the `/mx:agents` command.
 
@@ -271,6 +271,104 @@ The interrogation layer. These eight catch what a generator won't tell you: sile
 - `/mx:build-with-agent-team` — mandatory QA gate for every task
 - Can be invoked directly via the Task tool at any time
 
+## Verification agents
+
+The accountability layer. These four research a task before it is planned and prove it afterward, with recorded evidence. They are orchestrated by [`/mx:feasibility`](/mx-workflow/commands/verification/#mxfeasibility) and [`/mx:verify`](/mx-workflow/commands/verification/#mxverify); see [Research, Build, Prove](/mx-workflow/guides/verification-evidence/) for the full loop.
+
+## mx-feasibility-researcher
+
+**Purpose:** Research whether a ticket, bug, or feature is feasible in this codebase, before anyone plans it.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (reads code, never modifies it) |
+| Default scope | The task and the code it touches |
+
+**What it does:**
+
+- Finds the closest existing implementation to mirror, with `file:line` references
+- Maps the blast radius: modules, callers, shared types, schema, config
+- Looks for blockers: missing infrastructure, library limits, contradictions, no way to verify the result
+- Decides how the finished work could be proven (unit, Playwright, coverage)
+- Returns one verdict: `FEASIBLE`, `FEASIBLE WITH RISKS`, `NOT FEASIBLE`, or `NEEDS CLARIFICATION`
+
+**Invoked by:**
+
+- `/mx:feasibility`
+- `/mx:plan` — runs it first for non-trivial work when no report exists
+
+---
+
+## mx-playwright-validator
+
+**Purpose:** Prove each acceptance criterion in a real browser and keep the recording.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Evidence-gathering (never edits product code) |
+| Default scope | The acceptance criteria for the change |
+
+**What it does:**
+
+- Drives the running app with Playwright and records **video and screenshots** for every criterion (before, action, after)
+- Opens and checks each key screenshot, and watches the console for errors
+- Reports `PASS`, `FAIL`, or `UNVERIFIABLE` per criterion, with file paths
+- Refuses to loosen assertions or add waits to turn a failure into a pass; flaky checks are reported as flaky
+- Stops with `BLOCKED` if Playwright is not installed instead of installing it for you
+
+**Invoked by:**
+
+- `/mx:verify`
+
+---
+
+## mx-coverage-verifier
+
+**Purpose:** Show, with numbers and a screenshot of the real report, whether a change moved coverage the right way.
+
+| Property | Value |
+|---|---|
+| Model | Inherited from session |
+| Mode | Advisory (measures; never edits code or tests) |
+| Default scope | Files changed against trunk |
+
+**What it does:**
+
+- Detects the repo's existing coverage tooling (Vitest, Jest, c8/nyc, pytest-cov, Go, cargo-llvm-cov); never adds one
+- Measures changed files on trunk (in a throwaway worktree) and on your branch
+- Opens the project's HTML coverage report in a browser with Playwright and screenshots the summary and per-file pages
+- Checks that the **changed lines** are covered, and flags new coverage exclusions
+- Verdict: `IMPROVED`, `MAINTAINED`, `REGRESSED`, or `NO COVERAGE TOOLING`
+
+**Invoked by:**
+
+- `/mx:verify`
+
+---
+
+## mx-acceptance-reviewer
+
+**Purpose:** An independent, fresh-context check that the work meets the ticket.
+
+| Property | Value |
+|---|---|
+| Model | Opus |
+| Mode | Advisory, adversarial (read-only) |
+| Default scope | Diff + acceptance criteria + evidence |
+
+**What it does:**
+
+- Receives **only** the diff, the criteria, and the evidence index. Never the plan or the implementer's reasoning
+- Traces each criterion to the code, then checks the evidence actually shows it
+- Hunts for what the criteria missed: unhandled edge cases, silent fallbacks, scope creep, tests that run code without asserting
+- Verdict per criterion (`MET`, `PARTIAL`, `NOT MET`, `NOT IMPLEMENTED`, `AMBIGUOUS`) and self-contained fix instructions for each failure
+
+**Invoked by:**
+
+- `/mx:verify` — after the Playwright and coverage evidence exists
+
 ## Optional build agents
 
 Supporting cast for the `/mx:build` and `/mx:build-with-agent-team` pipelines. These agents **generate** code — schema, features, tests, launch integrations — which the review-grade agents above then interrogate. Invoke them through the build commands rather than directly.
@@ -347,6 +445,15 @@ Wires in the five Ship Kit components — analytics (Umami), SEO, Stripe payment
 | mx-performance-auditor | — | Yes |
 | mx-code-simplifier | `/mx:implement` (always, final pass) | Yes |
 | mx-quality-keeper | `/mx:qa`, `/mx:build-with-agent-team` (QA gate) | Yes |
+
+### Verification agents
+
+| Agent | Runs automatically in | On-demand |
+|---|---|---|
+| mx-feasibility-researcher | `/mx:feasibility`, `/mx:plan` (non-trivial work) | Yes |
+| mx-playwright-validator | `/mx:verify` | Yes |
+| mx-coverage-verifier | `/mx:verify` | Yes |
+| mx-acceptance-reviewer | `/mx:verify` | Yes |
 
 ### Optional build agents
 
